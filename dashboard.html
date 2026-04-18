@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Dashboard - BluKaam Connection</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+</head>
+<body style="background: var(--off-white);">
+
+  <nav>
+    <div class="nav-inner">
+      <a class="logo-wrap" href="index.html">
+        <img class="logo-icon-img" src="logo.png" alt="BluKaam Logo">
+        <div class="logo-text">
+          <div class="brand">BluKaam</div>
+          <div class="sub">Connection</div>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="jobs.html">Find Jobs</a>
+        <a href="#" onclick="logout()" class="nav-cta" style="background:var(--red);">Log Out</a>
+      </div>
+    </div>
+  </nav>
+
+  <section style="padding: 60px 1.5rem; max-width: 800px; margin: 0 auto; text-align: center;">
+    <div style="background: white; border-radius: var(--radius-lg); padding: 40px; box-shadow: var(--shadow-md);">
+        <h1 style="font-family: 'Baloo 2', sans-serif; color: var(--green); margin-bottom: 20px;">🎉 Welcome to your Dashboard!</h1>
+        <p style="font-size: 18px; color: var(--gray-600); margin-bottom: 30px;">
+            Your phone number has been verified and your profile is successfully created. 
+            Soon, you will be able to edit your skills, upload photos, and apply to jobs directly from this screen.
+        </p>
+        <div style="display:flex; justify-content:center; gap:20px;">
+            <a href="jobs.html" class="apply-btn" style="text-decoration:none;">Browse Job Openings</a>
+            <a href="workers.html" class="apply-btn" style="background:white; color:var(--blue-mid); border:2px solid var(--blue-mid); text-decoration:none;">View Other Profiles</a>
+        </div>
+    </div>
+  </section>
+
+  <script>
+      // Quick authentication check
+      if(!localStorage.getItem('blukaam_token')) {
+          window.location.href = "login.html";
+      }
+
+      function logout() {
+          localStorage.removeItem('blukaam_token');
+          window.location.href = "index.html";
+      }
+  </script>
+</body>
+</html>

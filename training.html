@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BluKaam Connection – Apni Skill Dikhao, Sahi Job Pao</title>
+  <meta name="description"
+    content="India's #1 platform connecting skilled blue-collar workers with contractors. Carpenters, Electricians, Plumbers and more – find jobs near you.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Baloo+2:wght@500;700;800&family=Tiro+Devanagari+Hindi&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a class="logo-wrap" href="#">
+        <img class="logo-icon-img" src="logo.png" alt="BluKaam Logo">
+        <div class="logo-text">
+          <div class="brand">BluKaam</div>
+          <div class="sub">Connection</div>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html#skills">Browse Skills</a>
+        <a href="jobs.html">Find Jobs</a>
+        <a href="training.html">Training</a>
+        <a href="jobs.html#contractor">For Contractors</a>
+        <a href="index.html#about">About</a>
+        <a href="login.html" class="nav-cta">Login / Sign Up</a>
+      </div>
+      <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+<!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html#skills" onclick="toggleMenu()">Browse Skills</a>
+    <a href="jobs.html" onclick="toggleMenu()">Find Jobs</a>
+    <a href="training.html" onclick="toggleMenu()">Training</a>
+    <a href="jobs.html#contractor" onclick="toggleMenu()">For Contractors</a>
+    <a href="index.html#about" onclick="toggleMenu()">About</a>
+    <a href="#" href="login.html" style="color: var(--blue-mid);">Login / Sign Up</a>
+  </div>
+
+<!-- TRAINING / LEARNING HUB -->
+  <section class="training-section" id="training" style="background:var(--off-white);">
+    <div class="section-inner">
+      <div class="section-tag">Free Training</div>
+      <h2 class="section-title">Skill Seekho, Free Mein!</h2>
+      <p class="section-sub">Curated Hindi & regional language tutorials from YouTube. Skill India & PMKVY courses.</p>
+
+      <div class="video-grid">
+        <div class="video-card">
+          <div class="video-thumb" style="background: linear-gradient(135deg, #1A237E, #3949AB);">
+            <div class="play-btn">▶</div>
+            <div class="yt-badge">YouTube</div>
+          </div>
+          <div class="video-body">
+            <div class="video-title">Complete House Wiring – Hindi Tutorial for Beginners</div>
+            <div class="video-meta">Channel: Electrical Guru · 1.2M views</div>
+            <div class="video-lang">🇮🇳 Hindi</div>
+          </div>
+        </div>
+        <div class="video-card">
+          <div class="video-thumb" style="background: linear-gradient(135deg, #1B5E20, #388E3C);">
+            <div class="play-btn">▶</div>
+            <div class="yt-badge">YouTube</div>
+          </div>
+          <div class="video-body">
+            <div class="video-title">Plumbing Pipe Fitting Full Course – Ghar Pe Seekho</div>
+            <div class="video-meta">Channel: Skill India Plumbing · 890K views</div>
+            <div class="video-lang">🇮🇳 Hindi</div>
+          </div>
+        </div>
+        <div class="video-card">
+          <div class="video-thumb" style="background: linear-gradient(135deg, #B71C1C, #E53935);">
+            <div class="play-btn">▶</div>
+            <div class="yt-badge">PMKVY</div>
+          </div>
+          <div class="video-body">
+            <div class="video-title">Marble & Tile Fitting – Professional Techniques</div>
+            <div class="video-meta">NSDC Official · 650K views</div>
+            <div class="video-lang">🇮🇳 Hindi + Regional</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:32px;">
+        <div
+          style="background:white; border:1.5px solid var(--blue-light); border-radius:var(--radius-lg); padding:24px; max-width:500px; margin:0 auto;">
+          <div style="font-size:24px; margin-bottom:10px;">🏅</div>
+          <div
+            style="font-size:16px; font-weight:700; color:var(--blue-dark); margin-bottom:6px; font-family:'Baloo 2',sans-serif;">
+            PMKVY Free Certification</div>
+          <div style="font-size:13px; color:var(--gray-600); margin-bottom:16px;">Complete training → Get certificate →
+            Add to your BluKaam profile → Earn more!</div>
+          <button
+            style="background:var(--orange); color:white; border:none; border-radius:var(--radius-sm); padding:12px 28px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Noto Sans',sans-serif;">PMKVY
+            Course Register Karo</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERNSHIP / APPRENTICESHIP -->
+  <section class="internship-section" id="internship">
+    <div class="section-inner">
+      <div class="section-tag">Learn & Earn</div>
+      <h2 class="section-title">Apprenticeship & Internships</h2>
+      <p class="section-sub">Learn on the job while earning a stipend. Build your skills and portfolio from day one.</p>
+
+      <div class="intern-grid">
+        <div class="intern-card">
+          <div class="intern-type">Apprenticeship</div>
+          <div class="intern-title">Electrical Apprentice</div>
+          <div class="intern-org">Sharma Builders · Gurugram</div>
+          <div class="intern-details">
+            <span>⏱ 6 Months</span>
+            <span>💰 ₹8,000–12,000/mo</span>
+            <span>📍 On-site</span>
+          </div>
+          <button class="intern-apply">Apply Now</button>
+        </div>
+        <div class="intern-card">
+          <div class="intern-type" style="background:var(--green-light); color:var(--green);">NSDC Program</div>
+          <div class="intern-title">Plumbing Trainee</div>
+          <div class="intern-org">Skill India NSDC · Delhi</div>
+          <div class="intern-details">
+            <span>⏱ 3 Months</span>
+            <span>💰 ₹6,000–9,000/mo</span>
+            <span>📍 Multiple Cities</span>
+          </div>
+          <button class="intern-apply">Apply Now</button>
+        </div>
+        <div class="intern-card">
+          <div class="intern-type">OJT Program</div>
+          <div class="intern-title">Construction Helper → Mason</div>
+          <div class="intern-org">UrbanClap Partner Contractor</div>
+          <div class="intern-details">
+            <span>⏱ 4 Months</span>
+            <span>💰 ₹7,000–10,000/mo</span>
+            <span>📍 Pan India</span>
+          </div>
+          <button class="intern-apply">Apply Now</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+
+<!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <div
+              style="width:36px; height:36px; background:rgba(255,255,255,0.15); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; font-family:'Baloo 2',sans-serif;">
+              BK</div>
+            <div>
+              <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:16px;">BluKaam Connection</div>
+              <div style="font-size:11px; color:rgba(255,255,255,0.4); letter-spacing:2px;">CONNECTING INDIA'S WORKFORCE
+              </div>
+            </div>
+          </div>
+          <p class="footer-brand-desc">India's leading platform connecting skilled blue-collar workers with contractors
+            and businesses. Empowering India's workforce, one job at a time.</p>
+          <div style="margin-top:16px; display:flex; gap:8px;">
+            <div class="footer-badge">📱 Android App</div>
+            <div class="footer-badge">🍎 iOS App</div>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">For Workers</div>
+          <ul class="footer-links">
+            <li><a href="#">Create Profile</a></li>
+            <li><a href="#">Browse Jobs</a></li>
+            <li><a href="#">Free Training</a></li>
+            <li><a href="#">PMKVY Courses</a></li>
+            <li><a href="#">Success Stories</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">For Contractors</div>
+          <ul class="footer-links">
+            <li><a href="#">Post a Job</a></li>
+            <li><a href="#">Browse Workers</a></li>
+            <li><a href="#">Company Profile</a></li>
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Pricing</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Company</div>
+          <ul class="footer-links">
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Help Center</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 BluKaam Connection. Made with ❤️ for India's Blue-Collar Workforce.</p>
+        <div class="footer-badges">
+          <div class="footer-badge">Skill India Partner</div>
+          <div class="footer-badge">NSDC Certified</div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+<script src="script.js"></script>
+</body>
+
+</html>

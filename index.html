@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BluKaam Connection – Apni Skill Dikhao, Sahi Job Pao</title>
+  <meta name="description"
+    content="India's #1 platform connecting skilled blue-collar workers with contractors. Carpenters, Electricians, Plumbers and more – find jobs near you.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Baloo+2:wght@500;700;800&family=Tiro+Devanagari+Hindi&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a class="logo-wrap" href="#">
+        <img class="logo-icon-img" src="logo.png" alt="BluKaam Logo">
+        <div class="logo-text">
+          <div class="brand">BluKaam</div>
+          <div class="sub">Connection</div>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html#skills">Browse Skills</a>
+        <a href="jobs.html">Find Jobs</a>
+        <a href="training.html">Training</a>
+        <a href="login.html">For Contractors</a>
+        <a href="index.html#about">About</a>
+        <a href="login.html" class="nav-cta">Login / Sign Up</a>
+      </div>
+      <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html#skills" onclick="toggleMenu()">Browse Skills</a>
+    <a href="jobs.html" onclick="toggleMenu()">Find Jobs</a>
+    <a href="training.html" onclick="toggleMenu()">Training</a>
+    <a href="jobs.html#contractor" onclick="toggleMenu()">For Contractors</a>
+    <a href="index.html#about" onclick="toggleMenu()">About</a>
+    <a href="#" href="login.html" style="color: var(--blue-mid);">Login / Sign Up</a>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-inner">
+      <div class="hero-badge">India's #1 Blue-Collar Job Platform ★ 4.8 Rating</div>
+
+      <h1 class="hindi">
+        अपनी Skill दिखाओ,<br>
+        <span class="orange">सही Job पाओ</span>
+      </h1>
+      <h2>Contractors ko Skilled Workers Milen · Workers ko Sahi Kaam Milen</h2>
+
+      <!-- Search -->
+      <div class="search-bar">
+        <span style="font-size:18px;">🔍</span>
+        <input type="text" placeholder="Search skill: Electrician, Plumber, Carpenter...">
+        <div class="search-divider"></div>
+        <input class="city-input" type="text" placeholder="📍 City / Area">
+        <button class="search-btn">Search Karo</button>
+      </div>
+
+      <!-- Choice Cards -->
+      <div class="user-choice">
+        <a class="choice-card" href="login.html">
+          <span class="choice-icon">👷</span>
+          <h3 class="hindi">Main Worker Hoon</h3>
+          <p>Carpenter, Electrician, Plumber & more</p>
+          <span class="choice-btn">Profile Banao (LinkedIn Style)</span>
+        </a>
+        <a class="choice-card" href="jobs.html#contractor">
+          <span class="choice-icon">🏗️</span>
+          <h3 class="hindi">Main Contractor Hoon</h3>
+          <p>Post jobs, hire skilled workers fast</p>
+          <span class="choice-btn secondary">Job Post Karo / Company Profile</span>
+        </a>
+      </div>
+
+      <!-- Trust -->
+      <div class="trust-row">
+        <div class="trust-badge"><span class="num">10,000+</span> Workers Joined</div>
+        <div class="trust-dot"></div>
+        <div class="trust-badge"><span class="num">500+</span> Contractors</div>
+        <div class="trust-dot"></div>
+        <div class="trust-badge"><span class="num">Free</span> Training Hub</div>
+        <div class="trust-dot"></div>
+        <div class="trust-badge"><span class="num">PMKVY</span> Certified</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS BROWSE -->
+  <section class="skills-section" id="skills">
+    <div class="section-inner">
+      <div class="section-tag">Popular Trades</div>
+      <h2 class="section-title">Kaunsi Skill Chahiye?</h2>
+      <p class="section-sub">Browse India's most in-demand blue-collar skills and find work near you</p>
+      <div class="skills-grid">
+        <a class="skill-chip" href="jobs.html">
+          <span class="icon">⚡</span>
+          <div class="label">Electrician</div>
+          <div class="count">1,240 workers</div>
+        </a>
+        <a class="skill-chip" href="jobs.html">
+          <span class="icon">🔧</span>
+          <div class="label">Plumber</div>
+          <div class="count">980 workers</div>
+        </a>
+        <a class="skill-chip" href="jobs.html">
+          <span class="icon">🪚</span>
+          <div class="label">Carpenter</div>
+          <div class="count">760 workers</div>
+        </a>
+        <a class="skill-chip" href="jobs.html">
+          <span class="icon">🎨</span>
+          <div class="label">Painter</div>
+          <div class="count">650 workers</div>
+        </a>
+        <a class="skill-chip" href="jobs.html">
+          <span class="icon">🧱</span>
+          <div class="label">Mason / Mistri</div>
+          <div class="count">890 workers</div>
+        </a>
+        <a class="skill-chip" href="jobs.html">
+          <span class="icon">🔩</span>
+          <div class="label">Welder</div>
+          <div class="count">430 workers</div>
+        </a>
+        <a class="skill-chip" href="jobs.html">
+          <span class="icon">🪟</span>
+          <div class="label">Marble / Flooring</div>
+          <div class="count">380 workers</div>
+        </a>
+        <a class="skill-chip" href="jobs.html">
+          <span class="icon">❄️</span>
+          <div class="label">AC / Refrigeration</div>
+          <div class="count">510 workers</div>
+        </a>
+        <a class="skill-chip" href="jobs.html">
+          <span class="icon">🚿</span>
+          <div class="label">Tile Fitter</div>
+          <div class="count">340 workers</div>
+        </a>
+        <a class="skill-chip" href="jobs.html">
+          <span class="icon">🏗️</span>
+          <div class="label">Construction Helper</div>
+          <div class="count">2,100 workers</div>
+        </a>
+        <a class="skill-chip" href="jobs.html">
+          <span class="icon">🔨</span>
+          <div class="label">Fabricator</div>
+          <div class="count">290 workers</div>
+        </a>
+        <a class="skill-chip" href="jobs.html">
+          <span class="icon">+</span>
+          <div class="label">More Skills</div>
+          <div class="count">50+ categories</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUCCESS STORIES -->
+  <section class="stories-section">
+    <div class="section-inner">
+      <div class="section-tag" style="background:rgba(255,255,255,0.15); color:rgba(255,255,255,0.9);">Success Stories
+      </div>
+      <h2 class="section-title">Unki Kahani – Aapki Inspiration</h2>
+      <p class="section-sub">Real workers, real results. See how BluKaam changed their lives.</p>
+      <div class="stories-grid">
+        <div class="story-card">
+          <div class="story-av">RS</div>
+          <div class="story-quote">"BluKaam se mujhe pehle 2 hafte mein hi 3 kaam mile. Ab mera monthly income ₹45,000
+            se zyada hai!"</div>
+          <div class="story-name">Ramesh Singh</div>
+          <div class="story-role">Electrician · Delhi · 8 Yrs Exp</div>
+          <div class="story-income">Income: ₹18K → ₹45K+/month</div>
+        </div>
+        <div class="story-card">
+          <div class="story-av">PT</div>
+          <div class="story-quote">"Maine pehle ek din ek contractor se baat karta tha. Aaj mera apna contractor network
+            hai. BluKaam ne mera career banaya."</div>
+          <div class="story-name">Pradeep Tiwari</div>
+          <div class="story-role">Plumber → Own Business · Noida</div>
+          <div class="story-income">Now Running Own Team of 8 Workers</div>
+        </div>
+        <div class="story-card">
+          <div class="story-av">SK</div>
+          <div class="story-quote">"Main pehle din mein ₹300 kamata tha. PMKVY course kiya, profile banaya – ab ₹700/day
+            milta hai!"</div>
+          <div class="story-name">Sunil Kumar</div>
+          <div class="story-role">Painter · Meerut · PMKVY Certified</div>
+          <div class="story-income">Daily Rate: ₹300 → ₹700+</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-section" id="about">
+    <div class="section-inner">
+      <div class="section-tag">Simple Steps</div>
+      <h2 class="section-title">Kaise Kaam Karta Hai?</h2>
+      <p class="section-sub">For workers – 4 simple steps to start earning more today</p>
+      <div class="steps-grid">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-title">Register Karo</div>
+          <div class="step-desc">Naam, phone, city aur skill type enter karo. Sirf 30 seconds.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-title">Profile Banao</div>
+          <div class="step-desc">Photo, skills, experience, aur kaam ke photos add karo.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-title">Jobs Dekho</div>
+          <div class="step-desc">Apne skill aur city ke jobs dekho aur directly apply karo.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-title">Kaam Karo, Kamao</div>
+          <div class="step-desc">Contractor se baat karo, kaam karo, review lo, aur aage badho!</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH ARCHITECTURE -->
+  <section class="arch-section">
+    <div class="section-inner">
+      <div class="section-tag">Tech Stack</div>
+      <h2 class="section-title">Recommended Architecture</h2>
+      <p class="section-sub">Supabase dual-database design + Next.js 15 for scalable, fast, SEO-friendly performance</p>
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-num">DB1</div>
+          <div class="arch-title">Core Users Database (Supabase)</div>
+          <ul class="arch-items">
+            <li>user_id (UUID, Primary Key)</li>
+            <li>name (varchar)</li>
+            <li>phone (unique, indexed)</li>
+            <li>city (varchar)</li>
+            <li>user_type (worker/contractor)</li>
+            <li>created_at, otp_verified</li>
+          </ul>
+        </div>
+        <div class="arch-card">
+          <div class="arch-num">DB2</div>
+          <div class="arch-title">Profile Details Database (Supabase)</div>
+          <ul class="arch-items">
+            <li>user_id (FK → DB1)</li>
+            <li>skills[] + proficiency{}</li>
+            <li>experience[] (JSONB)</li>
+            <li>portfolio_photos[] (Storage)</li>
+            <li>certifications[], reviews[]</li>
+            <li>chart_data{} radar/bar</li>
+          </ul>
+        </div>
+        <div class="arch-card">
+          <div class="arch-num">FE</div>
+          <div class="arch-title">Frontend – Next.js 15</div>
+          <ul class="arch-items">
+            <li>App Router + Server Components</li>
+            <li>Tailwind CSS + shadcn/ui</li>
+            <li>Chart.js for radar/bar charts</li>
+            <li>i18n: Hindi + English</li>
+            <li>PWA – offline + installable</li>
+            <li>Image optimization built-in</li>
+          </ul>
+        </div>
+        <div class="arch-card">
+          <div class="arch-num">BE</div>
+          <div class="arch-title">Backend & Infrastructure</div>
+          <ul class="arch-items">
+            <li>Supabase Auth (OTP/phone)</li>
+            <li>Supabase Storage (photos)</li>
+            <li>Supabase Realtime (alerts)</li>
+            <li>Vercel deployment (CDN)</li>
+            <li>WhatsApp API integration</li>
+            <li>Google Analytics + SEO</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Color & Design System -->
+      <div
+        style="margin-top:40px; background:white; border:1.5px solid var(--gray-200); border-radius:var(--radius-lg); padding:28px;">
+        <div class="card-title">Color Palette & Design System</div>
+        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
+          <div style="text-align:center;">
+            <div
+              style="width:60px; height:60px; background:#0D2F6E; border-radius:var(--radius-sm); margin-bottom:6px;">
+            </div>
+            <div style="font-size:11px; font-weight:600; color:var(--gray-600);">Primary Blue</div>
+            <div style="font-size:10px; color:var(--gray-400);">#0D2F6E</div>
+          </div>
+          <div style="text-align:center;">
+            <div
+              style="width:60px; height:60px; background:#1E88E5; border-radius:var(--radius-sm); margin-bottom:6px;">
+            </div>
+            <div style="font-size:11px; font-weight:600; color:var(--gray-600);">Bright Blue</div>
+            <div style="font-size:10px; color:var(--gray-400);">#1E88E5</div>
+          </div>
+          <div style="text-align:center;">
+            <div
+              style="width:60px; height:60px; background:#F57C00; border-radius:var(--radius-sm); margin-bottom:6px;">
+            </div>
+            <div style="font-size:11px; font-weight:600; color:var(--gray-600);">Orange CTA</div>
+            <div style="font-size:10px; color:var(--gray-400);">#F57C00</div>
+          </div>
+          <div style="text-align:center;">
+            <div
+              style="width:60px; height:60px; background:#FF9800; border-radius:var(--radius-sm); margin-bottom:6px;">
+            </div>
+            <div style="font-size:11px; font-weight:600; color:var(--gray-600);">Orange Accent</div>
+            <div style="font-size:10px; color:var(--gray-400);">#FF9800</div>
+          </div>
+          <div style="text-align:center;">
+            <div
+              style="width:60px; height:60px; background:#FFFFFF; border:1.5px solid var(--gray-200); border-radius:var(--radius-sm); margin-bottom:6px;">
+            </div>
+            <div style="font-size:11px; font-weight:600; color:var(--gray-600);">White</div>
+            <div style="font-size:10px; color:var(--gray-400);">#FFFFFF</div>
+          </div>
+          <div style="text-align:center;">
+            <div
+              style="width:60px; height:60px; background:#2E7D32; border-radius:var(--radius-sm); margin-bottom:6px;">
+            </div>
+            <div style="font-size:11px; font-weight:600; color:var(--gray-600);">Success Green</div>
+            <div style="font-size:10px; color:var(--gray-400);">#2E7D32</div>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+          <div>
+            <div
+              style="font-size:12px; font-weight:700; color:var(--gray-600); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">
+              Display Font</div>
+            <div style="font-family:'Baloo 2',sans-serif; font-size:22px; font-weight:800; color:var(--blue-dark);">
+              Baloo 2 – Bold</div>
+            <div style="font-size:12px; color:var(--gray-400);">Headlines, Hindi text, logos</div>
+          </div>
+          <div>
+            <div
+              style="font-size:12px; font-weight:700; color:var(--gray-600); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">
+              Body Font</div>
+            <div style="font-family:'Noto Sans',sans-serif; font-size:16px; color:var(--gray-800);">Noto Sans – Regular
+            </div>
+            <div style="font-size:12px; color:var(--gray-400);">Body text, forms, UI labels</div>
+          </div>
+          <div>
+            <div
+              style="font-size:12px; font-weight:700; color:var(--gray-600); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">
+              Button Style</div>
+            <button
+              style="background:var(--orange); color:white; border:none; border-radius:100px; padding:10px 20px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Noto Sans',sans-serif; margin-right:8px;">Primary
+              CTA</button>
+            <button
+              style="background:var(--blue-mid); color:white; border:none; border-radius:var(--radius-sm); padding:10px 20px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Noto Sans',sans-serif;">Action
+              Btn</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <div
+              style="width:36px; height:36px; background:rgba(255,255,255,0.15); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; font-family:'Baloo 2',sans-serif;">
+              BK</div>
+            <div>
+              <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:16px;">BluKaam Connection</div>
+              <div style="font-size:11px; color:rgba(255,255,255,0.4); letter-spacing:2px;">CONNECTING INDIA'S WORKFORCE
+              </div>
+            </div>
+          </div>
+          <p class="footer-brand-desc">India's leading platform connecting skilled blue-collar workers with contractors
+            and businesses. Empowering India's workforce, one job at a time.</p>
+          <div style="margin-top:16px; display:flex; gap:8px;">
+            <div class="footer-badge">📱 Android App</div>
+            <div class="footer-badge">🍎 iOS App</div>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">For Workers</div>
+          <ul class="footer-links">
+            <li><a href="#">Create Profile</a></li>
+            <li><a href="#">Browse Jobs</a></li>
+            <li><a href="#">Free Training</a></li>
+            <li><a href="#">PMKVY Courses</a></li>
+            <li><a href="#">Success Stories</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">For Contractors</div>
+          <ul class="footer-links">
+            <li><a href="#">Post a Job</a></li>
+            <li><a href="#">Browse Workers</a></li>
+            <li><a href="#">Company Profile</a></li>
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Pricing</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Company</div>
+          <ul class="footer-links">
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Help Center</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 BluKaam Connection. Made with ❤️ for India's Blue-Collar Workforce.</p>
+        <div class="footer-badges">
+          <div class="footer-badge">Skill India Partner</div>
+          <div class="footer-badge">NSDC Certified</div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  
+
+  <script src="script.js"></script>
+</body>
+
+</html>

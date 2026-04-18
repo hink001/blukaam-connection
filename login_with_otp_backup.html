@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BluKaam Connection – Apni Skill Dikhao, Sahi Job Pao</title>
+  <meta name="description"
+    content="India's #1 platform connecting skilled blue-collar workers with contractors. Carpenters, Electricians, Plumbers and more – find jobs near you.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Baloo+2:wght@500;700;800&family=Tiro+Devanagari+Hindi&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a class="logo-wrap" href="#">
+        <img class="logo-icon-img" src="logo.png" alt="BluKaam Logo">
+        <div class="logo-text">
+          <div class="brand">BluKaam</div>
+          <div class="sub">Connection</div>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html#skills">Browse Skills</a>
+        <a href="jobs.html">Find Jobs</a>
+        <a href="training.html">Training</a>
+        <a href="jobs.html#contractor">For Contractors</a>
+        <a href="index.html#about">About</a>
+        <a href="login.html" class="nav-cta">Login / Sign Up</a>
+      </div>
+      <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html#skills" onclick="toggleMenu()">Browse Skills</a>
+    <a href="jobs.html" onclick="toggleMenu()">Find Jobs</a>
+    <a href="training.html" onclick="toggleMenu()">Training</a>
+    <a href="jobs.html#contractor" onclick="toggleMenu()">For Contractors</a>
+    <a href="index.html#about" onclick="toggleMenu()">About</a>
+    <a href="#" href="login.html" style="color: var(--blue-mid);">Login / Sign Up</a>
+  </div>
+
+
+  <!-- LOGIN SECTION -->
+  <section class="login-section" style="background:var(--off-white); min-height:80vh; display:flex; align-items:center; justify-content:center; padding: 40px 1.5rem;">
+    <div style="background:white; border-radius:var(--radius-lg); width:100%; max-width:500px; padding:30px; box-shadow:var(--shadow-md); border:1.5px solid var(--gray-200);">
+        <h2 style="text-align:center; font-family:'Baloo 2',sans-serif; color:var(--blue-dark); margin-bottom:24px;">Join BluKaam Connection</h2>
+        
+        <!-- STEP 1: Main Registration Form (Shown First) -->
+        <div id="authStep1" style="display:block;">
+            <p style="text-align:center; color:var(--gray-600); margin-bottom:10px;">Already have an account? <a href="#" onclick="showLoginOnly()" style="color:var(--blue-mid); font-weight:700;">Log In</a></p>
+            
+            <div class="role-selector" style="display:flex; gap:10px; margin-bottom:20px;">
+              <button id="btnRoleWorker" class="tab-btn active" type="button" onclick="switchRole('Worker')" style="flex:1;">Worker</button>
+              <button id="btnRoleContractor" class="tab-btn" type="button" onclick="switchRole('Contractor')" style="flex:1;">Contractor</button>
+            </div>
+
+            <form id="registrationForm" onsubmit="handleRegistrationSubmit(event)">
+              <input type="hidden" id="regRole" value="Worker">
+
+              <div class="form-group">
+                <label class="form-label">Full Name *</label>
+                <input type="text" id="regName" class="form-input" required>
+              </div>
+
+              <!-- Phone Number added back -->
+              <div class="form-group">
+                <label class="form-label">Phone Number *</label>
+                <input type="tel" id="regPhone" class="form-input" placeholder="e.g. 9876543210" required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" id="lblIndustry">Industry *</label>
+                  <input type="text" id="regIndustry" class="form-input" placeholder="e.g. Construction" required>
+                </div>
+                <div class="form-group" id="grpWorkType">
+                  <label class="form-label">Work Type *</label>
+                  <input type="text" id="regWorkType" class="form-input" placeholder="e.g. Electrician" required>
+                </div>
+                <div class="form-group" id="grpCompanyName" style="display:none;">
+                  <label class="form-label">Company Name *</label>
+                  <input type="text" id="regCompany" class="form-input" placeholder="Your Builder/Agency Name">
+                </div>
+              </div>
+
+              <div class="form-group" id="grpSkills">
+                <label class="form-label">Skills (Comma separated) *</label>
+                <input type="text" id="regSkills" class="form-input" placeholder="e.g. Wiring, Pipe Fitting" required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">City *</label>
+                  <input type="text" id="regCity" class="form-input" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">State *</label>
+                  <input type="text" id="regState" class="form-input" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Pincode *</label>
+                  <input type="text" id="regPincode" class="form-input" required>
+                </div>
+              </div>
+
+              <button type="submit" class="apply-btn" style="width:100%; margin-top:20px;">Register Profile</button>
+            </form>
+        </div>
+
+        <!-- LOG IN ONLY VIEW -->
+        <div id="authLoginOnly" style="display:none;">
+            <p style="text-align:center; color:var(--gray-600); margin-bottom:20px;">Enter your phone number to log into your account.</p>
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="text" id="authIdentifier" class="form-input" placeholder="e.g. 9876543210">
+            </div>
+            <button type="button" onclick="sendLoginOtp()" class="apply-btn" style="width:100%; margin-top:10px;">Get OTP to Log In</button>
+            <p style="text-align:center; margin-top:15px;"><a href="#" onclick="window.location.reload()">Back to Registration</a></p>
+        </div>
+
+        <!-- STEP 2: Verify OTP -->
+        <div id="authStep2" style="display:none; text-align:center;">
+            <p style="color:var(--gray-600); margin-bottom:20px;">We sent a 6-digit secure code to your number.</p>
+            <div class="form-group">
+                <input type="text" id="authOtp" class="form-input" placeholder="Enter 6-digit OTP" style="text-align:center; font-size:24px; letter-spacing:8px;" maxlength="6" required>
+            </div>
+            <button type="button" onclick="verifyOtp()" class="apply-btn" style="width:100%; margin-top:10px;">Verify Secure Code</button>
+            <button type="button" onclick="window.location.reload()" style="background:none; border:none; color:var(--blue-mid); margin-top:10px; cursor:pointer; font-weight:600;">Cancel & Edit Details</button>
+        </div>
+      
+    </div>
+  </section>
+
+<!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <div
+              style="width:36px; height:36px; background:rgba(255,255,255,0.15); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; font-family:'Baloo 2',sans-serif;">
+              BK</div>
+            <div>
+              <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:16px;">BluKaam Connection</div>
+              <div style="font-size:11px; color:rgba(255,255,255,0.4); letter-spacing:2px;">CONNECTING INDIA'S WORKFORCE</div>
+            </div>
+          </div>
+          <p class="footer-brand-desc">India's leading platform connecting skilled blue-collar workers with contractors and businesses.</p>
+        </div>
+        <div>
+          <div class="footer-col-title">For Workers</div>
+          <ul class="footer-links">
+            <li><a href="#">Create Profile</a></li>
+            <li><a href="#">Browse Jobs</a></li>
+            <li><a href="#">Free Training</a></li>
+            <li><a href="#">PMKVY Courses</a></li>
+            <li><a href="#">Success Stories</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">For Contractors</div>
+          <ul class="footer-links">
+            <li><a href="#">Post a Job</a></li>
+            <li><a href="#">Browse Workers</a></li>
+            <li><a href="#">Company Profile</a></li>
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Pricing</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Company</div>
+          <ul class="footer-links">
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Help Center</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 BluKaam Connection. Made with ❤️ for India's Blue-Collar Workforce.</p>
+        <div class="footer-badges">
+          <div class="footer-badge">Skill India Partner</div>
+          <div class="footer-badge">NSDC Certified</div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+<script src="script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BluKaam Connection – Apni Skill Dikhao, Sahi Job Pao</title>
+  <meta name="description"
+    content="India's #1 platform connecting skilled blue-collar workers with contractors. Carpenters, Electricians, Plumbers and more – find jobs near you.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Baloo+2:wght@500;700;800&family=Tiro+Devanagari+Hindi&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a class="logo-wrap" href="#">
+        <img class="logo-icon-img" src="logo.png" alt="BluKaam Logo">
+        <div class="logo-text">
+          <div class="brand">BluKaam</div>
+          <div class="sub">Connection</div>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html#skills">Browse Skills</a>
+        <a href="jobs.html">Find Jobs</a>
+        <a href="training.html">Training</a>
+        <a href="jobs.html#contractor">For Contractors</a>
+        <a href="index.html#about">About</a>
+        <a href="login.html" class="nav-cta">Login / Sign Up</a>
+      </div>
+      <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+<!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html#skills" onclick="toggleMenu()">Browse Skills</a>
+    <a href="jobs.html" onclick="toggleMenu()">Find Jobs</a>
+    <a href="training.html" onclick="toggleMenu()">Training</a>
+    <a href="jobs.html#contractor" onclick="toggleMenu()">For Contractors</a>
+    <a href="index.html#about" onclick="toggleMenu()">About</a>
+    <a href="#" href="login.html" style="color: var(--blue-mid);">Login / Sign Up</a>
+  </div>
+
+<!-- JOBS SECTION -->
+  <section class="jobs-section" id="jobs">
+    <div class="section-inner">
+      <div class="section-tag">Latest Jobs</div>
+      <h2 class="section-title">Aaj Ki Job Openings</h2>
+      <p class="section-sub">Fresh job postings from verified contractors across India</p>
+
+      <div class="jobs-grid">
+        <div class="job-card">
+          <div class="job-card-header">
+            <div class="company-info">
+              <div class="company-name">Sharma Builders · Delhi NCR</div>
+              <div class="job-title">Senior Electrician</div>
+            </div>
+            <div class="company-av">SB</div>
+          </div>
+          <div class="job-meta">
+            <span class="job-tag">📍 Gurugram</span>
+            <span class="job-tag">⏱ 3 Months</span>
+            <span class="job-tag">👥 4 Workers</span>
+          </div>
+          <div class="job-salary">₹600–750 <span>/ day</span></div>
+          <div style="font-size:12px; color:var(--gray-400); margin-top:4px;">Posted 2 hours ago · 12 Applied</div>
+          <button class="apply-btn">Apply Now – Abhi Apply Karo</button>
+        </div>
+
+        <div class="job-card">
+          <div class="job-card-header">
+            <div class="company-info">
+              <div class="company-name">HomeReno Pvt. Ltd. · Noida</div>
+              <div class="job-title">Plumber + Helper</div>
+            </div>
+            <div class="company-av" style="background:var(--green-light); color:var(--green);">HR</div>
+          </div>
+          <div class="job-meta">
+            <span class="job-tag">📍 Noida Sec 62</span>
+            <span class="job-tag">⏱ 2 Weeks</span>
+            <span class="job-tag">👥 2 Workers</span>
+          </div>
+          <div class="job-salary">₹500–600 <span>/ day</span></div>
+          <div style="font-size:12px; color:var(--gray-400); margin-top:4px;">Posted 5 hours ago · 8 Applied</div>
+          <button class="apply-btn">Apply Now – Abhi Apply Karo</button>
+        </div>
+
+        <div class="job-card">
+          <div class="job-card-header">
+            <div class="company-info">
+              <div class="company-name">Modi Construction · Meerut</div>
+              <div class="job-title">Marble / Flooring Expert</div>
+            </div>
+            <div class="company-av" style="background:var(--orange-light); color:var(--orange);">MC</div>
+          </div>
+          <div class="job-meta">
+            <span class="job-tag">📍 Meerut</span>
+            <span class="job-tag">⏱ 1 Month</span>
+            <span class="job-tag">👥 6 Workers</span>
+          </div>
+          <div class="job-salary">₹700–900 <span>/ day</span></div>
+          <div style="font-size:12px; color:var(--gray-400); margin-top:4px;">Posted 1 day ago · 24 Applied</div>
+          <button class="apply-btn">Apply Now – Abhi Apply Karo</button>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:32px;">
+        <button
+          style="background:var(--blue-mid); color:white; border:none; border-radius:var(--radius-sm); padding:14px 36px; font-size:15px; font-weight:700; cursor:pointer; font-family:'Noto Sans',sans-serif;">
+          Saari Jobs Dekho → 500+ Jobs Available
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTRACTOR SECTION -->
+  <section id="contractor">
+    <div class="section-inner">
+      <div class="section-tag">For Contractors</div>
+      <h2 class="section-title">Sahi Worker Dhundo, Fast!</h2>
+      <p class="section-sub">Post a job in 2 minutes. Get applications from verified, rated workers near you.</p>
+
+      <div class="contractor-grid">
+        <div class="job-form">
+          <div class="form-title">🏗️ Job Post Karo</div>
+          <div class="form-group">
+            <label class="form-label">Job Title *</label>
+            <input class="form-input" type="text" placeholder="e.g. Senior Electrician Chahiye">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Required Skills *</label>
+            <input class="form-input" type="text" placeholder="e.g. Wiring, DB Board, Earthing">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Daily Wages (₹)</label>
+              <input class="form-input" type="text" placeholder="e.g. 600–800">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Workers Needed</label>
+              <input class="form-input" type="number" placeholder="e.g. 3">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Location / City</label>
+              <input class="form-input" type="text" placeholder="e.g. Gurugram">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Duration</label>
+              <input class="form-input" type="text" placeholder="e.g. 1 Month">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Your Company / Name</label>
+            <input class="form-input" type="text" placeholder="Company name or your name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number *</label>
+            <input class="form-input" type="tel" placeholder="+91 98765-43210">
+          </div>
+          <button class="post-btn">Post Job FREE – Abhi Post Karo</button>
+          <p style="font-size:12px; color:var(--gray-400); text-align:center; margin-top:10px;">100% Free · No Hidden
+            Charges · Verified Workers Only</p>
+        </div>
+
+        <div class="contractor-features">
+          <div class="feature-item">
+            <div class="feature-icon">🔍</div>
+            <div>
+              <div class="feature-title">Advanced Worker Search</div>
+              <div class="feature-desc">Filter by skill, city, experience (years), rating, availability, and
+                certification. Find the exact worker you need.</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">📊</div>
+            <div>
+              <div class="feature-title">Contractor Dashboard</div>
+              <div class="feature-desc">See all applications, shortlist workers, compare profiles side-by-side, and
+                manage your hiring pipeline.</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">✅</div>
+            <div>
+              <div class="feature-title">Verified Profiles Only</div>
+              <div class="feature-desc">All workers are background-checked. See real work photos, genuine reviews from
+                past contractors.</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🏢</div>
+            <div>
+              <div class="feature-title">Company Profile Page</div>
+              <div class="feature-desc">Create your company profile so workers can trust you. Show past projects,
+                reviews, and payment history.</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">📱</div>
+            <div>
+              <div class="feature-title">WhatsApp Integration</div>
+              <div class="feature-desc">Get instant WhatsApp alerts when workers apply. Contact them directly with one
+                tap.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+
+<!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <div
+              style="width:36px; height:36px; background:rgba(255,255,255,0.15); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; font-family:'Baloo 2',sans-serif;">
+              BK</div>
+            <div>
+              <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:16px;">BluKaam Connection</div>
+              <div style="font-size:11px; color:rgba(255,255,255,0.4); letter-spacing:2px;">CONNECTING INDIA'S WORKFORCE
+              </div>
+            </div>
+          </div>
+          <p class="footer-brand-desc">India's leading platform connecting skilled blue-collar workers with contractors
+            and businesses. Empowering India's workforce, one job at a time.</p>
+          <div style="margin-top:16px; display:flex; gap:8px;">
+            <div class="footer-badge">📱 Android App</div>
+            <div class="footer-badge">🍎 iOS App</div>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">For Workers</div>
+          <ul class="footer-links">
+            <li><a href="#">Create Profile</a></li>
+            <li><a href="#">Browse Jobs</a></li>
+            <li><a href="#">Free Training</a></li>
+            <li><a href="#">PMKVY Courses</a></li>
+            <li><a href="#">Success Stories</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">For Contractors</div>
+          <ul class="footer-links">
+            <li><a href="#">Post a Job</a></li>
+            <li><a href="#">Browse Workers</a></li>
+            <li><a href="#">Company Profile</a></li>
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Pricing</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Company</div>
+          <ul class="footer-links">
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Help Center</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 BluKaam Connection. Made with ❤️ for India's Blue-Collar Workforce.</p>
+        <div class="footer-badges">
+          <div class="footer-badge">Skill India Partner</div>
+          <div class="footer-badge">NSDC Certified</div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+<script src="script.js"></script>
+</body>
+
+</html>
