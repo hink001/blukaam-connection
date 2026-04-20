@@ -141,7 +141,7 @@ async function handleRegistration(e) {
   };
 
   try {
-    const response = await fetch('http://localhost:3000/api/profiles', {
+    const response = await fetch('/api/profiles', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
