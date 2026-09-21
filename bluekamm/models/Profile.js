@@ -93,6 +93,10 @@ const ProfileSchema = new mongoose.Schema({
     bannerUrl: {
         type: String,
         default: ''
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true

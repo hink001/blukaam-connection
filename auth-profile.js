@@ -128,6 +128,24 @@ const BluKaamAuth = {
     // -------------------------------------------------------------
     // Auth Endpoints
     // -------------------------------------------------------------
+    async sendEmailOtp(email, fullName) {
+        return await this.request('/auth/send-email-otp', {
+            method: 'POST',
+            body: JSON.stringify({ email, fullName })
+        });
+    },
+
+    async verifyEmailAndRegister(data) {
+        const res = await this.request('/auth/verify-email-register', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+        if (res.token) {
+            this.setSession(res.token, res.user, res.profile);
+        }
+        return res;
+    },
+
     async register(data) {
         const res = await this.request('/auth/register', {
             method: 'POST',

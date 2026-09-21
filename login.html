@@ -154,9 +154,45 @@
         </div>
 
         <button type="submit" id="regBtn" class="apply-btn" style="width: 100%; padding: 13px; font-size: 16px;">
-          Create Free Account
+          Continue & Verify Email
         </button>
       </form>
+
+      <!-- ================= OTP VERIFICATION STEP ================= -->
+      <div id="otpStep" style="display: none; animation: modalSlideUp 0.3s ease;">
+        <div style="text-align: center; margin-bottom: 22px;">
+          <div style="width: 54px; height: 54px; border-radius: 50%; background: #E0F2FE; color: #0284C7; display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 12px; box-shadow: 0 4px 12px rgba(2,132,199,0.15);">
+            ✉️
+          </div>
+          <h2 style="font-size: 22px; font-weight: 800; color: var(--blue-dark); margin-bottom: 6px;">
+            Verify Your Email
+          </h2>
+          <p style="font-size: 13.5px; color: var(--gray-600); line-height: 1.5;">
+            We sent a 6-digit verification code to<br>
+            <strong id="otpEmailTarget" style="color: var(--blue-mid); word-break: break-all;">user@example.com</strong>
+          </p>
+        </div>
+
+        <form id="otpForm" onsubmit="handleOtpSubmit(event)">
+          <div class="form-group" style="margin-bottom: 20px; text-align: center;">
+            <label class="form-label" for="regOtpCode" style="margin-bottom: 8px;">Enter 6-Digit Code</label>
+            <input type="text" id="regOtpCode" class="form-input" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="• • • • • •" required autocomplete="one-time-code" style="text-align: center; font-size: 26px; font-weight: 800; letter-spacing: 10px; font-family: monospace; padding: 12px 16px; max-width: 260px; margin: 0 auto; display: block; border: 2px solid #BFDBFE;">
+          </div>
+
+          <button type="submit" id="verifyOtpBtn" class="apply-btn" style="width: 100%; padding: 13px; font-size: 16px; margin-bottom: 14px;">
+            Verify & Create Profile
+          </button>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--gray-200);">
+            <a href="javascript:void(0)" onclick="backToRegisterForm()" style="color: var(--gray-600); text-decoration: none; font-weight: 600;">
+              ← Change Details
+            </a>
+            <button type="button" id="resendOtpBtn" onclick="resendOtp()" style="background: none; border: none; color: var(--blue-mid); font-size: 13px; font-weight: 700; cursor: pointer; padding: 0;">
+              Resend Code
+            </button>
+          </div>
+        </form>
+      </div>
 
       <!-- Privacy and Terms footnote -->
       <p style="text-align: center; font-size: 12px; color: var(--gray-400); margin-top: 24px; line-height: 1.5;">
@@ -187,13 +223,18 @@
       window.location.href = 'dashboard.html';
     }
 
+    let pendingRegistrationData = null;
+    let resendTimerInterval = null;
+
     function switchAuthTab(tab) {
       const loginForm = document.getElementById('loginForm');
       const registerForm = document.getElementById('registerForm');
+      const otpStep = document.getElementById('otpStep');
       const tabBtnLogin = document.getElementById('tabBtnLogin');
       const tabBtnRegister = document.getElementById('tabBtnRegister');
       const alertBox = document.getElementById('authAlert');
       alertBox.style.display = 'none';
+      if (otpStep) otpStep.style.display = 'none';
 
       if (tab === 'login') {
         loginForm.style.display = 'block';
@@ -213,6 +254,57 @@
         tabBtnLogin.style.background = 'transparent';
         tabBtnLogin.style.color = 'var(--gray-600)';
         tabBtnLogin.style.boxShadow = 'none';
+      }
+    }
+
+    function backToRegisterForm() {
+      document.getElementById('otpStep').style.display = 'none';
+      document.getElementById('registerForm').style.display = 'block';
+      document.getElementById('authAlert').style.display = 'none';
+      const btn = document.getElementById('regBtn');
+      btn.disabled = false;
+      btn.innerText = 'Continue & Verify Email';
+    }
+
+    function startResendCountdown() {
+      const btn = document.getElementById('resendOtpBtn');
+      let countdown = 60;
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+      btn.innerText = `Resend in ${countdown}s`;
+
+      if (resendTimerInterval) clearInterval(resendTimerInterval);
+
+      resendTimerInterval = setInterval(() => {
+        countdown--;
+        if (countdown <= 0) {
+          clearInterval(resendTimerInterval);
+          btn.disabled = false;
+          btn.style.opacity = '1';
+          btn.innerText = 'Resend Code';
+        } else {
+          btn.innerText = `Resend in ${countdown}s`;
+        }
+      }, 1000);
+    }
+
+    async function resendOtp() {
+      if (!pendingRegistrationData) return;
+      const btn = document.getElementById('resendOtpBtn');
+      try {
+        btn.disabled = true;
+        btn.innerText = 'Sending...';
+        const res = await BluKaamAuth.sendEmailOtp(pendingRegistrationData.email, pendingRegistrationData.fullName);
+        if (res.simulated && res.devOtp) {
+          showAlert(`(Dev Mode) New OTP Code: ${res.devOtp}`, false);
+        } else {
+          showAlert('A new verification code has been sent to your email!', false);
+        }
+        startResendCountdown();
+      } catch (err) {
+        showAlert(err.message || 'Failed to resend code. Please try again.');
+        btn.disabled = false;
+        btn.innerText = 'Resend Code';
       }
     }
 
@@ -295,28 +387,71 @@
       const role = document.getElementById('regRole').value;
       const btn = document.getElementById('regBtn');
 
+      pendingRegistrationData = {
+        fullName,
+        email,
+        phone,
+        city,
+        workType,
+        password,
+        role
+      };
+
       try {
         btn.disabled = true;
-        btn.innerText = 'Creating account...';
+        btn.innerText = 'Sending verification code...';
 
-        await BluKaamAuth.register({
-          fullName,
-          email,
-          phone,
-          city,
-          workType,
-          password,
-          role
+        const res = await BluKaamAuth.sendEmailOtp(email, fullName);
+        
+        // Advance to OTP Step
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('otpStep').style.display = 'block';
+        document.getElementById('otpEmailTarget').innerText = email;
+        document.getElementById('regOtpCode').value = '';
+        
+        if (res.simulated && res.devOtp) {
+          showAlert(`(Dev Simulation Mode) Your code is ${res.devOtp}. Enter below to test.`, false);
+          document.getElementById('regOtpCode').value = res.devOtp;
+        } else {
+          showAlert(`Verification code sent to ${email}! Please check your inbox.`, false);
+        }
+        
+        startResendCountdown();
+        setTimeout(() => document.getElementById('regOtpCode').focus(), 200);
+      } catch (err) {
+        showAlert(err.message || 'Failed to send verification code. Please check your email.');
+        btn.disabled = false;
+        btn.innerText = 'Continue & Verify Email';
+      }
+    }
+
+    async function handleOtpSubmit(e) {
+      e.preventDefault();
+      const otp = document.getElementById('regOtpCode').value.trim();
+      const btn = document.getElementById('verifyOtpBtn');
+
+      if (!otp || otp.length !== 6) {
+        showAlert('Please enter the full 6-digit verification code.');
+        return;
+      }
+
+      try {
+        btn.disabled = true;
+        btn.innerText = 'Verifying & Creating Profile...';
+
+        await BluKaamAuth.verifyEmailAndRegister({
+          ...pendingRegistrationData,
+          otp
         });
 
-        BluKaamAuth.showToast('Registration successful! Welcome to BluKaam.', 'success');
+        BluKaamAuth.showToast('Email verified! Welcome to BluKaam.', 'success');
         setTimeout(() => {
           window.location.href = 'dashboard.html';
         }, 400);
       } catch (err) {
-        showAlert(err.message || 'Registration failed. Please try again.');
+        showAlert(err.message || 'Invalid or expired code. Please try again.');
         btn.disabled = false;
-        btn.innerText = 'Create Free Account';
+        btn.innerText = 'Verify & Create Profile';
       }
     }
   </script>

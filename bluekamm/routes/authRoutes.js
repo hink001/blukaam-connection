@@ -8,11 +8,14 @@ const fs = require('fs');
 
 const User = require('../models/User');
 const Profile = require('../models/Profile');
+const Otp = require('../models/Otp');
 const authMiddleware = require('../middleware/auth');
 const { logActivity } = require('../services/activityService');
+const { sendOtpEmail, isEmailConfigured } = require('../services/emailService');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-blukaam-key';
 const DB_FILE = path.join(__dirname, '..', 'local_database.json');
+const offlineOtps = {};
 
 // Helper to access offline JSON database
 const getOfflineDb = () => {
@@ -29,6 +32,248 @@ const getOfflineDb = () => {
 const saveOfflineDb = (data) => {
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 };
+
+// --------------------------------------------------------
+// POST /api/auth/send-email-otp
+// Generates a 6-digit OTP, saves it, and dispatches via email
+// --------------------------------------------------------
+router.post('/send-email-otp', async (req, res) => {
+    try {
+        const { email, fullName } = req.body;
+        if (!email) {
+            return res.status(400).json({ error: 'Valid email address is required.' });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+        if (!emailRegex.test(normalizedEmail)) {
+            return res.status(400).json({ error: 'Please enter a valid email address.' });
+        }
+
+        // Check if user already exists
+        if (mongoose.connection.readyState === 1) {
+            const existing = await User.findOne({ email: normalizedEmail });
+            if (existing) {
+                return res.status(409).json({ error: 'An account with this email already exists. Please Sign In.' });
+            }
+        } else {
+            const db = getOfflineDb();
+            const existing = db.users.find(u => u.email === normalizedEmail);
+            if (existing) {
+                return res.status(409).json({ error: 'An account with this email already exists. Please Sign In.' });
+            }
+        }
+
+        // Generate 6-digit OTP
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 5 * 60000); // 5 minutes
+
+        // Store OTP in database
+        if (mongoose.connection.readyState === 1) {
+            await Otp.deleteMany({ identifier: normalizedEmail });
+            await new Otp({ identifier: normalizedEmail, otp: otpCode, expiresAt }).save();
+        } else {
+            offlineOtps[normalizedEmail] = { otp: otpCode, expiresAt };
+        }
+
+        // Dispatch email
+        const emailResult = await sendOtpEmail(normalizedEmail, otpCode, fullName || 'Professional');
+
+        return res.json({
+            message: 'Verification code sent to your email!',
+            email: normalizedEmail,
+            simulated: emailResult.simulated,
+            devOtp: emailResult.devOtp,
+            warning: emailResult.warning
+        });
+    } catch (err) {
+        console.error('Send OTP error:', err);
+        return res.status(500).json({ error: 'Failed to send verification code. ' + err.message });
+    }
+});
+
+// --------------------------------------------------------
+// POST /api/auth/verify-email-register
+// Verifies OTP and creates user + profile in one atomic step
+// --------------------------------------------------------
+router.post('/verify-email-register', async (req, res) => {
+    try {
+        const {
+            email,
+            otp,
+            password,
+            fullName,
+            role = 'Worker',
+            phone = '',
+            industry = '',
+            workType = '',
+            city = '',
+            state = ''
+        } = req.body;
+
+        if (!email || !otp || !password || !fullName) {
+            return res.status(400).json({ error: 'Full name, email, password, and OTP code are required.' });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const trimmedOtp = otp.toString().trim();
+
+        // 1. Verify OTP
+        let isValidOtp = false;
+        if (mongoose.connection.readyState === 1) {
+            const otpRecord = await Otp.findOne({ identifier: normalizedEmail, otp: trimmedOtp });
+            if (otpRecord && otpRecord.expiresAt > new Date()) {
+                isValidOtp = true;
+                await Otp.deleteOne({ _id: otpRecord._id });
+            }
+        } else {
+            const record = offlineOtps[normalizedEmail];
+            if (record && record.otp === trimmedOtp && record.expiresAt > new Date()) {
+                isValidOtp = true;
+                delete offlineOtps[normalizedEmail];
+            }
+        }
+
+        if (!isValidOtp) {
+            return res.status(400).json({ error: 'Invalid or expired verification code. Please check your email or request a new code.' });
+        }
+
+        // 2. Create User and Profile (Marking verified)
+        if (mongoose.connection.readyState === 1) {
+            const existingUser = await User.findOne({ email: normalizedEmail });
+            if (existingUser) {
+                return res.status(409).json({ error: 'An account with this email already exists.' });
+            }
+
+            const newUser = new User({
+                email: normalizedEmail,
+                password,
+                role: role === 'Contractor' ? 'Contractor' : 'Worker',
+                isEmailVerified: true
+            });
+            const savedUser = await newUser.save();
+
+            const newProfile = new Profile({
+                userId: savedUser._id,
+                fullName: fullName.trim(),
+                name: fullName.trim(),
+                headline: `${role === 'Contractor' ? 'Contractor & Builder' : 'Skilled Worker'} in ${city || 'India'}`,
+                role: savedUser.role,
+                industry: industry.trim(),
+                workType: workType.trim(),
+                location: { city: city.trim(), state: state.trim(), country: 'India' },
+                city: city.trim(),
+                state: state.trim(),
+                contactInfo: { email: normalizedEmail, phone: phone.trim() },
+                phone: phone.trim(),
+                email: normalizedEmail,
+                isVerified: true,
+                avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName.trim())}&backgroundColor=0D2F6E&textColor=ffffff`
+            });
+            const savedProfile = await newProfile.save();
+
+            await logActivity({
+                userId: savedUser._id,
+                action: 'AUTH_REGISTER',
+                description: `Created verified account as ${savedUser.role} via Email OTP`,
+                req
+            });
+
+            const token = jwt.sign(
+                { userId: savedUser._id, email: savedUser.email, role: savedUser.role },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            return res.status(201).json({
+                message: 'Email verified! Account and profile created successfully.',
+                token,
+                user: { id: savedUser._id, email: savedUser.email, role: savedUser.role, isEmailVerified: true },
+                profile: savedProfile
+            });
+
+        } else {
+            // Offline Local Mode
+            const db = getOfflineDb();
+            const existing = db.users.find(u => u.email === normalizedEmail);
+            if (existing) {
+                return res.status(409).json({ error: 'An account with this email already exists.' });
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const userId = 'usr_' + Date.now();
+            const profileId = 'prf_' + Date.now();
+
+            const offlineUser = {
+                _id: userId,
+                id: userId,
+                email: normalizedEmail,
+                password: hashedPassword,
+                role: role === 'Contractor' ? 'Contractor' : 'Worker',
+                isActive: true,
+                isEmailVerified: true,
+                createdAt: new Date().toISOString()
+            };
+
+            const offlineProfile = {
+                _id: profileId,
+                id: profileId,
+                userId: userId,
+                fullName: fullName.trim(),
+                name: fullName.trim(),
+                headline: `${role === 'Contractor' ? 'Contractor & Builder' : 'Skilled Worker'} in ${city || 'India'}`,
+                bio: '',
+                role: offlineUser.role,
+                industry: industry.trim(),
+                workType: workType.trim(),
+                skills: [],
+                location: { city: city.trim(), state: state.trim(), country: 'India', pincode: '' },
+                city: city.trim(),
+                state: state.trim(),
+                pincode: '',
+                contactInfo: { email: normalizedEmail, phone: phone.trim() },
+                phone: phone.trim(),
+                email: normalizedEmail,
+                isVerified: true,
+                avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName.trim())}&backgroundColor=0D2F6E&textColor=ffffff`,
+                bannerUrl: '',
+                availability: 'Available',
+                createdAt: new Date().toISOString()
+            };
+
+            db.users.push(offlineUser);
+            db.profiles.push(offlineProfile);
+            saveOfflineDb(db);
+
+            await logActivity({
+                userId,
+                action: 'AUTH_REGISTER',
+                description: `Created verified account as ${offlineUser.role} via Email OTP (Offline Mode)`,
+                req
+            });
+
+            const token = jwt.sign(
+                { userId, email: normalizedEmail, role: offlineUser.role },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            return res.status(201).json({
+                message: 'Email verified! Account and profile created successfully.',
+                token,
+                user: { id: userId, email: normalizedEmail, role: offlineUser.role, isEmailVerified: true },
+                profile: offlineProfile
+            });
+        }
+    } catch (err) {
+        console.error('Verify & Register error:', err);
+        return res.status(500).json({ error: 'Server error during verification. ' + err.message });
+    }
+});
 
 // --------------------------------------------------------
 // POST /api/auth/register
