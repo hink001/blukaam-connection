@@ -1,14 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Dashboard - BluKaam Connection</title>
+  <title>User Dashboard – BluKaam Connection</title>
+  <meta name="description" content="Manage your professional profile, skills, photos, and track activity on BluKaam Connection.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Baloo+2:wght@500;700;800&family=Tiro+Devanagari+Hindi&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
 </head>
+
 <body style="background: var(--off-white);">
 
+  <!-- TOP NAVIGATION -->
   <nav>
     <div class="nav-inner">
       <a class="logo-wrap" href="index.html">
@@ -21,35 +28,692 @@
       <div class="nav-links">
         <a href="index.html">Home</a>
         <a href="jobs.html">Find Jobs</a>
-        <a href="#" onclick="logout()" class="nav-cta" style="background:var(--red);">Log Out</a>
+        <a href="workers.html">Browse Workers</a>
+        <a href="training.html">Training</a>
       </div>
+      <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
-  <section style="padding: 60px 1.5rem; max-width: 800px; margin: 0 auto; text-align: center;">
-    <div style="background: white; border-radius: var(--radius-lg); padding: 40px; box-shadow: var(--shadow-md);">
-        <h1 style="font-family: 'Baloo 2', sans-serif; color: var(--green); margin-bottom: 20px;">🎉 Welcome to your Dashboard!</h1>
-        <p style="font-size: 18px; color: var(--gray-600); margin-bottom: 30px;">
-            Your phone number has been verified and your profile is successfully created. 
-            Soon, you will be able to edit your skills, upload photos, and apply to jobs directly from this screen.
-        </p>
-        <div style="display:flex; justify-content:center; gap:20px;">
-            <a href="jobs.html" class="apply-btn" style="text-decoration:none;">Browse Job Openings</a>
-            <a href="workers.html" class="apply-btn" style="background:white; color:var(--blue-mid); border:2px solid var(--blue-mid); text-decoration:none;">View Other Profiles</a>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Find Jobs</a>
+    <a href="workers.html">Browse Workers</a>
+    <a href="training.html">Training</a>
+  </div>
+
+  <!-- DASHBOARD MAIN CONTAINER -->
+  <main class="dashboard-layout">
+    
+    <!-- LEFT SIDEBAR: PROFILE SUMMARY & NAVIGATION -->
+    <aside>
+      <!-- Mini Profile Card -->
+      <div class="linkedin-card" style="margin-bottom: 20px;">
+        <div class="linkedin-banner" style="height: 90px;"></div>
+        <div class="linkedin-avatar-wrap" style="padding: 0 16px; margin-top: -45px; justify-content: center;">
+          <img id="sidebarAvatar" src="logo.png" class="linkedin-avatar" style="width: 90px; height: 90px;" alt="Avatar" onerror="this.src='logo.png'">
         </div>
+        <div style="padding: 14px 16px 20px; text-align: center;">
+          <div id="sidebarName" style="font-family: 'Baloo 2', sans-serif; font-size: 20px; font-weight: 800; color: var(--gray-800); line-height: 1.2;">
+            Loading...
+          </div>
+          <div id="sidebarHeadline" style="font-size: 13px; color: var(--gray-600); margin-top: 4px; line-height: 1.4;">
+            Skilled Professional
+          </div>
+          <div id="sidebarLocation" style="font-size: 12px; color: var(--gray-400); margin-top: 6px;">
+            📍 India
+          </div>
+
+          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--gray-200); text-align: left;">
+            <div class="completeness-header">
+              <span>Profile Strength</span>
+              <span id="completenessPct">70%</span>
+            </div>
+            <div class="completeness-track">
+              <div id="completenessBar" class="completeness-fill" style="width: 70%;"></div>
+            </div>
+          </div>
+
+          <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+            <a id="btnViewPublic" href="profile.html" class="btn-primary-li" style="justify-content: center; font-size: 13px; padding: 8px 14px;">
+              👁️ View Public Profile
+            </a>
+            <button onclick="BluKaamAuth.logout()" class="btn-secondary-li" style="justify-content: center; font-size: 13px; padding: 7px 14px; border-color: #EF4444; color: #EF4444;">
+              🚪 Log Out
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Navigation Shortcuts -->
+      <div class="linkedin-card" style="padding: 16px;">
+        <div style="font-weight: 700; font-size: 14px; color: var(--gray-800); margin-bottom: 12px;">Quick Links</div>
+        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+          <a href="javascript:void(0)" onclick="switchEditorTab('basic')" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">✏️ Edit Personal Details</a>
+          <a href="javascript:void(0)" onclick="switchEditorTab('skills')" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">⚡ Manage Skills</a>
+          <a href="javascript:void(0)" onclick="switchEditorTab('photo')" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">📷 Change Profile Photo</a>
+          <a href="javascript:void(0)" onclick="switchEditorTab('activity')" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">📜 Activity Log</a>
+          <a href="jobs.html" style="color: var(--gray-600); text-decoration: none;">🔍 Browse Open Jobs</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT MAIN SECTION: TABBED PROFILE EDITOR & ACTIVITY -->
+    <section>
+      
+      <!-- Card Container -->
+      <div class="linkedin-card" style="padding: 24px 28px;">
+        
+        <!-- Tab Header -->
+        <div class="editor-nav">
+          <button id="tabBtn-basic" class="editor-nav-btn active" onclick="switchEditorTab('basic')">
+            👤 Basic Details
+          </button>
+          <button id="tabBtn-skills" class="editor-nav-btn" onclick="switchEditorTab('skills')">
+            ⚡ Skills & Trade
+          </button>
+          <button id="tabBtn-contact" class="editor-nav-btn" onclick="switchEditorTab('contact')">
+            📞 Contact & Links
+          </button>
+          <button id="tabBtn-photo" class="editor-nav-btn" onclick="switchEditorTab('photo')">
+            📷 Profile Picture
+          </button>
+          <button id="tabBtn-activity" class="editor-nav-btn" onclick="switchEditorTab('activity')">
+            📊 Recent Activity
+          </button>
+        </div>
+
+        <!-- ================= PANE 1: BASIC DETAILS ================= -->
+        <div id="pane-basic" class="editor-pane active">
+          <form id="formBasic" onsubmit="saveBasicDetails(event)">
+            
+            <div class="form-row">
+              <div class="form-group" style="flex: 2;">
+                <label class="form-label">Full Name *</label>
+                <input type="text" id="inpFullName" class="form-input" required>
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">Availability Status</label>
+                <select id="inpAvailability" class="form-input" style="padding: 10px;">
+                  <option value="Available">🟢 Available for Work</option>
+                  <option value="Busy">🟡 Busy</option>
+                  <option value="On Job">🟠 On Active Job</option>
+                  <option value="Not Looking">⚪ Not Looking</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Professional Headline *</label>
+              <input type="text" id="inpHeadline" class="form-input" placeholder="e.g. Senior Electrician | 8+ Years Experience | Residential & Commercial" required>
+              <small style="color: var(--gray-400); font-size: 11px;">This appears right below your name on search results & public profile.</small>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">About / Professional Bio</label>
+              <textarea id="inpBio" class="form-input" rows="4" placeholder="Describe your trade experience, certifications, types of projects handled, and work ethic..."></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">City *</label>
+                <input type="text" id="inpCity" class="form-input" placeholder="e.g. Delhi NCR, Gurugram" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">State *</label>
+                <input type="text" id="inpState" class="form-input" placeholder="e.g. Haryana, Delhi, UP">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Pincode</label>
+                <input type="text" id="inpPincode" class="form-input" placeholder="e.g. 110075">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Years of Experience</label>
+                <input type="number" id="inpExperience" class="form-input" min="0" max="60" placeholder="e.g. 8">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Trade / Work Type</label>
+                <input type="text" id="inpWorkType" class="form-input" placeholder="e.g. Electrician, Plumber, Carpenter">
+              </div>
+            </div>
+
+            <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+              <button type="submit" id="btnSaveBasic" class="apply-btn" style="padding: 10px 26px;">
+                Save Profile Changes
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ================= PANE 2: SKILLS & TRADE ================= -->
+        <div id="pane-skills" class="editor-pane">
+          <div>
+            <h3 style="font-family: 'Baloo 2', sans-serif; font-size: 20px; color: var(--blue-dark); margin-bottom: 8px;">
+              Manage Skills & Specializations
+            </h3>
+            <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 20px;">
+              Add your specialized skills to get matched with high-paying jobs and projects.
+            </p>
+
+            <!-- Skill Tag Input Box -->
+            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+              <input type="text" id="inpNewSkill" class="form-input" placeholder="Type a skill (e.g. Wiring, MCB Setup, Solar Panel) and press Add" onkeydown="if(event.key==='Enter'){event.preventDefault();addSkillFromInput();}">
+              <button type="button" onclick="addSkillFromInput()" class="btn-primary-li" style="border-radius: var(--radius-sm); white-space: nowrap;">
+                + Add Skill
+              </button>
+            </div>
+
+            <!-- Quick Suggestions -->
+            <div style="margin-bottom: 20px;">
+              <div style="font-size: 12px; color: var(--gray-400); font-weight: 700; margin-bottom: 8px; text-transform: uppercase;">
+                Popular Suggestions (Click to Add):
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <button type="button" class="tab-btn" onclick="addSuggestedSkill('Wiring')" style="padding: 4px 10px; font-size: 12px;">+ Wiring</button>
+                <button type="button" class="tab-btn" onclick="addSuggestedSkill('MCB Installation')" style="padding: 4px 10px; font-size: 12px;">+ MCB Installation</button>
+                <button type="button" class="tab-btn" onclick="addSuggestedSkill('Solar Panel')" style="padding: 4px 10px; font-size: 12px;">+ Solar Panel</button>
+                <button type="button" class="tab-btn" onclick="addSuggestedSkill('Pipe Fitting')" style="padding: 4px 10px; font-size: 12px;">+ Pipe Fitting</button>
+                <button type="button" class="tab-btn" onclick="addSuggestedSkill('Carpentry')" style="padding: 4px 10px; font-size: 12px;">+ Carpentry</button>
+                <button type="button" class="tab-btn" onclick="addSuggestedSkill('Modular Kitchen')" style="padding: 4px 10px; font-size: 12px;">+ Modular Kitchen</button>
+                <button type="button" class="tab-btn" onclick="addSuggestedSkill('CCTV Security')" style="padding: 4px 10px; font-size: 12px;">+ CCTV Security</button>
+                <button type="button" class="tab-btn" onclick="addSuggestedSkill('House Painting')" style="padding: 4px 10px; font-size: 12px;">+ House Painting</button>
+              </div>
+            </div>
+
+            <!-- Current Skills Display -->
+            <div style="border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 18px; background: var(--off-white); min-height: 120px;">
+              <div style="font-size: 13px; font-weight: 700; color: var(--gray-600); margin-bottom: 10px;">
+                Your Skills List (<span id="skillCount">0</span>):
+              </div>
+              <div id="skillsChipsList" class="skills-container">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+              <button type="button" onclick="saveSkillsList()" id="btnSaveSkills" class="apply-btn" style="padding: 10px 26px;">
+                Save Skills
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= PANE 3: CONTACT & LINKS ================= -->
+        <div id="pane-contact" class="editor-pane">
+          <form id="formContact" onsubmit="saveContactDetails(event)">
+            <h3 style="font-family: 'Baloo 2', sans-serif; font-size: 20px; color: var(--blue-dark); margin-bottom: 8px;">
+              Contact Information & Social Links
+            </h3>
+            <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 20px;">
+              This information will be displayed when employers or clients click "Contact Info" on your public profile.
+            </p>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Phone Number *</label>
+                <input type="tel" id="inpContactPhone" class="form-input" placeholder="e.g. +91 9876543210" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email Address *</label>
+                <input type="email" id="inpContactEmail" class="form-input" placeholder="e.g. name@domain.com" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Website or Portfolio URL</label>
+              <input type="url" id="inpWebsite" class="form-input" placeholder="https://yourportfolio.com">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">LinkedIn Profile URL</label>
+                <input type="url" id="inpLinkedin" class="form-input" placeholder="https://linkedin.com/in/yourname">
+              </div>
+              <div class="form-group">
+                <label class="form-label">WhatsApp or Alternate Contact</label>
+                <input type="text" id="inpGithub" class="form-input" placeholder="e.g. +91 9876543210 (WhatsApp)">
+              </div>
+            </div>
+
+            <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+              <button type="submit" id="btnSaveContact" class="apply-btn" style="padding: 10px 26px;">
+                Save Contact Info
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ================= PANE 4: PHOTO & MEDIA ================= -->
+        <div id="pane-photo" class="editor-pane">
+          <div>
+            <h3 style="font-family: 'Baloo 2', sans-serif; font-size: 20px; color: var(--blue-dark); margin-bottom: 8px;">
+              Profile Picture
+            </h3>
+            <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 20px;">
+              Upload a clear face photo. Uploaded photos are stored in Cloud Storage (Cloudinary) with automatic face-centering and CDN acceleration. Zero local server disk is consumed.
+            </p>
+
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0;">
+              
+              <!-- Current Image Preview -->
+              <img id="avatarCurrentPreview" src="logo.png" class="photo-preview-circle" alt="Preview">
+
+              <!-- Upload Drag & Drop Area -->
+              <div class="photo-dropzone" style="width: 100%; max-width: 480px;" onclick="document.getElementById('avatarFileInput').click()">
+                <div style="font-size: 36px; margin-bottom: 8px;">☁️</div>
+                <div style="font-weight: 700; color: var(--blue-mid); font-size: 15px;">
+                  Click to select a photo from your computer / phone
+                </div>
+                <div style="font-size: 12px; color: var(--gray-400); margin-top: 6px;">
+                  Supports JPG, PNG, WEBP (Max 5 MB)
+                </div>
+                <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp" style="display: none;" onchange="handleAvatarSelected(event)">
+              </div>
+
+              <!-- Selected File Name -->
+              <div id="selectedFileName" style="font-size: 13px; color: var(--gray-600); margin-top: 12px; font-weight: 600; display: none;"></div>
+
+              <button type="button" id="btnUploadAvatar" onclick="uploadAvatarNow()" class="apply-btn" style="margin-top: 20px; padding: 10px 28px; display: none;">
+                ☁️ Upload to Cloud Storage
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= PANE 5: ACTIVITY TIMELINE ================= -->
+        <div id="pane-activity" class="editor-pane">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h3 style="font-family: 'Baloo 2', sans-serif; font-size: 20px; color: var(--blue-dark);">
+                Your Recent Activity Log
+              </h3>
+              <button type="button" onclick="loadUserActivities()" class="btn-secondary-li" style="padding: 4px 12px; font-size: 12px;">
+                🔄 Refresh
+              </button>
+            </div>
+            <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 16px;">
+              All key events (logins, updates, photo changes, and profile views) are securely monitored and recorded in the audit system.
+            </p>
+
+            <div id="activityTimelineList" class="activity-timeline">
+              <!-- Dynamically populated -->
+              <div style="text-align: center; color: var(--gray-400); padding: 30px;">Loading your activity history...</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-bottom" style="border-top: none; padding-top: 0;">
+        <p>© 2024 BluKaam Connection. Made with ❤️ for India's Blue-Collar Workforce.</p>
+        <div class="footer-badges">
+          <div class="footer-badge">Skill India Partner</div>
+          <div class="footer-badge">NSDC Certified</div>
+        </div>
+      </div>
     </div>
-  </section>
+  </footer>
 
+  <script src="script.js"></script>
+  <script src="auth-profile.js"></script>
   <script>
-      // Quick authentication check
-      if(!localStorage.getItem('blukaam_token')) {
-          window.location.href = "login.html";
+    // Enforce Authentication
+    BluKaamAuth.requireAuth('login.html');
+
+    let currentProfile = null;
+    let selectedAvatarFile = null;
+
+    // Initialize Dashboard
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadProfileData();
+      await loadUserActivities();
+    });
+
+    async function loadProfileData() {
+      try {
+        currentProfile = await BluKaamAuth.getMyProfile();
+        populateProfileForm(currentProfile);
+      } catch (err) {
+        console.error('Failed to load profile:', err);
+        BluKaamAuth.showToast('Could not load profile. Please refresh.', 'error');
+      }
+    }
+
+    function populateProfileForm(p) {
+      if (!p) return;
+
+      const fullName = p.fullName || p.name || 'Your Name';
+      const headline = p.headline || 'Skilled Professional at BluKaam';
+      const city = (p.location && p.location.city) || p.city || 'India';
+      const state = (p.location && p.location.state) || p.state || '';
+      const pincode = (p.location && p.location.pincode) || p.pincode || '';
+      const avatar = p.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName)}&backgroundColor=0D2F6E&textColor=ffffff`;
+
+      // Sidebar
+      document.getElementById('sidebarName').innerText = fullName;
+      document.getElementById('sidebarHeadline').innerText = headline;
+      document.getElementById('sidebarLocation').innerText = `📍 ${city}${state ? ', ' + state : ''}`;
+      document.getElementById('sidebarAvatar').src = avatar;
+      document.getElementById('avatarCurrentPreview').src = avatar;
+
+      // Update View Public Profile Link
+      const publicBtn = document.getElementById('btnViewPublic');
+      const targetId = p.userId || p._id || p.id;
+      if (targetId) {
+        publicBtn.href = `profile.html?id=${targetId}`;
       }
 
-      function logout() {
-          localStorage.removeItem('blukaam_token');
-          window.location.href = "index.html";
+      // Pane 1: Basic
+      document.getElementById('inpFullName').value = fullName;
+      document.getElementById('inpHeadline').value = headline;
+      document.getElementById('inpBio').value = p.bio || '';
+      document.getElementById('inpCity').value = city === 'India' ? '' : city;
+      document.getElementById('inpState').value = state;
+      document.getElementById('inpPincode').value = pincode;
+      document.getElementById('inpExperience').value = p.experienceYears || '';
+      document.getElementById('inpWorkType').value = p.workType || '';
+      if (p.availability) document.getElementById('inpAvailability').value = p.availability;
+
+      // Pane 2: Skills
+      renderSkills(p.skills || []);
+
+      // Pane 3: Contact
+      const phone = (p.contactInfo && p.contactInfo.phone) || p.phone || '';
+      const email = (p.contactInfo && p.contactInfo.email) || p.email || '';
+      document.getElementById('inpContactPhone').value = phone;
+      document.getElementById('inpContactEmail').value = email;
+      document.getElementById('inpWebsite').value = (p.contactInfo && p.contactInfo.website) || '';
+      document.getElementById('inpLinkedin').value = (p.contactInfo && p.contactInfo.linkedin) || '';
+      document.getElementById('inpGithub').value = (p.contactInfo && p.contactInfo.github) || '';
+
+      // Calculate profile completeness
+      calculateCompleteness(p);
+    }
+
+    function calculateCompleteness(p) {
+      let score = 20; // baseline
+      if (p.fullName) score += 15;
+      if (p.headline) score += 15;
+      if (p.bio && p.bio.length > 20) score += 15;
+      if (p.skills && p.skills.length > 0) score += 15;
+      if (p.avatarUrl) score += 10;
+      if ((p.location && p.location.city) || p.city) score += 10;
+
+      score = Math.min(100, score);
+      document.getElementById('completenessPct').innerText = `${score}%`;
+      document.getElementById('completenessBar').style.width = `${score}%`;
+    }
+
+    // Switch Editor Tabs
+    function switchEditorTab(tabName) {
+      document.querySelectorAll('.editor-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.editor-nav-btn').forEach(el => el.classList.remove('active'));
+
+      const pane = document.getElementById(`pane-${tabName}`);
+      const btn = document.getElementById(`tabBtn-${tabName}`);
+      if (pane) pane.classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    // Save Basic Details
+    async function saveBasicDetails(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSaveBasic');
+      btn.disabled = true;
+      btn.innerText = 'Saving changes...';
+
+      const updates = {
+        fullName: document.getElementById('inpFullName').value.trim(),
+        headline: document.getElementById('inpHeadline').value.trim(),
+        bio: document.getElementById('inpBio').value.trim(),
+        availability: document.getElementById('inpAvailability').value,
+        workType: document.getElementById('inpWorkType').value.trim(),
+        experienceYears: parseInt(document.getElementById('inpExperience').value, 10) || 0,
+        location: {
+          city: document.getElementById('inpCity').value.trim(),
+          state: document.getElementById('inpState').value.trim(),
+          pincode: document.getElementById('inpPincode').value.trim(),
+          country: 'India'
+        }
+      };
+
+      try {
+        const res = await BluKaamAuth.updateMyProfile(updates);
+        currentProfile = res.profile;
+        populateProfileForm(currentProfile);
+        BluKaamAuth.showToast('Profile basic details updated!', 'success');
+        loadUserActivities();
+      } catch (err) {
+        BluKaamAuth.showToast(err.message || 'Failed to update profile.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Save Profile Changes';
       }
+    }
+
+    // Skills Logic
+    let activeSkills = [];
+
+    function renderSkills(skills) {
+      activeSkills = Array.isArray(skills) ? [...skills] : [];
+      const container = document.getElementById('skillsChipsList');
+      const countEl = document.getElementById('skillCount');
+      countEl.innerText = activeSkills.length;
+
+      if (activeSkills.length === 0) {
+        container.innerHTML = `<span style="color: var(--gray-400); font-size: 13px;">No skills added yet. Use the input above to add skills!</span>`;
+        return;
+      }
+
+      container.innerHTML = activeSkills.map((s, idx) => `
+        <div class="skill-chip">
+          <span>${escapeHtml(s)}</span>
+          <span class="skill-chip-delete" onclick="removeSkill(${idx})" title="Remove skill">×</span>
+        </div>
+      `).join('');
+    }
+
+    function addSkillFromInput() {
+      const inp = document.getElementById('inpNewSkill');
+      const val = inp.value.trim();
+      if (!val) return;
+
+      if (!activeSkills.some(s => s.toLowerCase() === val.toLowerCase())) {
+        activeSkills.push(val);
+        renderSkills(activeSkills);
+      }
+      inp.value = '';
+    }
+
+    function addSuggestedSkill(skill) {
+      if (!activeSkills.some(s => s.toLowerCase() === skill.toLowerCase())) {
+        activeSkills.push(skill);
+        renderSkills(activeSkills);
+        BluKaamAuth.showToast(`Added "${skill}"`, 'info');
+      }
+    }
+
+    function removeSkill(idx) {
+      activeSkills.splice(idx, 1);
+      renderSkills(activeSkills);
+    }
+
+    async function saveSkillsList() {
+      const btn = document.getElementById('btnSaveSkills');
+      btn.disabled = true;
+      btn.innerText = 'Saving skills...';
+
+      try {
+        const res = await BluKaamAuth.updateMyProfile({ skills: activeSkills });
+        currentProfile = res.profile;
+        populateProfileForm(currentProfile);
+        BluKaamAuth.showToast('Skills updated successfully!', 'success');
+        loadUserActivities();
+      } catch (err) {
+        BluKaamAuth.showToast(err.message || 'Failed to save skills.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Save Skills';
+      }
+    }
+
+    // Save Contact Details
+    async function saveContactDetails(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSaveContact');
+      btn.disabled = true;
+      btn.innerText = 'Saving contact info...';
+
+      const updates = {
+        contactInfo: {
+          phone: document.getElementById('inpContactPhone').value.trim(),
+          email: document.getElementById('inpContactEmail').value.trim(),
+          website: document.getElementById('inpWebsite').value.trim(),
+          linkedin: document.getElementById('inpLinkedin').value.trim(),
+          github: document.getElementById('inpGithub').value.trim()
+        }
+      };
+
+      try {
+        const res = await BluKaamAuth.updateMyProfile(updates);
+        currentProfile = res.profile;
+        populateProfileForm(currentProfile);
+        BluKaamAuth.showToast('Contact details updated!', 'success');
+        loadUserActivities();
+      } catch (err) {
+        BluKaamAuth.showToast(err.message || 'Failed to update contact info.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Save Contact Info';
+      }
+    }
+
+    // Avatar Selection & Cloud Upload
+    function handleAvatarSelected(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        BluKaamAuth.showToast('Please select a valid image file (JPG, PNG, WEBP).', 'error');
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        BluKaamAuth.showToast('Image size exceeds 5MB limit.', 'error');
+        return;
+      }
+
+      selectedAvatarFile = file;
+
+      // Local preview before cloud upload
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        document.getElementById('avatarCurrentPreview').src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+
+      const fileNameEl = document.getElementById('selectedFileName');
+      fileNameEl.innerText = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      fileNameEl.style.display = 'block';
+
+      document.getElementById('btnUploadAvatar').style.display = 'inline-block';
+    }
+
+    async function uploadAvatarNow() {
+      if (!selectedAvatarFile) return;
+
+      const btn = document.getElementById('btnUploadAvatar');
+      btn.disabled = true;
+      btn.innerText = 'Uploading to Cloud...';
+
+      try {
+        const res = await BluKaamAuth.uploadAvatar(selectedAvatarFile);
+        currentProfile = res.profile;
+        populateProfileForm(currentProfile);
+        BluKaamAuth.showToast('Profile photo saved to cloud storage!', 'success');
+
+        document.getElementById('selectedFileName').style.display = 'none';
+        btn.style.display = 'none';
+        selectedAvatarFile = null;
+        loadUserActivities();
+      } catch (err) {
+        BluKaamAuth.showToast(err.message || 'Photo upload failed.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '☁️ Upload to Cloud Storage';
+      }
+    }
+
+    // Load and Display Activity Log
+    async function loadUserActivities() {
+      const container = document.getElementById('activityTimelineList');
+      try {
+        const activities = await BluKaamAuth.getMyActivities(25);
+        
+        if (!activities || activities.length === 0) {
+          container.innerHTML = `<div style="text-align: center; color: var(--gray-400); padding: 30px;">No recent activities logged yet.</div>`;
+          return;
+        }
+
+        container.innerHTML = activities.map(act => {
+          let icon = '📌';
+          if (act.action === 'AUTH_LOGIN') icon = '🔑';
+          if (act.action === 'AUTH_REGISTER') icon = '🎉';
+          if (act.action === 'PROFILE_UPDATE') icon = '✏️';
+          if (act.action === 'AVATAR_UPDATE') icon = '📷';
+          if (act.action === 'PROFILE_VIEW') icon = '👁️';
+
+          const timeStr = formatRelativeTime(act.createdAt);
+
+          return `
+            <div class="activity-item">
+              <div class="activity-icon-wrap">${icon}</div>
+              <div class="activity-content">
+                <div class="activity-desc">${escapeHtml(act.description)}</div>
+                <div class="activity-time">${timeStr} · <span style="text-transform:uppercase; font-size:10px; font-weight:700; color:var(--blue-mid);">${act.action.replace('_', ' ')}</span></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        container.innerHTML = `<div style="color: var(--gray-400); text-align: center;">Could not load activities.</div>`;
+      }
+    }
+
+    function formatRelativeTime(dateStr) {
+      if (!dateStr) return 'Recently';
+      const date = new Date(dateStr);
+      const now = new Date();
+      const diffSec = Math.floor((now - date) / 1000);
+
+      if (diffSec < 60) return 'Just now';
+      if (diffSec < 3600) return `${Math.floor(diffSec / 60)} minutes ago`;
+      if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} hours ago`;
+      if (diffSec < 604800) return `${Math.floor(diffSec / 86400)} days ago`;
+      return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
   </script>
 </body>
+
 </html>

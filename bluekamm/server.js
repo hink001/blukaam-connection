@@ -8,18 +8,38 @@ require('dotenv').config();
 const connectDB = require('./db');
 const Profile = require('./models/Profile');
 const GeneralData = require('./models/GeneralData');
+const User = require('./models/User');
+const ActivityLog = require('./models/ActivityLog');
+
+// Route modules
+const authRoutes = require('./routes/authRoutes');
+const profileRoutes = require('./routes/profileRoutes');
+const activityRoutes = require('./routes/activityRoutes');
+const { isCloudinaryConfigured } = require('./services/cloudinary');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Create totally offline/local databases 
 const DB_FILE = path.join(__dirname, 'local_database.json');
 if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify({ profiles: [], generalData: [] }));
+    fs.writeFileSync(DB_FILE, JSON.stringify({ users: [], profiles: [], activityLogs: [], generalData: [] }));
+} else {
+    try {
+        const db = JSON.parse(fs.readFileSync(DB_FILE));
+        if (!db.users) db.users = [];
+        if (!db.profiles) db.profiles = [];
+        if (!db.activityLogs) db.activityLogs = [];
+        if (!db.generalData) db.generalData = [];
+        fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+    } catch (e) {
+        fs.writeFileSync(DB_FILE, JSON.stringify({ users: [], profiles: [], activityLogs: [], generalData: [] }));
+    }
 }
 console.log("Local JSON Database initialized at:", DB_FILE);
 
@@ -31,16 +51,32 @@ const syncDataToMongo = async () => {
         const db = JSON.parse(fs.readFileSync(DB_FILE));
         let synced = 0;
         
-        if (db.profiles.length > 0) {
-            await Profile.insertMany(db.profiles);
-            synced += db.profiles.length;
-            db.profiles = []; // Clear offline pool
+        if (db.users && db.users.length > 0) {
+            for (const u of db.users) {
+                const exists = await User.findOne({ email: u.email });
+                if (!exists) {
+                    await User.create(u);
+                    synced++;
+                }
+            }
+            db.users = [];
+        }
+
+        if (db.profiles && db.profiles.length > 0) {
+            for (const p of db.profiles) {
+                const exists = await Profile.findOne({ $or: [{ phone: p.phone }, { email: p.email }, { userId: p.userId }] });
+                if (!exists) {
+                    await Profile.create(p);
+                    synced++;
+                }
+            }
+            db.profiles = [];
         }
         
-        if (db.generalData.length > 0) {
+        if (db.generalData && db.generalData.length > 0) {
             await GeneralData.insertMany(db.generalData.map(item => ({ data: item.data })));
             synced += db.generalData.length;
-            db.generalData = []; // Clear offline pool
+            db.generalData = [];
         }
 
         if (synced > 0) {
@@ -62,43 +98,51 @@ mongoose.connection.on('disconnected', () => {
     isMongoConnected = false;
 });
 
-// Try connecting
+// Connect to MongoDB
 connectDB();
 
+// Serve static frontend files
 const frontendPath = path.join(__dirname, '..');
 app.use(express.static(frontendPath));
 
+// API Status & health check
 app.get('/api/status', (req, res) => {
-    res.json({ message: isMongoConnected ? 'Backend running on MongoDB!' : 'Backend running on Offline Local JSON!', status: 'OK' });
+    res.json({
+        message: isMongoConnected ? 'Backend running on MongoDB Atlas!' : 'Backend running on Offline Local JSON Store!',
+        status: 'OK',
+        database: isMongoConnected ? 'MongoDB' : 'Offline JSON',
+        cloudinaryConfigured: isCloudinaryConfigured,
+        photoStorage: isCloudinaryConfigured ? 'Cloudinary (Cloud CDN)' : 'Cloud Data-URI (Zero local storage)'
+    });
 });
 
-// --- Authentication & OTP Routes --- //
+// --- LinkedIn-Style Profile & Auth API Routes --- //
+app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/activities', activityRoutes);
+
+// --- Legacy OTP Routes (Retained for compatibility) --- //
 const Otp = require('./models/Otp');
 const jwt = require('jsonwebtoken');
-
-const offlineOtps = {}; // Fallback for no-internet local mode
+const offlineOtps = {};
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-blukaam-key';
 
-// Route 1: Send OTP
 app.post('/api/auth/send-otp', async (req, res) => {
     const { identifier } = req.body;
     if (!identifier) return res.status(400).json({ error: 'Phone or email is required' });
 
-    // Generate random 6 digit OTP
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Simulate sending OTP via SMS/Email by printing to console
     console.log(`\n============================`);
     console.log(`💬 MOCK OTP INTERCEPTED:`);
     console.log(`To: ${identifier}`);
     console.log(`Your BluKaam OTP is: ${otpCode}`);
     console.log(`============================\n`);
 
-    const expiresAt = new Date(Date.now() + 5 * 60000); // Expires in 5 minutes
+    const expiresAt = new Date(Date.now() + 5 * 60000);
 
     try {
         if (isMongoConnected) {
-            await Otp.deleteMany({ identifier }); // Clear any old OTPs
+            await Otp.deleteMany({ identifier });
             await new Otp({ identifier, otp: otpCode, expiresAt }).save();
         } else {
             offlineOtps[identifier] = { otp: otpCode, expiresAt };
@@ -110,7 +154,6 @@ app.post('/api/auth/send-otp', async (req, res) => {
     }
 });
 
-// Route 2: Verify OTP
 app.post('/api/auth/verify-otp', async (req, res) => {
     const { identifier, otp } = req.body;
     
@@ -131,22 +174,15 @@ app.post('/api/auth/verify-otp', async (req, res) => {
         }
 
         if (isValid) {
-            // Issue Security Token
             const token = jwt.sign({ identifier }, JWT_SECRET, { expiresIn: '7d' });
-            
-            // Check if profile exists already
-            let profileExists = false;
             let profileData = null;
             if (isMongoConnected) {
                 profileData = await Profile.findOne({ $or: [{ phone: identifier }, { email: identifier }] });
-                profileExists = !!profileData;
             } else {
                 const db = JSON.parse(fs.readFileSync(DB_FILE));
                 profileData = db.profiles.find(p => p.phone === identifier || p.email === identifier);
-                profileExists = !!profileData;
             }
-
-            res.json({ token, isNewUser: !profileExists, profile: profileData });
+            res.json({ token, isNewUser: !profileData, profile: profileData });
         } else {
             res.status(400).json({ error: "Invalid or expired OTP" });
         }
@@ -156,10 +192,9 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     }
 });
 
-
+// Legacy profiles and general routes
 app.post('/api/profiles', async (req, res) => {
     try {
-        // Automatically forward data to the Google Sheet Apps Script URL
         const googleScriptUrl = "https://script.google.com/macros/s/AKfycbyVOgUtAwri4_lCjD3l4iz8k3uwLQrRw-xOapEjTRka31Cus39w8lbO9MH8mKbAWD5m/exec";
         try {
             fetch(googleScriptUrl, {
@@ -168,9 +203,7 @@ app.post('/api/profiles', async (req, res) => {
                 body: JSON.stringify(req.body)
             }).then(() => console.log("Sent successfully to Google Sheets!"))
               .catch(e => console.error("Google Sheets API error:", e));
-        } catch (err) {
-            console.error("Could not send to Google Sheets:", err);
-        }
+        } catch (err) {}
 
         if (isMongoConnected) {
             const newProfile = new Profile(req.body);

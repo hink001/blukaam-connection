@@ -1,16 +1,12 @@
 {
-  "name": "bluekamm",
+  "name": "blukaam-connection",
   "version": "1.0.0",
-  "description": "",
-  "main": "db.js",
+  "description": "BluKaam Connection - Blue-Collar Profile and Workforce Platform",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "npm install --prefix bluekamm && npm install"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.11.0",

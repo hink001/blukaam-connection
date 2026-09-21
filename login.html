@@ -4,23 +4,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BluKaam Connection – Apni Skill Dikhao, Sahi Job Pao</title>
+  <title>Login & Register – BluKaam Connection</title>
   <meta name="description"
-    content="India's #1 platform connecting skilled blue-collar workers with contractors. Carpenters, Electricians, Plumbers and more – find jobs near you.">
+    content="Sign in or register on BluKaam Connection to manage your profile, showcase skills, and find jobs or hire skilled workers across India.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Baloo+2:wght@500;700;800&family=Tiro+Devanagari+Hindi&display=swap"
     rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body style="background: var(--off-white);">
 
-<!-- NAV -->
+  <!-- NAV -->
   <nav>
     <div class="nav-inner">
-      <a class="logo-wrap" href="#">
+      <a class="logo-wrap" href="index.html">
         <img class="logo-icon-img" src="logo.png" alt="BluKaam Logo">
         <div class="logo-text">
           <div class="brand">BluKaam</div>
@@ -28,11 +27,10 @@
         </div>
       </a>
       <div class="nav-links">
-        <a href="index.html#skills">Browse Skills</a>
+        <a href="index.html">Home</a>
         <a href="jobs.html">Find Jobs</a>
+        <a href="workers.html">Browse Workers</a>
         <a href="training.html">Training</a>
-        <a href="jobs.html#contractor">For Contractors</a>
-        <a href="index.html#about">About</a>
         <a href="login.html" class="nav-cta">Login / Sign Up</a>
       </div>
       <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
@@ -42,133 +40,128 @@
   </nav>
 
   <div class="mobile-menu" id="mobileMenu">
-    <a href="index.html#skills" onclick="toggleMenu()">Browse Skills</a>
-    <a href="jobs.html" onclick="toggleMenu()">Find Jobs</a>
-    <a href="training.html" onclick="toggleMenu()">Training</a>
-    <a href="jobs.html#contractor" onclick="toggleMenu()">For Contractors</a>
-    <a href="index.html#about" onclick="toggleMenu()">About</a>
-    <a href="#" href="login.html" style="color: var(--blue-mid);">Login / Sign Up</a>
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Find Jobs</a>
+    <a href="workers.html">Browse Workers</a>
+    <a href="training.html">Training</a>
+    <a href="login.html" style="color: var(--blue-mid);">Login / Sign Up</a>
   </div>
 
-
-  <!-- LOGIN SECTION -->
-  <section class="login-section" style="background:var(--off-white); min-height:80vh; display:flex; align-items:center; justify-content:center; padding: 40px 1.5rem;">
-    <div style="background:white; border-radius:var(--radius-lg); width:100%; max-width:500px; padding:30px; box-shadow:var(--shadow-md); border:1.5px solid var(--gray-200);">
-        <h2 style="text-align:center; font-family:'Baloo 2',sans-serif; color:var(--blue-dark); margin-bottom:24px;">Join BluKaam Connection</h2>
-        
-        <!-- Main Registration Form -->
-        <div id="authStep1" style="display:block;">
-            <p style="text-align:center; color:var(--gray-600); margin-bottom:10px;">Create a profile to start applying or hiring.</p>
-            
-            <div class="role-selector" style="display:flex; gap:10px; margin-bottom:20px;">
-              <button id="btnRoleWorker" class="tab-btn active" type="button" onclick="switchRole('Worker')" style="flex:1;">Worker</button>
-              <button id="btnRoleContractor" class="tab-btn" type="button" onclick="switchRole('Contractor')" style="flex:1;">Contractor</button>
-            </div>
-
-            <form id="registrationForm" onsubmit="handleRegistration(event)">
-              <input type="hidden" id="regRole" value="Worker">
-
-              <div class="form-group">
-                <label class="form-label">Full Name *</label>
-                <input type="text" id="regName" class="form-input" required>
-              </div>
-
-              <!-- Phone Number added back for standard registration -->
-              <div class="form-group">
-                <label class="form-label">Phone Number *</label>
-                <input type="tel" id="regPhone" class="form-input" placeholder="e.g. 9876543210" required>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label" id="lblIndustry">Industry *</label>
-                  <input type="text" id="regIndustry" class="form-input" placeholder="e.g. Construction" required>
-                </div>
-                <div class="form-group" id="grpWorkType">
-                  <label class="form-label">Work Type *</label>
-                  <input type="text" id="regWorkType" class="form-input" placeholder="e.g. Electrician" required>
-                </div>
-                <div class="form-group" id="grpCompanyName" style="display:none;">
-                  <label class="form-label">Company Name *</label>
-                  <input type="text" id="regCompany" class="form-input" placeholder="Your Builder/Agency Name">
-                </div>
-              </div>
-
-              <div class="form-group" id="grpSkills">
-                <label class="form-label">Skills (Comma separated) *</label>
-                <input type="text" id="regSkills" class="form-input" placeholder="e.g. Wiring, Pipe Fitting" required>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">City *</label>
-                  <input type="text" id="regCity" class="form-input" required>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">State *</label>
-                  <input type="text" id="regState" class="form-input" required>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Pincode *</label>
-                  <input type="text" id="regPincode" class="form-input" required>
-                </div>
-              </div>
-
-              <button type="submit" class="apply-btn" style="width:100%; margin-top:20px;">Register & Enter Dashboard</button>
-            </form>
-        </div>
+  <!-- AUTH CARD CONTAINER -->
+  <section style="min-height: 85vh; display: flex; align-items: center; justify-content: center; padding: 40px 1.5rem;">
+    <div style="background: white; border-radius: var(--radius-lg); width: 100%; max-width: 520px; padding: 36px 32px; box-shadow: var(--shadow-md); border: 1.5px solid var(--gray-200);">
       
+      <!-- Brand Header -->
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h1 style="font-family: 'Baloo 2', sans-serif; font-size: 30px; color: var(--blue-dark); margin-bottom: 6px;">
+          Welcome to BluKaam
+        </h1>
+        <p style="font-size: 14px; color: var(--gray-600);">
+          India's Professional Blue-Collar Network
+        </p>
+      </div>
+
+      <!-- Tab Switcher: Sign In vs Sign Up -->
+      <div style="display: flex; background: var(--gray-100); border-radius: 999px; padding: 4px; margin-bottom: 24px;">
+        <button id="tabBtnLogin" onclick="switchAuthTab('login')" style="flex: 1; padding: 10px; border: none; border-radius: 999px; font-weight: 700; font-size: 14px; cursor: pointer; background: white; color: var(--blue-dark); box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+          Sign In
+        </button>
+        <button id="tabBtnRegister" onclick="switchAuthTab('register')" style="flex: 1; padding: 10px; border: none; border-radius: 999px; font-weight: 700; font-size: 14px; cursor: pointer; background: transparent; color: var(--gray-600);">
+          Create Account
+        </button>
+      </div>
+
+      <!-- Error / Alert Banner -->
+      <div id="authAlert" style="display: none; padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 20px; font-size: 14px; font-weight: 600;"></div>
+
+      <!-- ================= LOGIN FORM ================= -->
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" for="loginEmail">Email Address *</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="name@example.com" required autocomplete="email">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" for="loginPassword" style="margin-bottom: 0;">Password *</label>
+            <a href="javascript:void(0)" onclick="alert('Password reset link will be sent to your registered email.')" style="font-size: 12px; color: var(--blue-mid); text-decoration: none; font-weight: 600;">Forgot Password?</a>
+          </div>
+          <div style="position: relative;">
+            <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required autocomplete="current-password" style="padding-right: 40px;">
+            <button type="button" onclick="togglePasswordVis('loginPassword', this)" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--gray-400); font-size: 14px;">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" id="loginBtn" class="apply-btn" style="width: 100%; padding: 13px; font-size: 16px;">
+          Sign In to Dashboard
+        </button>
+      </form>
+
+      <!-- ================= REGISTER FORM ================= -->
+      <form id="registerForm" onsubmit="handleRegisterSubmit(event)" style="display: none;">
+        
+        <!-- Role Selector -->
+        <div style="display: flex; gap: 10px; margin-bottom: 18px;">
+          <button id="roleWorker" type="button" onclick="selectRole('Worker')" class="tab-btn active" style="flex: 1; padding: 8px 12px; font-size: 13px;">
+            🔧 Worker / Karigar
+          </button>
+          <button id="roleContractor" type="button" onclick="selectRole('Contractor')" class="tab-btn" style="flex: 1; padding: 8px 12px; font-size: 13px;">
+            🏢 Contractor / Hirer
+          </button>
+        </div>
+        <input type="hidden" id="regRole" value="Worker">
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="regFullName">Full Name *</label>
+          <input type="text" id="regFullName" class="form-input" placeholder="e.g. Ramesh Singh" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="regEmail">Email Address *</label>
+          <input type="email" id="regEmail" class="form-input" placeholder="e.g. ramesh@example.com" required autocomplete="email">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="regPhone">Phone Number *</label>
+          <input type="tel" id="regPhone" class="form-input" placeholder="e.g. 9876543210" required>
+        </div>
+
+        <div class="form-row" style="margin-bottom: 14px;">
+          <div class="form-group" style="flex: 1;">
+            <label class="form-label" for="regCity">City *</label>
+            <input type="text" id="regCity" class="form-input" placeholder="e.g. Delhi NCR" required>
+          </div>
+          <div class="form-group" style="flex: 1;" id="grpRegWorkType">
+            <label class="form-label" for="regWorkType">Trade / Work Type *</label>
+            <input type="text" id="regWorkType" class="form-input" placeholder="e.g. Electrician">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label class="form-label" for="regPassword">Create Password (min 6 chars) *</label>
+          <div style="position: relative;">
+            <input type="password" id="regPassword" class="form-input" minlength="6" placeholder="At least 6 characters" required autocomplete="new-password" style="padding-right: 40px;">
+            <button type="button" onclick="togglePasswordVis('regPassword', this)" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--gray-400); font-size: 14px;">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" id="regBtn" class="apply-btn" style="width: 100%; padding: 13px; font-size: 16px;">
+          Create Free Account
+        </button>
+      </form>
+
+      <!-- Privacy and Terms footnote -->
+      <p style="text-align: center; font-size: 12px; color: var(--gray-400); margin-top: 24px; line-height: 1.5;">
+        By continuing, you agree to BluKaam's <a href="#" style="color: var(--blue-mid);">Terms of Service</a> & <a href="#" style="color: var(--blue-mid);">Privacy Policy</a>.
+      </p>
+
     </div>
   </section>
 
-<!-- FOOTER -->
+  <!-- FOOTER -->
   <footer>
     <div class="footer-inner">
-      <div class="footer-grid">
-        <div>
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-            <div
-              style="width:36px; height:36px; background:rgba(255,255,255,0.15); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; font-family:'Baloo 2',sans-serif;">
-              BK</div>
-            <div>
-              <div style="font-family:'Baloo 2',sans-serif; font-weight:800; font-size:16px;">BluKaam Connection</div>
-              <div style="font-size:11px; color:rgba(255,255,255,0.4); letter-spacing:2px;">CONNECTING INDIA'S WORKFORCE</div>
-            </div>
-          </div>
-          <p class="footer-brand-desc">India's leading platform connecting skilled blue-collar workers with contractors and businesses.</p>
-        </div>
-        <div>
-          <div class="footer-col-title">For Workers</div>
-          <ul class="footer-links">
-            <li><a href="#">Create Profile</a></li>
-            <li><a href="#">Browse Jobs</a></li>
-            <li><a href="#">Free Training</a></li>
-            <li><a href="#">PMKVY Courses</a></li>
-            <li><a href="#">Success Stories</a></li>
-          </ul>
-        </div>
-        <div>
-          <div class="footer-col-title">For Contractors</div>
-          <ul class="footer-links">
-            <li><a href="#">Post a Job</a></li>
-            <li><a href="#">Browse Workers</a></li>
-            <li><a href="#">Company Profile</a></li>
-            <li><a href="#">Dashboard</a></li>
-            <li><a href="#">Pricing</a></li>
-          </ul>
-        </div>
-        <div>
-          <div class="footer-col-title">Company</div>
-          <ul class="footer-links">
-            <li><a href="#">About Us</a></li>
-            <li><a href="#">Contact</a></li>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Help Center</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
+      <div class="footer-bottom" style="border-top: none; padding-top: 0;">
         <p>© 2024 BluKaam Connection. Made with ❤️ for India's Blue-Collar Workforce.</p>
         <div class="footer-badges">
           <div class="footer-badge">Skill India Partner</div>
@@ -178,7 +171,147 @@
     </div>
   </footer>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
+  <script src="auth-profile.js"></script>
+  <script>
+    // If already logged in, redirect straight to dashboard
+    if (BluKaamAuth.isAuthenticated()) {
+      window.location.href = 'dashboard.html';
+    }
+
+    function switchAuthTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const tabBtnLogin = document.getElementById('tabBtnLogin');
+      const tabBtnRegister = document.getElementById('tabBtnRegister');
+      const alertBox = document.getElementById('authAlert');
+      alertBox.style.display = 'none';
+
+      if (tab === 'login') {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        tabBtnLogin.style.background = 'white';
+        tabBtnLogin.style.color = 'var(--blue-dark)';
+        tabBtnLogin.style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)';
+        tabBtnRegister.style.background = 'transparent';
+        tabBtnRegister.style.color = 'var(--gray-600)';
+        tabBtnRegister.style.boxShadow = 'none';
+      } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        tabBtnRegister.style.background = 'white';
+        tabBtnRegister.style.color = 'var(--blue-dark)';
+        tabBtnRegister.style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)';
+        tabBtnLogin.style.background = 'transparent';
+        tabBtnLogin.style.color = 'var(--gray-600)';
+        tabBtnLogin.style.boxShadow = 'none';
+      }
+    }
+
+    function selectRole(role) {
+      document.getElementById('regRole').value = role;
+      const bWorker = document.getElementById('roleWorker');
+      const bContractor = document.getElementById('roleContractor');
+      const grpWorkType = document.getElementById('grpRegWorkType');
+
+      if (role === 'Worker') {
+        bWorker.classList.add('active');
+        bContractor.classList.remove('active');
+        grpWorkType.querySelector('label').innerText = 'Trade / Work Type *';
+      } else {
+        bContractor.classList.add('active');
+        bWorker.classList.remove('active');
+        grpWorkType.querySelector('label').innerText = 'Company / Industry *';
+      }
+    }
+
+    function togglePasswordVis(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerText = '🔒';
+      } else {
+        input.type = 'password';
+        btn.innerText = '👁️';
+      }
+    }
+
+    function showAlert(msg, isError = true) {
+      const el = document.getElementById('authAlert');
+      el.style.display = 'block';
+      el.innerText = msg;
+      if (isError) {
+        el.style.background = '#FEE2E2';
+        el.style.color = '#B91C1C';
+        el.style.border = '1px solid #FCA5A5';
+      } else {
+        el.style.background = '#DCFCE7';
+        el.style.color = '#15803D';
+        el.style.border = '1px solid #86EFAC';
+      }
+    }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginBtn');
+
+      try {
+        btn.disabled = true;
+        btn.innerText = 'Signing in...';
+
+        await BluKaamAuth.login(email, password);
+        BluKaamAuth.showToast('Logged in successfully!', 'success');
+
+        const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
+        sessionStorage.removeItem('redirect_after_login');
+        setTimeout(() => {
+          window.location.href = nextUrl;
+        }, 300);
+      } catch (err) {
+        showAlert(err.message || 'Login failed. Please check your email and password.');
+        btn.disabled = false;
+        btn.innerText = 'Sign In to Dashboard';
+      }
+    }
+
+    async function handleRegisterSubmit(e) {
+      e.preventDefault();
+      const fullName = document.getElementById('regFullName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const city = document.getElementById('regCity').value.trim();
+      const workType = document.getElementById('regWorkType').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const role = document.getElementById('regRole').value;
+      const btn = document.getElementById('regBtn');
+
+      try {
+        btn.disabled = true;
+        btn.innerText = 'Creating account...';
+
+        await BluKaamAuth.register({
+          fullName,
+          email,
+          phone,
+          city,
+          workType,
+          password,
+          role
+        });
+
+        BluKaamAuth.showToast('Registration successful! Welcome to BluKaam.', 'success');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 400);
+      } catch (err) {
+        showAlert(err.message || 'Registration failed. Please try again.');
+        btn.disabled = false;
+        btn.innerText = 'Create Free Account';
+      }
+    }
+  </script>
 </body>
 
 </html>

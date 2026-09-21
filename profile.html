@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Professional Profile – BluKaam Connection</title>
+  <meta name="description" content="View verified skilled worker and contractor profiles on BluKaam Connection. Check certifications, skills, experience, and contact info.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Baloo+2:wght@500;700;800&family=Tiro+Devanagari+Hindi&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body style="background: var(--off-white);">
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a class="logo-wrap" href="index.html">
+        <img class="logo-icon-img" src="logo.png" alt="BluKaam Logo">
+        <div class="logo-text">
+          <div class="brand">BluKaam</div>
+          <div class="sub">Connection</div>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="jobs.html">Find Jobs</a>
+        <a href="workers.html">Browse Workers</a>
+        <a href="training.html">Training</a>
+        <a href="login.html" class="nav-cta">Login / Sign Up</a>
+      </div>
+      <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Find Jobs</a>
+    <a href="workers.html">Browse Workers</a>
+    <a href="training.html">Training</a>
+    <a href="login.html" style="color: var(--blue-mid);">Login / Sign Up</a>
+  </div>
+
+  <!-- MAIN PROFILE WRAPPER (LINKEDIN STYLE) -->
+  <main style="max-width: 960px; margin: 30px auto 60px; padding: 0 1.5rem;">
+    
+    <!-- HERO PROFILE CARD -->
+    <section class="linkedin-card" id="profileHero">
+      <!-- Cover Banner -->
+      <div class="linkedin-banner" id="profileBanner"></div>
+
+      <!-- Avatar & Action Bar -->
+      <div class="linkedin-avatar-wrap">
+        <img id="profileAvatar" src="logo.png" class="linkedin-avatar" alt="Profile Avatar" onerror="this.src='logo.png'">
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 8px;" id="ownerActions">
+          <!-- Populated if viewing own profile -->
+        </div>
+      </div>
+
+      <!-- Member Details Content -->
+      <div class="linkedin-profile-content">
+        <div class="linkedin-name-row">
+          <h1 class="linkedin-name" id="profileFullName">Loading Profile...</h1>
+          <span class="badge-verified">✓ Verified Member</span>
+          <span class="badge-availability badge-avail-green" id="profileAvailability">● Available</span>
+        </div>
+
+        <div class="linkedin-headline" id="profileHeadline">
+          Professional at BluKaam Connection
+        </div>
+
+        <div class="linkedin-meta-row">
+          <div class="linkedin-meta-item">
+            <span>📍</span>
+            <span id="profileLocation">Delhi NCR, India</span>
+          </div>
+          <div class="linkedin-meta-item">
+            <span>💼</span>
+            <span id="profileRoleMeta">Worker</span>
+          </div>
+          <div class="linkedin-meta-item" id="metaExpWrap">
+            <span>⏱️</span>
+            <span id="profileExpMeta">0 Years Exp</span>
+          </div>
+          <div class="linkedin-meta-item">
+            <a href="javascript:void(0)" onclick="openContactModal()" style="color: var(--blue-mid); font-weight: 700; text-decoration: none;">
+              Contact Info ↗
+            </a>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="linkedin-actions">
+          <button class="btn-primary-li" onclick="openContactModal()">
+            📞 Contact & Hire
+          </button>
+          <button class="btn-secondary-li" onclick="shareCurrentProfile()">
+            🔗 Share Profile
+          </button>
+          <a href="workers.html" class="btn-secondary-li" style="border-color: var(--gray-200); color: var(--gray-600);">
+            ← Browse Other Workers
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section class="linkedin-card" style="padding: 24px 28px;">
+      <h2 style="font-family: 'Baloo 2', sans-serif; font-size: 20px; color: var(--blue-dark); margin-bottom: 12px;">
+        About
+      </h2>
+      <p id="profileBio" style="font-size: 15px; color: var(--gray-600); line-height: 1.7; white-space: pre-line;">
+        No bio provided yet.
+      </p>
+    </section>
+
+    <!-- SKILLS & EXPERTISE -->
+    <section class="linkedin-card" style="padding: 24px 28px;">
+      <h2 style="font-family: 'Baloo 2', sans-serif; font-size: 20px; color: var(--blue-dark); margin-bottom: 12px;">
+        Skills & Specializations
+      </h2>
+      <div class="skills-container" id="profileSkills">
+        <span style="color: var(--gray-400); font-size: 14px;">No skills added yet.</span>
+      </div>
+    </section>
+
+    <!-- EXPERIENCE & WORK DETAILS -->
+    <section class="linkedin-card" style="padding: 24px 28px;">
+      <h2 style="font-family: 'Baloo 2', sans-serif; font-size: 20px; color: var(--blue-dark); margin-bottom: 16px;">
+        Experience & Details
+      </h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <div style="background: var(--off-white); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);">
+          <div style="font-size: 11px; color: var(--gray-400); text-transform: uppercase; font-weight: 700;">Trade / Work Type</div>
+          <div id="detailWorkType" style="font-size: 15px; font-weight: 700; color: var(--gray-800); margin-top: 4px;">General</div>
+        </div>
+        <div style="background: var(--off-white); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);">
+          <div style="font-size: 11px; color: var(--gray-400); text-transform: uppercase; font-weight: 700;">Years of Experience</div>
+          <div id="detailExp" style="font-size: 15px; font-weight: 700; color: var(--gray-800); margin-top: 4px;">Not specified</div>
+        </div>
+        <div style="background: var(--off-white); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);">
+          <div style="font-size: 11px; color: var(--gray-400); text-transform: uppercase; font-weight: 700;">Role Category</div>
+          <div id="detailRole" style="font-size: 15px; font-weight: 700; color: var(--gray-800); margin-top: 4px;">Worker</div>
+        </div>
+        <div style="background: var(--off-white); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);">
+          <div style="font-size: 11px; color: var(--gray-400); text-transform: uppercase; font-weight: 700;">Industry / Sector</div>
+          <div id="detailIndustry" style="font-size: 15px; font-weight: 700; color: var(--gray-800); margin-top: 4px;">Construction & Technical</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PUBLIC ACTIVITY TIMELINE -->
+    <section class="linkedin-card" style="padding: 24px 28px;">
+      <h2 style="font-family: 'Baloo 2', sans-serif; font-size: 20px; color: var(--blue-dark); margin-bottom: 4px;">
+        Recent Public Activity
+      </h2>
+      <p style="font-size: 13px; color: var(--gray-400); margin-bottom: 16px;">
+        Verified updates, skill additions, and activity log for this member.
+      </p>
+      <div id="publicActivityList" class="activity-timeline">
+        <div style="text-align: center; color: var(--gray-400); padding: 20px;">No public activity recorded yet.</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- CONTACT INFO MODAL -->
+  <div id="contactModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 440px;">
+      <div class="modal-header">
+        <div style="font-family: 'Baloo 2', sans-serif; font-size: 18px; font-weight: 800; color: var(--blue-dark);">
+          Contact Information
+        </div>
+        <button class="close-modal" onclick="closeContactModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;">
+          <img id="modalAvatar" src="logo.png" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" alt="Avatar">
+          <div>
+            <div id="modalName" style="font-weight: 800; font-size: 16px; color: var(--gray-800);">Ramesh Singh</div>
+            <div id="modalHeadline" style="font-size: 12px; color: var(--gray-600);">Skilled Professional</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px; font-size: 14px;">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <span style="font-size: 18px;">📞</span>
+            <div>
+              <div style="font-size: 11px; color: var(--gray-400); font-weight: 700;">PHONE</div>
+              <a id="modalPhone" href="tel:" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">Not available</a>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <span style="font-size: 18px;">✉️</span>
+            <div>
+              <div style="font-size: 11px; color: var(--gray-400); font-weight: 700;">EMAIL</div>
+              <a id="modalEmail" href="mailto:" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">Not available</a>
+            </div>
+          </div>
+
+          <div id="modalWebsiteRow" style="display: none; gap: 12px; align-items: center;">
+            <span style="font-size: 18px;">🌐</span>
+            <div>
+              <div style="font-size: 11px; color: var(--gray-400); font-weight: 700;">WEBSITE / PORTFOLIO</div>
+              <a id="modalWebsite" href="#" target="_blank" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">View Portfolio</a>
+            </div>
+          </div>
+
+          <div id="modalLinkedinRow" style="display: none; gap: 12px; align-items: center;">
+            <span style="font-size: 18px;">🔗</span>
+            <div>
+              <div style="font-size: 11px; color: var(--gray-400); font-weight: 700;">LINKEDIN PROFILE</div>
+              <a id="modalLinkedin" href="#" target="_blank" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">View LinkedIn</a>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px;">
+          <button onclick="closeContactModal()" class="btn-primary-li" style="width: 100%; justify-content: center; border-radius: var(--radius-sm);">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-bottom" style="border-top: none; padding-top: 0;">
+        <p>© 2024 BluKaam Connection. Made with ❤️ for India's Blue-Collar Workforce.</p>
+        <div class="footer-badges">
+          <div class="footer-badge">Skill India Partner</div>
+          <div class="footer-badge">NSDC Certified</div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="auth-profile.js"></script>
+  <script>
+    let activeProfile = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetId = urlParams.get('id') || urlParams.get('user');
+
+      if (targetId) {
+        await fetchProfileById(targetId);
+      } else {
+        // If no ID is provided, try loading the logged-in user's own profile
+        if (BluKaamAuth.isAuthenticated()) {
+          try {
+            activeProfile = await BluKaamAuth.getMyProfile();
+            renderProfile(activeProfile, true);
+            loadPublicActivities(activeProfile.userId || activeProfile._id);
+          } catch (e) {
+            window.location.href = 'workers.html';
+          }
+        } else {
+          window.location.href = 'workers.html';
+        }
+      }
+    });
+
+    async function fetchProfileById(id) {
+      try {
+        activeProfile = await BluKaamAuth.getPublicProfile(id);
+        const currentUser = BluKaamAuth.getUser();
+        const isOwner = currentUser && (currentUser.id === activeProfile.userId || currentUser.id === activeProfile._id);
+        renderProfile(activeProfile, isOwner);
+        loadPublicActivities(activeProfile.userId || activeProfile._id);
+      } catch (err) {
+        console.error('Error loading public profile:', err);
+        document.getElementById('profileFullName').innerText = 'Profile Not Found';
+        document.getElementById('profileHeadline').innerText = 'The requested profile does not exist or has been removed.';
+      }
+    }
+
+    function renderProfile(p, isOwner) {
+      if (!p) return;
+
+      const name = p.fullName || p.name || 'Member Profile';
+      const headline = p.headline || 'Skilled Professional at BluKaam Connection';
+      const city = (p.location && p.location.city) || p.city || 'India';
+      const state = (p.location && p.location.state) || p.state || '';
+      const avatar = p.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=0D2F6E&textColor=ffffff`;
+
+      document.title = `${name} | BluKaam Profile`;
+      document.getElementById('profileFullName').innerText = name;
+      document.getElementById('profileHeadline').innerText = headline;
+      document.getElementById('profileAvatar').src = avatar;
+      document.getElementById('profileLocation').innerText = `${city}${state ? ', ' + state : ''}`;
+      document.getElementById('profileRoleMeta').innerText = p.role || 'Worker';
+
+      const exp = p.experienceYears || 0;
+      document.getElementById('profileExpMeta').innerText = `${exp} Years Exp`;
+      document.getElementById('detailExp').innerText = exp ? `${exp} Years` : 'Not specified';
+      document.getElementById('detailWorkType').innerText = p.workType || 'General Worker';
+      document.getElementById('detailRole').innerText = p.role || 'Worker';
+      document.getElementById('detailIndustry').innerText = p.industry || 'Technical & Blue Collar';
+
+      // Availability badge
+      const availEl = document.getElementById('profileAvailability');
+      if (p.availability === 'Available' || !p.availability) {
+        availEl.innerText = '● Available for Work';
+        availEl.className = 'badge-availability badge-avail-green';
+      } else {
+        availEl.innerText = `● ${p.availability}`;
+        availEl.className = 'badge-availability badge-avail-amber';
+      }
+
+      // Bio
+      const bioEl = document.getElementById('profileBio');
+      if (p.bio && p.bio.trim()) {
+        bioEl.innerText = p.bio;
+      } else {
+        bioEl.innerHTML = `<span style="color:var(--gray-400); font-style:italic;">This member hasn't added a bio yet.</span>`;
+      }
+
+      // Skills
+      const skillsContainer = document.getElementById('profileSkills');
+      const skills = p.skills || [];
+      if (skills.length > 0) {
+        skillsContainer.innerHTML = skills.map(s => `
+          <div class="skill-chip">
+            <span>⚡ ${escapeHtml(s)}</span>
+          </div>
+        `).join('');
+      } else {
+        skillsContainer.innerHTML = `<span style="color:var(--gray-400); font-size:14px;">No skills specified yet.</span>`;
+      }
+
+      // Owner Actions (e.g. "Edit Profile" button)
+      const ownerActions = document.getElementById('ownerActions');
+      if (isOwner) {
+        ownerActions.innerHTML = `
+          <a href="dashboard.html" class="btn-primary-li" style="font-size:13px; padding:6px 16px;">
+            ✏️ Edit Profile
+          </a>
+        `;
+      }
+    }
+
+    async function loadPublicActivities(userId) {
+      if (!userId) return;
+      const container = document.getElementById('publicActivityList');
+      try {
+        const activities = await BluKaamAuth.getUserActivities(userId, 10);
+        if (!activities || activities.length === 0) {
+          container.innerHTML = `<div style="text-align: center; color: var(--gray-400); padding: 20px;">No public activity logged yet.</div>`;
+          return;
+        }
+
+        container.innerHTML = activities.map(act => {
+          let icon = '📌';
+          if (act.action === 'PROFILE_UPDATE') icon = '✏️';
+          if (act.action === 'AVATAR_UPDATE') icon = '📷';
+          if (act.action === 'AUTH_REGISTER') icon = '🎉';
+
+          return `
+            <div class="activity-item">
+              <div class="activity-icon-wrap">${icon}</div>
+              <div class="activity-content">
+                <div class="activity-desc">${escapeHtml(act.description)}</div>
+                <div class="activity-time">${formatDate(act.createdAt)}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        container.innerHTML = `<div style="color: var(--gray-400); text-align: center;">Could not load activities.</div>`;
+      }
+    }
+
+    // Contact Modal
+    function openContactModal() {
+      if (!activeProfile) return;
+      const p = activeProfile;
+
+      const name = p.fullName || p.name || 'Member';
+      const avatar = p.avatarUrl || 'logo.png';
+      const phone = (p.contactInfo && p.contactInfo.phone) || p.phone || '';
+      const email = (p.contactInfo && p.contactInfo.email) || p.email || '';
+      const website = p.contactInfo && p.contactInfo.website;
+      const linkedin = p.contactInfo && p.contactInfo.linkedin;
+
+      document.getElementById('modalAvatar').src = avatar;
+      document.getElementById('modalName').innerText = name;
+      document.getElementById('modalHeadline').innerText = p.headline || 'Skilled Professional';
+
+      const phoneEl = document.getElementById('modalPhone');
+      if (phone) {
+        phoneEl.innerText = phone;
+        phoneEl.href = `tel:${phone}`;
+      } else {
+        phoneEl.innerText = 'Not provided';
+        phoneEl.removeAttribute('href');
+      }
+
+      const emailEl = document.getElementById('modalEmail');
+      if (email) {
+        emailEl.innerText = email;
+        emailEl.href = `mailto:${email}`;
+      } else {
+        emailEl.innerText = 'Not provided';
+        emailEl.removeAttribute('href');
+      }
+
+      const webRow = document.getElementById('modalWebsiteRow');
+      if (website) {
+        webRow.style.display = 'flex';
+        document.getElementById('modalWebsite').href = website;
+      } else {
+        webRow.style.display = 'none';
+      }
+
+      const linRow = document.getElementById('modalLinkedinRow');
+      if (linkedin) {
+        linRow.style.display = 'flex';
+        document.getElementById('modalLinkedin').href = linkedin;
+      } else {
+        linRow.style.display = 'none';
+      }
+
+      document.getElementById('contactModal').classList.add('show');
+    }
+
+    function closeContactModal() {
+      document.getElementById('contactModal').classList.remove('show');
+    }
+
+    function shareCurrentProfile() {
+      const url = window.location.href;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          BluKaamAuth.showToast('Profile link copied to clipboard!', 'success');
+        }).catch(() => {
+          prompt('Copy profile link:', url);
+        });
+      } else {
+        prompt('Copy profile link:', url);
+      }
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return 'Recently';
+      return new Date(dateStr).toLocaleDateString('en-IN', {
+        month: 'short', day: 'numeric', year: 'numeric'
+      });
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+
+</html>
