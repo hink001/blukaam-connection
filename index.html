@@ -7,10 +7,18 @@
   <title>BluKaam Connection – Apni Skill Dikhao, Sahi Job Pao</title>
   <meta name="description"
     content="India's #1 platform connecting skilled blue-collar workers with contractors. Carpenters, Electricians, Plumbers and more – find jobs near you.">
+    <!-- Favicon / Brand Icons for browser tabs, bookmarks, and mobile PWA -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#0D2F6E">
+
+  <!-- Modern Fonts: Plus Jakarta Sans, Outfit, Baloo 2 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Baloo+2:wght@500;700;800&family=Tiro+Devanagari+Hindi&display=swap"
-    rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -21,7 +29,7 @@
   <nav>
     <div class="nav-inner">
       <a class="logo-wrap" href="#">
-        <img class="logo-icon-img" src="logo.png" alt="BluKaam Logo">
+        <img class="logo-icon-img" src="logo-emblem.png" alt="BluKaam Logo">
         <div class="logo-text">
           <div class="brand">BluKaam</div>
           <div class="sub">Connection</div>
@@ -292,85 +300,6 @@
             <li>WhatsApp API integration</li>
             <li>Google Analytics + SEO</li>
           </ul>
-        </div>
-      </div>
-
-      <!-- Color & Design System -->
-      <div
-        style="margin-top:40px; background:white; border:1.5px solid var(--gray-200); border-radius:var(--radius-lg); padding:28px;">
-        <div class="card-title">Color Palette & Design System</div>
-        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
-          <div style="text-align:center;">
-            <div
-              style="width:60px; height:60px; background:#0D2F6E; border-radius:var(--radius-sm); margin-bottom:6px;">
-            </div>
-            <div style="font-size:11px; font-weight:600; color:var(--gray-600);">Primary Blue</div>
-            <div style="font-size:10px; color:var(--gray-400);">#0D2F6E</div>
-          </div>
-          <div style="text-align:center;">
-            <div
-              style="width:60px; height:60px; background:#1E88E5; border-radius:var(--radius-sm); margin-bottom:6px;">
-            </div>
-            <div style="font-size:11px; font-weight:600; color:var(--gray-600);">Bright Blue</div>
-            <div style="font-size:10px; color:var(--gray-400);">#1E88E5</div>
-          </div>
-          <div style="text-align:center;">
-            <div
-              style="width:60px; height:60px; background:#F57C00; border-radius:var(--radius-sm); margin-bottom:6px;">
-            </div>
-            <div style="font-size:11px; font-weight:600; color:var(--gray-600);">Orange CTA</div>
-            <div style="font-size:10px; color:var(--gray-400);">#F57C00</div>
-          </div>
-          <div style="text-align:center;">
-            <div
-              style="width:60px; height:60px; background:#FF9800; border-radius:var(--radius-sm); margin-bottom:6px;">
-            </div>
-            <div style="font-size:11px; font-weight:600; color:var(--gray-600);">Orange Accent</div>
-            <div style="font-size:10px; color:var(--gray-400);">#FF9800</div>
-          </div>
-          <div style="text-align:center;">
-            <div
-              style="width:60px; height:60px; background:#FFFFFF; border:1.5px solid var(--gray-200); border-radius:var(--radius-sm); margin-bottom:6px;">
-            </div>
-            <div style="font-size:11px; font-weight:600; color:var(--gray-600);">White</div>
-            <div style="font-size:10px; color:var(--gray-400);">#FFFFFF</div>
-          </div>
-          <div style="text-align:center;">
-            <div
-              style="width:60px; height:60px; background:#2E7D32; border-radius:var(--radius-sm); margin-bottom:6px;">
-            </div>
-            <div style="font-size:11px; font-weight:600; color:var(--gray-600);">Success Green</div>
-            <div style="font-size:10px; color:var(--gray-400);">#2E7D32</div>
-          </div>
-        </div>
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
-          <div>
-            <div
-              style="font-size:12px; font-weight:700; color:var(--gray-600); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">
-              Display Font</div>
-            <div style="font-family:'Baloo 2',sans-serif; font-size:22px; font-weight:800; color:var(--blue-dark);">
-              Baloo 2 – Bold</div>
-            <div style="font-size:12px; color:var(--gray-400);">Headlines, Hindi text, logos</div>
-          </div>
-          <div>
-            <div
-              style="font-size:12px; font-weight:700; color:var(--gray-600); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">
-              Body Font</div>
-            <div style="font-family:'Noto Sans',sans-serif; font-size:16px; color:var(--gray-800);">Noto Sans – Regular
-            </div>
-            <div style="font-size:12px; color:var(--gray-400);">Body text, forms, UI labels</div>
-          </div>
-          <div>
-            <div
-              style="font-size:12px; font-weight:700; color:var(--gray-600); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">
-              Button Style</div>
-            <button
-              style="background:var(--orange); color:white; border:none; border-radius:100px; padding:10px 20px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Noto Sans',sans-serif; margin-right:8px;">Primary
-              CTA</button>
-            <button
-              style="background:var(--blue-mid); color:white; border:none; border-radius:var(--radius-sm); padding:10px 20px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Noto Sans',sans-serif;">Action
-              Btn</button>
-          </div>
         </div>
       </div>
     </div>

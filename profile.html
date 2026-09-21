@@ -6,10 +6,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Professional Profile – BluKaam Connection</title>
   <meta name="description" content="View verified skilled worker and contractor profiles on BluKaam Connection. Check certifications, skills, experience, and contact info.">
+    <!-- Favicon / Brand Icons for browser tabs, bookmarks, and mobile PWA -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#0D2F6E">
+
+  <!-- Modern Fonts: Plus Jakarta Sans, Outfit, Baloo 2 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Baloo+2:wght@500;700;800&family=Tiro+Devanagari+Hindi&display=swap"
-    rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -19,7 +27,7 @@
   <nav>
     <div class="nav-inner">
       <a class="logo-wrap" href="index.html">
-        <img class="logo-icon-img" src="logo.png" alt="BluKaam Logo">
+        <img class="logo-icon-img" src="logo-emblem.png" alt="BluKaam Logo">
         <div class="logo-text">
           <div class="brand">BluKaam</div>
           <div class="sub">Connection</div>
@@ -56,7 +64,7 @@
 
       <!-- Avatar & Action Bar -->
       <div class="linkedin-avatar-wrap">
-        <img id="profileAvatar" src="logo.png" class="linkedin-avatar" alt="Profile Avatar" onerror="this.src='logo.png'">
+        <img id="profileAvatar" src="logo-emblem.png" class="linkedin-avatar" alt="Profile Avatar" onerror="this.src='logo.png'">
         
         <div style="display: flex; gap: 10px; margin-bottom: 8px;" id="ownerActions">
           <!-- Populated if viewing own profile -->
@@ -181,7 +189,7 @@
       </div>
       <div class="modal-body" style="padding: 24px;">
         <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;">
-          <img id="modalAvatar" src="logo.png" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" alt="Avatar">
+          <img id="modalAvatar" src="logo-emblem.png" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" alt="Avatar">
           <div>
             <div id="modalName" style="font-weight: 800; font-size: 16px; color: var(--gray-800);">Ramesh Singh</div>
             <div id="modalHeadline" style="font-size: 12px; color: var(--gray-600);">Skilled Professional</div>
