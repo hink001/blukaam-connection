@@ -1,7 +1,7 @@
 @echo off
 title BluKaam Connection - Instant Deploy
 echo ========================================================
-echo   Deploying BluKaam Connection to GitHub, Render & Pages
+echo   Deploying BluKaam Connection to GitHub, Render and Pages
 echo ========================================================
 cd /d "%~dp0"
 
@@ -22,4 +22,4 @@ if %errorlevel% equ 0 (
     echo [ERROR] Git push failed. Please check your connection.
 )
 
-timeout /t 5
+ping 127.0.0.1 -n 4 >nul
