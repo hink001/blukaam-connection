@@ -34,6 +34,161 @@ const saveOfflineDb = (data) => {
 };
 
 // --------------------------------------------------------
+// GET /api/auth/config
+// Public auth configuration (Google Client ID, email service status)
+// --------------------------------------------------------
+router.get('/config', (req, res) => {
+    res.json({
+        googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+        isEmailConfigured: isEmailConfigured()
+    });
+});
+
+// --------------------------------------------------------
+// POST /api/auth/google
+// Direct Sign in with Google (100% Free via Google Identity Services)
+// --------------------------------------------------------
+router.post('/google', async (req, res) => {
+    try {
+        const { credential, role = 'Worker' } = req.body;
+        if (!credential) {
+            return res.status(400).json({ error: 'Google credential token is required.' });
+        }
+
+        // Verify Google token via Google's official free tokeninfo endpoint
+        const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+        if (!verifyRes.ok) {
+            return res.status(401).json({ error: 'Invalid Google authentication token.' });
+        }
+
+        const payload = await verifyRes.json();
+        const { email, email_verified, name, picture } = payload;
+
+        if (!email) {
+            return res.status(400).json({ error: 'Could not obtain email address from Google account.' });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+
+        if (mongoose.connection.readyState === 1) {
+            let user = await User.findOne({ email: normalizedEmail });
+            let isNewUser = false;
+
+            if (!user) {
+                isNewUser = true;
+                const randomPassword = 'g_' + Math.random().toString(36).slice(-10) + Date.now();
+                user = new User({
+                    email: normalizedEmail,
+                    password: randomPassword,
+                    role: role === 'Contractor' ? 'Contractor' : 'Worker',
+                    isEmailVerified: email_verified === 'true' || email_verified === true,
+                    lastLogin: new Date()
+                });
+                await user.save();
+            } else {
+                user.lastLogin = new Date();
+                if (email_verified) user.isEmailVerified = true;
+                await user.save();
+            }
+
+            let profile = await Profile.findOne({ userId: user._id });
+            if (!profile) {
+                const displayName = name || normalizedEmail.split('@')[0];
+                profile = new Profile({
+                    userId: user._id,
+                    fullName: displayName,
+                    name: displayName,
+                    role: user.role,
+                    email: normalizedEmail,
+                    contactInfo: { email: normalizedEmail },
+                    avatarUrl: picture || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=0D2F6E&textColor=ffffff`,
+                    isVerified: true
+                });
+                await profile.save();
+            } else if (picture && (!profile.avatarUrl || profile.avatarUrl.includes('dicebear'))) {
+                profile.avatarUrl = picture;
+                await profile.save();
+            }
+
+            await logActivity({
+                userId: user._id,
+                action: isNewUser ? 'AUTH_REGISTER' : 'AUTH_LOGIN',
+                description: isNewUser ? 'Registered via Google Sign-In' : 'Logged in via Google Sign-In',
+                req
+            });
+
+            const token = jwt.sign(
+                { userId: user._id, email: user.email, role: user.role },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            return res.json({
+                message: isNewUser ? 'Welcome to BluKaam!' : 'Logged in successfully!',
+                token,
+                user: { id: user._id, email: user.email, role: user.role, isEmailVerified: user.isEmailVerified },
+                profile
+            });
+        } else {
+            // Offline fallback
+            const db = getOfflineDb();
+            let user = db.users.find(u => u.email === normalizedEmail);
+            let isNewUser = false;
+
+            if (!user) {
+                isNewUser = true;
+                const userId = 'usr_' + Date.now();
+                user = {
+                    _id: userId,
+                    id: userId,
+                    email: normalizedEmail,
+                    role: role === 'Contractor' ? 'Contractor' : 'Worker',
+                    isActive: true,
+                    isEmailVerified: true,
+                    createdAt: new Date().toISOString()
+                };
+                db.users.push(user);
+            }
+            user.lastLogin = new Date().toISOString();
+
+            let profile = db.profiles.find(p => p.userId === user._id || p.userId === user.id);
+            if (!profile) {
+                const displayName = name || normalizedEmail.split('@')[0];
+                profile = {
+                    _id: 'prf_' + Date.now(),
+                    userId: user._id,
+                    fullName: displayName,
+                    name: displayName,
+                    role: user.role,
+                    email: normalizedEmail,
+                    avatarUrl: picture || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=0D2F6E&textColor=ffffff`,
+                    isVerified: true,
+                    createdAt: new Date().toISOString()
+                };
+                db.profiles.push(profile);
+            }
+            saveOfflineDb(db);
+
+            const token = jwt.sign(
+                { userId: user._id, email: user.email, role: user.role },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            return res.json({
+                message: isNewUser ? 'Welcome to BluKaam!' : 'Logged in successfully!',
+                token,
+                user: { id: user._id, email: user.email, role: user.role, isEmailVerified: true },
+                profile
+            });
+        }
+    } catch (err) {
+        console.error('Google Sign-In error:', err);
+        return res.status(500).json({ error: 'Server error during Google authentication: ' + err.message });
+    }
+});
+
+// --------------------------------------------------------
 // POST /api/auth/send-email-otp
 // Generates a 6-digit OTP, saves it, and dispatches via email
 // --------------------------------------------------------

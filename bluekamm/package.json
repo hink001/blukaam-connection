@@ -17,9 +17,12 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.4.1",
     "multer": "^2.4.0",
-    "nodemailer": "^8.0.5"
+    "nodemailer": "^8.0.5",
+    "sanitize-html": "^2.13.0"
   }
 }

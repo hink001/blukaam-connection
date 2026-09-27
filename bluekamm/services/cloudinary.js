@@ -56,8 +56,39 @@ const uploadImageBuffer = (buffer, folder = 'blukaam/profiles') => {
     });
 };
 
+const uploadPostImageBuffer = (buffer, folder = 'blukaam/posts') => {
+    return new Promise((resolve, reject) => {
+        if (!isCloudinaryConfigured) {
+            const base64Data = `data:image/jpeg;base64,${buffer.toString('base64')}`;
+            return resolve(base64Data);
+        }
+
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder: folder,
+                resource_type: 'image',
+                transformation: [
+                    { width: 1200, crop: 'limit' },
+                    { quality: 'auto', fetch_format: 'auto' }
+                ]
+            },
+            (error, result) => {
+                if (error) {
+                    console.error('Cloudinary post upload error:', error);
+                    return reject(error);
+                }
+                resolve(result.secure_url);
+            }
+        );
+
+        uploadStream.end(buffer);
+    });
+};
+
 module.exports = {
     cloudinary,
     isCloudinaryConfigured,
-    uploadImageBuffer
+    uploadImageBuffer,
+    uploadPostImageBuffer
 };
+

@@ -34,7 +34,7 @@ const ProfileSchema = new mongoose.Schema({
         pincode: { type: String, trim: true, default: '' }
     },
     // Backwards-compatible location fields
-    city: { type: String, trim: true },
+    city: { type: String, trim: true, index: true },
     state: { type: String, trim: true },
     pincode: { type: String, trim: true },
 
@@ -65,7 +65,8 @@ const ProfileSchema = new mongoose.Schema({
     },
     skills: {
         type: [String],
-        default: []
+        default: [],
+        index: true
     },
     availability: {
         type: String,
@@ -115,7 +116,7 @@ ProfileSchema.pre('save', function(next) {
         if (this.contactInfo.phone && !this.phone) this.phone = this.contactInfo.phone;
         if (this.contactInfo.email && !this.email) this.email = this.contactInfo.email;
     }
-    next();
+    if (typeof next === 'function') next();
 });
 
 module.exports = mongoose.model('Profile', ProfileSchema);

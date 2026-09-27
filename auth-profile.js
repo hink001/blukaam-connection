@@ -6,11 +6,21 @@
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const isRender = window.location.hostname.includes('onrender.com');
 
-// If running on localhost or Render, use local /api
-// If running on GitHub Pages (e.g. hink001.github.io), automatically route API calls to Render backend
-const API_BASE = (isLocal || isRender)
-    ? '/api'
-    : 'https://blukaam-connection.onrender.com/api';
+// Smart API endpoint detection:
+// 1. If on Node server directly (port 3000) -> use /api
+// 2. If on Live Server (e.g. port 5500, 5173, etc.) -> use http://localhost:3000/api
+// 3. If on Render -> use /api
+// 4. If on GitHub Pages (hink001.github.io) or file:/// -> use Render live backend
+let API_BASE;
+if (isLocal && (window.location.port === '3000' || window.location.port === '')) {
+    API_BASE = '/api';
+} else if (isLocal) {
+    API_BASE = 'http://localhost:3000/api';
+} else if (isRender) {
+    API_BASE = '/api';
+} else {
+    API_BASE = 'https://blukaam-connection.onrender.com/api';
+}
 
 const BluKaamAuth = {
     // -------------------------------------------------------------
@@ -161,6 +171,21 @@ const BluKaamAuth = {
         const res = await this.request('/auth/login', {
             method: 'POST',
             body: JSON.stringify({ email, password })
+        });
+        if (res.token) {
+            this.setSession(res.token, res.user, res.profile);
+        }
+        return res;
+    },
+
+    async getAuthConfig() {
+        return this.request('/auth/config');
+    },
+
+    async googleLogin(credential, role = 'Worker') {
+        const res = await this.request('/auth/google', {
+            method: 'POST',
+            body: JSON.stringify({ credential, role })
         });
         if (res.token) {
             this.setSession(res.token, res.user, res.profile);

@@ -19,6 +19,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="social.css">
 </head>
 
 <body style="background: var(--off-white);">
@@ -34,10 +35,12 @@
         </div>
       </a>
       <div class="nav-links">
-        <a href="index.html">Home</a>
+        <a href="feed.html">Feed</a>
+        <a href="network.html">My Network</a>
+        <a href="messages.html">Messaging</a>
         <a href="jobs.html">Find Jobs</a>
         <a href="workers.html">Browse Workers</a>
-        <a href="training.html">Training</a>
+        <a href="dashboard.html" class="active">Dashboard</a>
       </div>
       <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
         <span></span><span></span><span></span>
@@ -47,9 +50,12 @@
 
   <div class="mobile-menu" id="mobileMenu">
     <a href="index.html">Home</a>
+    <a href="feed.html">Feed</a>
+    <a href="network.html">My Network</a>
+    <a href="messages.html">Messaging</a>
     <a href="jobs.html">Find Jobs</a>
     <a href="workers.html">Browse Workers</a>
-    <a href="training.html">Training</a>
+    <a href="dashboard.html">Dashboard</a>
   </div>
 
   <!-- DASHBOARD MAIN CONTAINER -->
@@ -99,10 +105,13 @@
       <div class="linkedin-card" style="padding: 16px;">
         <div style="font-weight: 700; font-size: 14px; color: var(--gray-800); margin-bottom: 12px;">Quick Links</div>
         <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
-          <a href="javascript:void(0)" onclick="switchEditorTab('basic')" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">✏️ Edit Personal Details</a>
-          <a href="javascript:void(0)" onclick="switchEditorTab('skills')" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">⚡ Manage Skills</a>
-          <a href="javascript:void(0)" onclick="switchEditorTab('photo')" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">📷 Change Profile Photo</a>
-          <a href="javascript:void(0)" onclick="switchEditorTab('activity')" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">📜 Activity Log</a>
+          <a href="feed.html" style="color: var(--blue-mid); text-decoration: none; font-weight: 700;">📰 Community Feed</a>
+          <a href="network.html" style="color: var(--blue-mid); text-decoration: none; font-weight: 700;">🤝 My Network</a>
+          <a href="messages.html" style="color: var(--blue-mid); text-decoration: none; font-weight: 700;">💬 Messages</a>
+          <a href="javascript:void(0)" onclick="switchEditorTab('basic')" style="color: var(--gray-700); text-decoration: none; font-weight: 600;">✏️ Edit Personal Details</a>
+          <a href="javascript:void(0)" onclick="switchEditorTab('skills')" style="color: var(--gray-700); text-decoration: none; font-weight: 600;">⚡ Manage Skills</a>
+          <a href="javascript:void(0)" onclick="switchEditorTab('photo')" style="color: var(--gray-700); text-decoration: none; font-weight: 600;">📷 Change Profile Photo</a>
+          <a href="javascript:void(0)" onclick="switchEditorTab('activity')" style="color: var(--gray-700); text-decoration: none; font-weight: 600;">📜 Activity Log</a>
           <a href="jobs.html" style="color: var(--gray-600); text-decoration: none;">🔍 Browse Open Jobs</a>
         </div>
       </div>
@@ -375,6 +384,7 @@
 
   <script src="script.js"></script>
   <script src="auth-profile.js"></script>
+  <script src="social-sdk.js"></script>
   <script>
     // Enforce Authentication
     BluKaamAuth.requireAuth('login.html');

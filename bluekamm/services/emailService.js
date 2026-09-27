@@ -1,4 +1,19 @@
 const nodemailer = require('nodemailer');
+const path = require('path');
+const fs = require('fs');
+
+// Ensure .env is loaded regardless of execution context
+const envPaths = [
+    path.join(__dirname, '..', '.env'),
+    path.join(__dirname, '..', '..', '.env'),
+    path.resolve(process.cwd(), '.env'),
+    path.resolve(process.cwd(), 'bluekamm', '.env')
+];
+for (const p of envPaths) {
+    if (fs.existsSync(p)) {
+        require('dotenv').config({ path: p });
+    }
+}
 
 // Check if email credentials are configured in environment
 const isEmailConfigured = () => {
@@ -9,26 +24,24 @@ const isEmailConfigured = () => {
 const getTransporter = () => {
     if (!isEmailConfigured()) return null;
 
+    const user = (process.env.EMAIL_USER || '').trim();
+    // Strip spaces from Google App Password (e.g. "dbdb ygfb qemg tlqj" -> "dbdbygfbqemgtlqj")
+    const pass = (process.env.EMAIL_PASS || '').replace(/\s+/g, '');
+
     // Default to Gmail if SMTP_HOST not specified
     if (process.env.SMTP_HOST) {
         return nodemailer.createTransport({
             host: process.env.SMTP_HOST,
             port: parseInt(process.env.SMTP_PORT || '587', 10),
             secure: process.env.SMTP_SECURE === 'true',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            }
+            auth: { user, pass }
         });
     }
 
     // Gmail SMTP (Free 500 emails/day)
     return nodemailer.createTransport({
         service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        }
+        auth: { user, pass }
     });
 };
 

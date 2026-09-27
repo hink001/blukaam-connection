@@ -20,6 +20,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <!-- 100% Free Google Sign-In SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body style="background: var(--off-white);">
@@ -194,6 +196,27 @@
         </form>
       </div>
 
+      <!-- ================= GOOGLE SIGN-IN / OAUTH ================= -->
+      <div id="googleAuthSection" style="margin-top: 22px;">
+        <div style="display: flex; align-items: center; margin-bottom: 18px;">
+          <div style="flex: 1; height: 1px; background: var(--gray-200);"></div>
+          <span style="padding: 0 12px; font-size: 12.5px; color: var(--gray-400); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Or continue with</span>
+          <div style="flex: 1; height: 1px; background: var(--gray-200);"></div>
+        </div>
+
+        <div id="googleSignInBtn" style="display: flex; justify-content: center; width: 100%; min-height: 44px;"></div>
+        
+        <button id="googleBtnFallback" type="button" onclick="triggerGoogleSignIn()" style="display: none; width: 100%; padding: 11px 16px; border-radius: var(--radius-sm); border: 1.5px solid var(--gray-300); background: white; color: var(--gray-700); font-size: 14.5px; font-weight: 600; cursor: pointer; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.04h3.88c2.27-2.09 3.66-5.17 3.66-9.14z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.04c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.13C3.27 21.43 7.35 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.28c-.24-.72-.38-1.49-.38-2.28s.14-1.56.38-2.28V6.59H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.41l4.03-3.13z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.27 2.57 1.25 6.59l4.03 3.13c.95-2.83 3.6-4.97 6.72-4.97z"/>
+          </svg>
+          <span>Continue with Google</span>
+        </button>
+      </div>
+
       <!-- Privacy and Terms footnote -->
       <p style="text-align: center; font-size: 12px; color: var(--gray-400); margin-top: 24px; line-height: 1.5;">
         By continuing, you agree to BluKaam's <a href="#" style="color: var(--blue-mid);">Terms of Service</a> & <a href="#" style="color: var(--blue-mid);">Privacy Policy</a>.
@@ -233,8 +256,10 @@
       const tabBtnLogin = document.getElementById('tabBtnLogin');
       const tabBtnRegister = document.getElementById('tabBtnRegister');
       const alertBox = document.getElementById('authAlert');
+      const googleSec = document.getElementById('googleAuthSection');
       alertBox.style.display = 'none';
       if (otpStep) otpStep.style.display = 'none';
+      if (googleSec) googleSec.style.display = 'block';
 
       if (tab === 'login') {
         loginForm.style.display = 'block';
@@ -260,6 +285,8 @@
     function backToRegisterForm() {
       document.getElementById('otpStep').style.display = 'none';
       document.getElementById('registerForm').style.display = 'block';
+      const googleSec = document.getElementById('googleAuthSection');
+      if (googleSec) googleSec.style.display = 'block';
       document.getElementById('authAlert').style.display = 'none';
       const btn = document.getElementById('regBtn');
       btn.disabled = false;
@@ -406,6 +433,8 @@
         // Advance to OTP Step
         document.getElementById('registerForm').style.display = 'none';
         document.getElementById('otpStep').style.display = 'block';
+        const googleSec = document.getElementById('googleAuthSection');
+        if (googleSec) googleSec.style.display = 'none';
         document.getElementById('otpEmailTarget').innerText = email;
         document.getElementById('regOtpCode').value = '';
         
@@ -454,6 +483,99 @@
         btn.innerText = 'Verify & Create Profile';
       }
     }
+
+    // =============================================================
+    // GOOGLE ONE-TAP & 1-CLICK SIGN-IN (100% FREE)
+    // =============================================================
+    let configuredGoogleClientId = '';
+    let authInitAttempts = 0;
+
+    async function initGoogleAuth() {
+      try {
+        if (!configuredGoogleClientId) {
+          const config = await BluKaamAuth.getAuthConfig();
+          configuredGoogleClientId = (config && config.googleClientId) ? config.googleClientId.trim() : '';
+        }
+
+        const fallbackBtn = document.getElementById('googleBtnFallback');
+        const googleBtnContainer = document.getElementById('googleSignInBtn');
+
+        if (configuredGoogleClientId && window.google && window.google.accounts) {
+          google.accounts.id.initialize({
+            client_id: configuredGoogleClientId,
+            callback: handleGoogleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true
+          });
+
+          if (googleBtnContainer) {
+            googleBtnContainer.style.display = 'flex';
+            google.accounts.id.renderButton(
+              googleBtnContainer,
+              {
+                theme: 'outline',
+                size: 'large',
+                type: 'standard',
+                shape: 'rectangular',
+                text: 'continue_with',
+                logo_alignment: 'left',
+                width: 340
+              }
+            );
+          }
+
+          if (fallbackBtn) fallbackBtn.style.display = 'none';
+        } else if (configuredGoogleClientId && (!window.google || !window.google.accounts)) {
+          // Google SDK still downloading from Google CDN, retry
+          if (authInitAttempts < 10) {
+            authInitAttempts++;
+            setTimeout(initGoogleAuth, 350);
+          } else if (fallbackBtn) {
+            fallbackBtn.style.display = 'flex';
+          }
+        } else {
+          // No client ID configured in backend
+          if (fallbackBtn) fallbackBtn.style.display = 'flex';
+          if (googleBtnContainer) googleBtnContainer.style.display = 'none';
+        }
+      } catch (err) {
+        console.warn('Google Auth config fetch:', err.message);
+        const fallbackBtn = document.getElementById('googleBtnFallback');
+        if (fallbackBtn) fallbackBtn.style.display = 'flex';
+      }
+    }
+
+    function triggerGoogleSignIn() {
+      if (!configuredGoogleClientId) {
+        showAlert('ℹ️ To enable 1-Click Google Sign-In, add your free GOOGLE_CLIENT_ID to .env (see setup guide).', false);
+        return;
+      }
+      if (window.google && window.google.accounts) {
+        google.accounts.id.prompt();
+      }
+    }
+
+    async function handleGoogleCredentialResponse(response) {
+      if (!response || !response.credential) return;
+      const role = document.getElementById('regRole') ? document.getElementById('regRole').value : 'Worker';
+
+      try {
+        showAlert('Verifying Google account...', false);
+        const res = await BluKaamAuth.googleLogin(response.credential, role);
+        BluKaamAuth.showToast(res.message || 'Logged in successfully with Google!', 'success');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 400);
+      } catch (err) {
+        showAlert(err.message || 'Google authentication failed. Please try again.');
+      }
+    }
+
+    // Initialize Google Sign-in on page ready
+    window.addEventListener('load', () => {
+      // Small timeout to allow gsi/client script to attach
+      setTimeout(initGoogleAuth, 300);
+    });
   </script>
 </body>
 

@@ -1,9 +1,21 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
-require('dotenv').config();
+// Ensure .env is loaded regardless of current working directory
+const envPaths = [
+    path.join(__dirname, '.env'),
+    path.join(__dirname, '..', '.env'),
+    path.resolve(process.cwd(), '.env'),
+    path.resolve(process.cwd(), 'bluekamm', '.env')
+];
+for (const p of envPaths) {
+    if (fs.existsSync(p)) {
+        require('dotenv').config({ path: p });
+    }
+}
 
 const connectDB = require('./db');
 const Profile = require('./models/Profile');
@@ -15,20 +27,37 @@ const ActivityLog = require('./models/ActivityLog');
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const activityRoutes = require('./routes/activityRoutes');
+const postRoutes = require('./routes/postRoutes');               // Phase 1: Social Feed & Posts
+const connectionRoutes = require('./routes/connectionRoutes');   // Phase 2: Networking & Connections
+const messageRoutes = require('./routes/messageRoutes');         // Phase 5: Direct Messaging
+const notificationRoutes = require('./routes/notificationRoutes'); // Phase 5: Notifications
 const { isCloudinaryConfigured } = require('./services/cloudinary');
+const { apiLimiter, authLimiter, otpLimiter, socialWriteLimiter } = require('./middleware/security'); // Phase 4: Security hardening
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// --------------------------------------------------------
+// Phase 4: Security headers (clickjacking / MIME sniffing / basic XSS protection)
+// crossOriginResourcePolicy relaxed so images/CDN assets keep loading exactly as before.
+// --------------------------------------------------------
+app.use(helmet({
+    contentSecurityPolicy: false, // left disabled to avoid breaking existing inline scripts/CDN usage
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
 
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Phase 4: General rate limiting across the whole API surface
+app.use('/api', apiLimiter);
+
 // Create totally offline/local databases 
 const DB_FILE = path.join(__dirname, 'local_database.json');
 if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify({ users: [], profiles: [], activityLogs: [], generalData: [] }));
+    fs.writeFileSync(DB_FILE, JSON.stringify({ users: [], profiles: [], activityLogs: [], generalData: [], posts: [], connections: [], messages: [], notifications: [] }));
 } else {
     try {
         const db = JSON.parse(fs.readFileSync(DB_FILE));
@@ -36,9 +65,13 @@ if (!fs.existsSync(DB_FILE)) {
         if (!db.profiles) db.profiles = [];
         if (!db.activityLogs) db.activityLogs = [];
         if (!db.generalData) db.generalData = [];
+        if (!db.posts) db.posts = [];
+        if (!db.connections) db.connections = [];
+        if (!db.messages) db.messages = [];
+        if (!db.notifications) db.notifications = [];
         fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
     } catch (e) {
-        fs.writeFileSync(DB_FILE, JSON.stringify({ users: [], profiles: [], activityLogs: [], generalData: [] }));
+        fs.writeFileSync(DB_FILE, JSON.stringify({ users: [], profiles: [], activityLogs: [], generalData: [], posts: [], connections: [], messages: [], notifications: [] }));
     }
 }
 console.log("Local JSON Database initialized at:", DB_FILE);
@@ -50,13 +83,22 @@ const syncDataToMongo = async () => {
     try {
         const db = JSON.parse(fs.readFileSync(DB_FILE));
         let synced = 0;
+        const idMap = {}; // Maps offline "usr_..." strings to MongoDB ObjectIds
         
         if (db.users && db.users.length > 0) {
             for (const u of db.users) {
                 const exists = await User.findOne({ email: u.email });
                 if (!exists) {
-                    await User.create(u);
+                    const userData = { ...u };
+                    const oldId = userData._id || userData.id;
+                    delete userData._id;
+                    delete userData.id;
+                    const created = await User.create(userData);
+                    if (oldId) idMap[oldId] = created._id;
                     synced++;
+                } else {
+                    const oldId = u._id || u.id;
+                    if (oldId) idMap[oldId] = exists._id;
                 }
             }
             db.users = [];
@@ -64,9 +106,33 @@ const syncDataToMongo = async () => {
 
         if (db.profiles && db.profiles.length > 0) {
             for (const p of db.profiles) {
-                const exists = await Profile.findOne({ $or: [{ phone: p.phone }, { email: p.email }, { userId: p.userId }] });
+                const profileData = { ...p };
+                delete profileData._id;
+                delete profileData.id;
+
+                if (profileData.userId && idMap[profileData.userId]) {
+                    profileData.userId = idMap[profileData.userId];
+                } else if (profileData.userId && typeof profileData.userId === 'string' && profileData.userId.startsWith('usr_')) {
+                    const linkedUser = await User.findOne({ email: profileData.email });
+                    if (linkedUser) {
+                        profileData.userId = linkedUser._id;
+                    } else {
+                        delete profileData.userId;
+                    }
+                }
+
+                const query = [];
+                if (profileData.phone) query.push({ phone: profileData.phone });
+                if (profileData.email) query.push({ email: profileData.email });
+                if (profileData.userId) query.push({ userId: profileData.userId });
+
+                let exists = null;
+                if (query.length > 0) {
+                    exists = await Profile.findOne({ $or: query });
+                }
+
                 if (!exists) {
-                    await Profile.create(p);
+                    await Profile.create(profileData);
                     synced++;
                 }
             }
@@ -117,9 +183,20 @@ app.get('/api/status', (req, res) => {
 });
 
 // --- LinkedIn-Style Profile & Auth API Routes --- //
+app.use('/api/auth/send-otp', otpLimiter);
+app.use('/api/auth/verify-otp', authLimiter);
+app.use('/api/auth/send-email-otp', otpLimiter);
+app.use('/api/auth/verify-email-register', authLimiter);
+app.use('/api/auth/login', authLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/activities', activityRoutes);
+
+// --- Roadmap Phase 1 / 2 / 5 modules --- //
+app.use('/api/posts', socialWriteLimiter, postRoutes);
+app.use('/api/connections', connectionRoutes);
+app.use('/api/messages', socialWriteLimiter, messageRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // --- Legacy OTP Routes (Retained for compatibility) --- //
 const Otp = require('./models/Otp');
