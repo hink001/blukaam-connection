@@ -7,19 +7,58 @@
   <title>Login & Register – BluKaam Connection</title>
   <meta name="description"
     content="Sign in or register on BluKaam Connection to manage your profile, showcase skills, and find jobs or hire skilled workers across India.">
-    <!-- Favicon / Brand Icons for browser tabs, bookmarks, and mobile PWA -->
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-  <link rel="manifest" href="site.webmanifest">
-  <meta name="theme-color" content="#0D2F6E">
-
-  <!-- Modern Fonts: Plus Jakarta Sans, Outfit, Baloo 2 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Baloo+2:wght@500;700;800&family=Tiro+Devanagari+Hindi&display=swap"
+    rel="stylesheet">
+  <!-- Font Awesome for Social Media Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+  <style>
+    .social-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1px solid var(--gray-200);
+      background: #ffffff;
+      color: var(--blue-dark);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 15px;
+    }
+    .social-btn:hover {
+      background: var(--gray-100);
+      border-color: var(--gray-300);
+      transform: translateY(-1px);
+    }
+    .divider-text {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: var(--gray-400);
+      font-size: 13px;
+      margin: 18px 0;
+    }
+    .divider-text::before,
+    .divider-text::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .divider-text span {
+      padding: 0 12px;
+    }
+    .form-checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--gray-600);
+    }
+  </style>
 </head>
 
 <body style="background: var(--off-white);">
@@ -28,7 +67,7 @@
   <nav>
     <div class="nav-inner">
       <a class="logo-wrap" href="index.html">
-        <img class="logo-icon-img" src="logo-emblem.png" alt="BluKaam Logo">
+        <img class="logo-icon-img" src="logo.png" alt="BluKaam Logo">
         <div class="logo-text">
           <div class="brand">BluKaam</div>
           <div class="sub">Connection</div>
@@ -84,30 +123,65 @@
 
       <!-- ================= LOGIN FORM ================= -->
       <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+        <!-- Social Sign In -->
+        <div style="text-align: center; margin-bottom: 12px;">
+          <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 10px;">Sign in with:</p>
+          <div style="display: flex; justify-content: center; gap: 10px;">
+            <button type="button" class="social-btn" aria-label="Sign in with Google"><i class="fab fa-google"></i></button>
+            <button type="button" class="social-btn" aria-label="Sign in with Facebook"><i class="fab fa-facebook-f"></i></button>
+            <button type="button" class="social-btn" aria-label="Sign in with Twitter"><i class="fab fa-x-twitter"></i></button>
+            <button type="button" class="social-btn" aria-label="Sign in with GitHub"><i class="fab fa-github"></i></button>
+          </div>
+        </div>
+
+        <div class="divider-text"><span>or continue with email</span></div>
+
         <div class="form-group" style="margin-bottom: 16px;">
           <label class="form-label" for="loginEmail">Email Address *</label>
           <input type="email" id="loginEmail" class="form-input" placeholder="name@example.com" required autocomplete="email">
         </div>
 
-        <div class="form-group" style="margin-bottom: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <label class="form-label" for="loginPassword" style="margin-bottom: 0;">Password *</label>
-            <a href="javascript:void(0)" onclick="alert('Password reset link will be sent to your registered email.')" style="font-size: 12px; color: var(--blue-mid); text-decoration: none; font-weight: 600;">Forgot Password?</a>
-          </div>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" for="loginPassword" style="margin-bottom: 6px;">Password *</label>
           <div style="position: relative;">
             <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required autocomplete="current-password" style="padding-right: 40px;">
             <button type="button" onclick="togglePasswordVis('loginPassword', this)" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--gray-400); font-size: 14px;">👁️</button>
           </div>
         </div>
 
+        <!-- Remember Me & Forgot Password Row -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <label class="form-checkbox-row" style="cursor: pointer;">
+            <input type="checkbox" id="loginRemember" checked>
+            <span>Remember me</span>
+          </label>
+          <a href="javascript:void(0)" onclick="alert('Password reset link will be sent to your registered email.')" style="font-size: 13px; color: var(--blue-mid); text-decoration: none; font-weight: 600;">Forgot Password?</a>
+        </div>
+
         <button type="submit" id="loginBtn" class="apply-btn" style="width: 100%; padding: 13px; font-size: 16px;">
           Sign In to Dashboard
         </button>
+
+        <p style="text-align: center; font-size: 13px; color: var(--gray-600); margin-top: 18px;">
+          Not a member? <a href="javascript:void(0)" onclick="switchAuthTab('register')" style="color: var(--blue-mid); font-weight: 600; text-decoration: none;">Register</a>
+        </p>
       </form>
 
       <!-- ================= REGISTER FORM ================= -->
       <form id="registerForm" onsubmit="handleRegisterSubmit(event)" style="display: none;">
-        
+        <!-- Social Sign Up -->
+        <div style="text-align: center; margin-bottom: 12px;">
+          <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 10px;">Sign up with:</p>
+          <div style="display: flex; justify-content: center; gap: 10px;">
+            <button type="button" class="social-btn" aria-label="Sign up with Google"><i class="fab fa-google"></i></button>
+            <button type="button" class="social-btn" aria-label="Sign up with Facebook"><i class="fab fa-facebook-f"></i></button>
+            <button type="button" class="social-btn" aria-label="Sign up with Twitter"><i class="fab fa-x-twitter"></i></button>
+            <button type="button" class="social-btn" aria-label="Sign up with GitHub"><i class="fab fa-github"></i></button>
+          </div>
+        </div>
+
+        <div class="divider-text"><span>or register with details</span></div>
+
         <!-- Role Selector -->
         <div style="display: flex; gap: 10px; margin-bottom: 18px;">
           <button id="roleWorker" type="button" onclick="selectRole('Worker')" class="tab-btn active" style="flex: 1; padding: 8px 12px; font-size: 13px;">
@@ -145,7 +219,7 @@
           </div>
         </div>
 
-        <div class="form-group" style="margin-bottom: 20px;">
+        <div class="form-group" style="margin-bottom: 14px;">
           <label class="form-label" for="regPassword">Create Password (min 6 chars) *</label>
           <div style="position: relative;">
             <input type="password" id="regPassword" class="form-input" minlength="6" placeholder="At least 6 characters" required autocomplete="new-password" style="padding-right: 40px;">
@@ -153,51 +227,28 @@
           </div>
         </div>
 
-        <button type="submit" id="regBtn" class="apply-btn" style="width: 100%; padding: 13px; font-size: 16px;">
-          Continue & Verify Email
-        </button>
-      </form>
-
-      <!-- ================= OTP VERIFICATION STEP ================= -->
-      <div id="otpStep" style="display: none; animation: modalSlideUp 0.3s ease;">
-        <div style="text-align: center; margin-bottom: 22px;">
-          <div style="width: 54px; height: 54px; border-radius: 50%; background: #E0F2FE; color: #0284C7; display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 12px; box-shadow: 0 4px 12px rgba(2,132,199,0.15);">
-            ✉️
-          </div>
-          <h2 style="font-size: 22px; font-weight: 800; color: var(--blue-dark); margin-bottom: 6px;">
-            Verify Your Email
-          </h2>
-          <p style="font-size: 13.5px; color: var(--gray-600); line-height: 1.5;">
-            We sent a 6-digit verification code to<br>
-            <strong id="otpEmailTarget" style="color: var(--blue-mid); word-break: break-all;">user@example.com</strong>
-          </p>
+        <!-- Repeat Password Validation -->
+        <div class="form-group" style="margin-bottom: 18px;">
+          <label class="form-label" for="regRepeatPassword">Repeat Password *</label>
+          <input type="password" id="regRepeatPassword" class="form-input" minlength="6" placeholder="Confirm your password" required autocomplete="new-password">
         </div>
 
-        <form id="otpForm" onsubmit="handleOtpSubmit(event)">
-          <div class="form-group" style="margin-bottom: 20px; text-align: center;">
-            <label class="form-label" for="regOtpCode" style="margin-bottom: 8px;">Enter 6-Digit Code</label>
-            <input type="text" id="regOtpCode" class="form-input" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="• • • • • •" required autocomplete="one-time-code" style="text-align: center; font-size: 26px; font-weight: 800; letter-spacing: 10px; font-family: monospace; padding: 12px 16px; max-width: 260px; margin: 0 auto; display: block; border: 2px solid #BFDBFE;">
-          </div>
+        <!-- Terms Agreement Checkbox -->
+        <div style="margin-bottom: 20px;">
+          <label class="form-checkbox-row" style="cursor: pointer; align-items: flex-start;">
+            <input type="checkbox" id="registerAgree" required style="margin-top: 3px;">
+            <span>I have read and agree to BluKaam's <a href="#" style="color: var(--blue-mid);">Terms of Service</a> & <a href="#" style="color: var(--blue-mid);">Privacy Policy</a>.</span>
+          </label>
+        </div>
 
-          <button type="submit" id="verifyOtpBtn" class="apply-btn" style="width: 100%; padding: 13px; font-size: 16px; margin-bottom: 14px;">
-            Verify & Create Profile
-          </button>
+        <button type="submit" id="regBtn" class="apply-btn" style="width: 100%; padding: 13px; font-size: 16px;">
+          Create Free Account
+        </button>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--gray-200);">
-            <a href="javascript:void(0)" onclick="backToRegisterForm()" style="color: var(--gray-600); text-decoration: none; font-weight: 600;">
-              ← Change Details
-            </a>
-            <button type="button" id="resendOtpBtn" onclick="resendOtp()" style="background: none; border: none; color: var(--blue-mid); font-size: 13px; font-weight: 700; cursor: pointer; padding: 0;">
-              Resend Code
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Privacy and Terms footnote -->
-      <p style="text-align: center; font-size: 12px; color: var(--gray-400); margin-top: 24px; line-height: 1.5;">
-        By continuing, you agree to BluKaam's <a href="#" style="color: var(--blue-mid);">Terms of Service</a> & <a href="#" style="color: var(--blue-mid);">Privacy Policy</a>.
-      </p>
+        <p style="text-align: center; font-size: 13px; color: var(--gray-600); margin-top: 18px;">
+          Already have an account? <a href="javascript:void(0)" onclick="switchAuthTab('login')" style="color: var(--blue-mid); font-weight: 600; text-decoration: none;">Sign In</a>
+        </p>
+      </form>
 
     </div>
   </section>
@@ -218,23 +269,17 @@
   <script src="script.js"></script>
   <script src="auth-profile.js"></script>
   <script>
-    // If already logged in, redirect straight to dashboard
     if (BluKaamAuth.isAuthenticated()) {
       window.location.href = 'dashboard.html';
     }
 
-    let pendingRegistrationData = null;
-    let resendTimerInterval = null;
-
     function switchAuthTab(tab) {
       const loginForm = document.getElementById('loginForm');
       const registerForm = document.getElementById('registerForm');
-      const otpStep = document.getElementById('otpStep');
       const tabBtnLogin = document.getElementById('tabBtnLogin');
       const tabBtnRegister = document.getElementById('tabBtnRegister');
       const alertBox = document.getElementById('authAlert');
       alertBox.style.display = 'none';
-      if (otpStep) otpStep.style.display = 'none';
 
       if (tab === 'login') {
         loginForm.style.display = 'block';
@@ -254,57 +299,6 @@
         tabBtnLogin.style.background = 'transparent';
         tabBtnLogin.style.color = 'var(--gray-600)';
         tabBtnLogin.style.boxShadow = 'none';
-      }
-    }
-
-    function backToRegisterForm() {
-      document.getElementById('otpStep').style.display = 'none';
-      document.getElementById('registerForm').style.display = 'block';
-      document.getElementById('authAlert').style.display = 'none';
-      const btn = document.getElementById('regBtn');
-      btn.disabled = false;
-      btn.innerText = 'Continue & Verify Email';
-    }
-
-    function startResendCountdown() {
-      const btn = document.getElementById('resendOtpBtn');
-      let countdown = 60;
-      btn.disabled = true;
-      btn.style.opacity = '0.6';
-      btn.innerText = `Resend in ${countdown}s`;
-
-      if (resendTimerInterval) clearInterval(resendTimerInterval);
-
-      resendTimerInterval = setInterval(() => {
-        countdown--;
-        if (countdown <= 0) {
-          clearInterval(resendTimerInterval);
-          btn.disabled = false;
-          btn.style.opacity = '1';
-          btn.innerText = 'Resend Code';
-        } else {
-          btn.innerText = `Resend in ${countdown}s`;
-        }
-      }, 1000);
-    }
-
-    async function resendOtp() {
-      if (!pendingRegistrationData) return;
-      const btn = document.getElementById('resendOtpBtn');
-      try {
-        btn.disabled = true;
-        btn.innerText = 'Sending...';
-        const res = await BluKaamAuth.sendEmailOtp(pendingRegistrationData.email, pendingRegistrationData.fullName);
-        if (res.simulated && res.devOtp) {
-          showAlert(`(Dev Mode) New OTP Code: ${res.devOtp}`, false);
-        } else {
-          showAlert('A new verification code has been sent to your email!', false);
-        }
-        startResendCountdown();
-      } catch (err) {
-        showAlert(err.message || 'Failed to resend code. Please try again.');
-        btn.disabled = false;
-        btn.innerText = 'Resend Code';
       }
     }
 
@@ -384,74 +378,37 @@
       const city = document.getElementById('regCity').value.trim();
       const workType = document.getElementById('regWorkType').value.trim();
       const password = document.getElementById('regPassword').value;
+      const repeatPassword = document.getElementById('regRepeatPassword').value;
       const role = document.getElementById('regRole').value;
       const btn = document.getElementById('regBtn');
 
-      pendingRegistrationData = {
-        fullName,
-        email,
-        phone,
-        city,
-        workType,
-        password,
-        role
-      };
-
-      try {
-        btn.disabled = true;
-        btn.innerText = 'Sending verification code...';
-
-        const res = await BluKaamAuth.sendEmailOtp(email, fullName);
-        
-        // Advance to OTP Step
-        document.getElementById('registerForm').style.display = 'none';
-        document.getElementById('otpStep').style.display = 'block';
-        document.getElementById('otpEmailTarget').innerText = email;
-        document.getElementById('regOtpCode').value = '';
-        
-        if (res.simulated && res.devOtp) {
-          showAlert(`(Dev Simulation Mode) Your code is ${res.devOtp}. Enter below to test.`, false);
-          document.getElementById('regOtpCode').value = res.devOtp;
-        } else {
-          showAlert(`Verification code sent to ${email}! Please check your inbox.`, false);
-        }
-        
-        startResendCountdown();
-        setTimeout(() => document.getElementById('regOtpCode').focus(), 200);
-      } catch (err) {
-        showAlert(err.message || 'Failed to send verification code. Please check your email.');
-        btn.disabled = false;
-        btn.innerText = 'Continue & Verify Email';
-      }
-    }
-
-    async function handleOtpSubmit(e) {
-      e.preventDefault();
-      const otp = document.getElementById('regOtpCode').value.trim();
-      const btn = document.getElementById('verifyOtpBtn');
-
-      if (!otp || otp.length !== 6) {
-        showAlert('Please enter the full 6-digit verification code.');
+      if (password !== repeatPassword) {
+        showAlert('Passwords do not match. Please verify both passwords.');
         return;
       }
 
       try {
         btn.disabled = true;
-        btn.innerText = 'Verifying & Creating Profile...';
+        btn.innerText = 'Creating account...';
 
-        await BluKaamAuth.verifyEmailAndRegister({
-          ...pendingRegistrationData,
-          otp
+        await BluKaamAuth.register({
+          fullName,
+          email,
+          phone,
+          city,
+          workType,
+          password,
+          role
         });
 
-        BluKaamAuth.showToast('Email verified! Welcome to BluKaam.', 'success');
+        BluKaamAuth.showToast('Registration successful! Welcome to BluKaam.', 'success');
         setTimeout(() => {
           window.location.href = 'dashboard.html';
         }, 400);
       } catch (err) {
-        showAlert(err.message || 'Invalid or expired code. Please try again.');
+        showAlert(err.message || 'Registration failed. Please try again.');
         btn.disabled = false;
-        btn.innerText = 'Verify & Create Profile';
+        btn.innerText = 'Create Free Account';
       }
     }
   </script>
