@@ -147,7 +147,7 @@
           </div>
         </div>
 
-        <div class="form-group" style="margin-bottom: 20px;">
+        <div class="form-group" style="margin-bottom: 14px;">
           <label class="form-label" for="regPassword">Create Password (min 6 chars) *</label>
           <div style="position: relative;">
             <input type="password" id="regPassword" class="form-input" minlength="6" placeholder="At least 6 characters" required autocomplete="new-password" style="padding-right: 40px;">
@@ -155,8 +155,13 @@
           </div>
         </div>
 
+        <div class="form-group" style="margin-bottom: 18px;">
+          <label class="form-label" for="regRepeatPassword">Repeat Password *</label>
+          <input type="password" id="regRepeatPassword" class="form-input" minlength="6" placeholder="Confirm your password" required autocomplete="new-password">
+        </div>
+
         <button type="submit" id="regBtn" class="apply-btn" style="width: 100%; padding: 13px; font-size: 16px;">
-          Continue & Verify Email
+          Create Free Account
         </button>
       </form>
 
@@ -290,7 +295,7 @@
       document.getElementById('authAlert').style.display = 'none';
       const btn = document.getElementById('regBtn');
       btn.disabled = false;
-      btn.innerText = 'Continue & Verify Email';
+      btn.innerText = 'Create Free Account';
     }
 
     function startResendCountdown() {
@@ -411,8 +416,14 @@
       const city = document.getElementById('regCity').value.trim();
       const workType = document.getElementById('regWorkType').value.trim();
       const password = document.getElementById('regPassword').value;
+      const repeatPassword = document.getElementById('regRepeatPassword') ? document.getElementById('regRepeatPassword').value : password;
       const role = document.getElementById('regRole').value;
       const btn = document.getElementById('regBtn');
+
+      if (password !== repeatPassword) {
+        showAlert('Passwords do not match. Please verify both passwords.');
+        return;
+      }
 
       pendingRegistrationData = {
         fullName,
@@ -450,7 +461,7 @@
       } catch (err) {
         showAlert(err.message || 'Failed to send verification code. Please check your email.');
         btn.disabled = false;
-        btn.innerText = 'Continue & Verify Email';
+        btn.innerText = 'Create Free Account';
       }
     }
 
