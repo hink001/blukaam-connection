@@ -43,7 +43,8 @@ const PORT = process.env.PORT || 3000;
 // --------------------------------------------------------
 app.use(helmet({
     contentSecurityPolicy: false, // left disabled to avoid breaking existing inline scripts/CDN usage
-    crossOriginResourcePolicy: { policy: 'cross-origin' }
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }
 }));
 
 // Middleware

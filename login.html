@@ -498,71 +498,104 @@
     // =============================================================
     // GOOGLE ONE-TAP & 1-CLICK SIGN-IN (100% FREE)
     // =============================================================
-    let configuredGoogleClientId = '';
+    const DEFAULT_GOOGLE_CLIENT_ID = '630748580933-vb3ss8ee69bt7d8f577etk828mb6q0fk.apps.googleusercontent.com';
+    let configuredGoogleClientId = DEFAULT_GOOGLE_CLIENT_ID;
     let authInitAttempts = 0;
+    let isGoogleRendered = false;
+
+    function renderGoogleComponents() {
+      if (!configuredGoogleClientId || !window.google || !window.google.accounts || !window.google.accounts.id) {
+        return false;
+      }
+
+      const fallbackBtn = document.getElementById('googleBtnFallback');
+      const googleBtnContainer = document.getElementById('googleSignInBtn');
+
+      try {
+        google.accounts.id.initialize({
+          client_id: configuredGoogleClientId,
+          callback: handleGoogleCredentialResponse,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+          use_fedcm_for_prompt: true
+        });
+
+        if (googleBtnContainer) {
+          googleBtnContainer.style.display = 'flex';
+          const containerWidth = googleBtnContainer.parentElement ? googleBtnContainer.parentElement.clientWidth : 340;
+          const buttonWidth = Math.min(380, Math.max(240, containerWidth > 40 ? containerWidth - 20 : 300));
+          
+          google.accounts.id.renderButton(
+            googleBtnContainer,
+            {
+              theme: 'outline',
+              size: 'large',
+              type: 'standard',
+              shape: 'rectangular',
+              text: 'continue_with',
+              logo_alignment: 'left',
+              width: buttonWidth
+            }
+          );
+        }
+
+        if (fallbackBtn) fallbackBtn.style.display = 'none';
+        isGoogleRendered = true;
+        return true;
+      } catch (e) {
+        console.warn('Google render error:', e);
+        if (fallbackBtn) fallbackBtn.style.display = 'flex';
+        return false;
+      }
+    }
 
     async function initGoogleAuth() {
+      const fallbackBtn = document.getElementById('googleBtnFallback');
+      const googleBtnContainer = document.getElementById('googleSignInBtn');
+
+      // 1. If Google SDK is already loaded, render immediately using default client ID!
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        renderGoogleComponents();
+      } else if (authInitAttempts < 15) {
+        // SDK still loading from Google CDN, retry quickly
+        authInitAttempts++;
+        setTimeout(initGoogleAuth, 150);
+      } else {
+        // Google CDN unreachable or blocked by extension
+        if (fallbackBtn) fallbackBtn.style.display = 'flex';
+        if (googleBtnContainer) googleBtnContainer.style.display = 'none';
+      }
+
+      // 2. Fetch fresh backend config in background without blocking UI
       try {
-        if (!configuredGoogleClientId) {
-          const config = await BluKaamAuth.getAuthConfig();
-          configuredGoogleClientId = (config && config.googleClientId) ? config.googleClientId.trim() : '';
-        }
-
-        const fallbackBtn = document.getElementById('googleBtnFallback');
-        const googleBtnContainer = document.getElementById('googleSignInBtn');
-
-        if (configuredGoogleClientId && window.google && window.google.accounts) {
-          google.accounts.id.initialize({
-            client_id: configuredGoogleClientId,
-            callback: handleGoogleCredentialResponse,
-            auto_select: false,
-            cancel_on_tap_outside: true
-          });
-
-          if (googleBtnContainer) {
-            googleBtnContainer.style.display = 'flex';
-            google.accounts.id.renderButton(
-              googleBtnContainer,
-              {
-                theme: 'outline',
-                size: 'large',
-                type: 'standard',
-                shape: 'rectangular',
-                text: 'continue_with',
-                logo_alignment: 'left',
-                width: 340
-              }
-            );
+        const config = await BluKaamAuth.getAuthConfig();
+        if (config && config.googleClientId && config.googleClientId.trim()) {
+          const freshId = config.googleClientId.trim();
+          if (freshId !== configuredGoogleClientId) {
+            configuredGoogleClientId = freshId;
+            renderGoogleComponents();
           }
-
-          if (fallbackBtn) fallbackBtn.style.display = 'none';
-        } else if (configuredGoogleClientId && (!window.google || !window.google.accounts)) {
-          // Google SDK still downloading from Google CDN, retry
-          if (authInitAttempts < 10) {
-            authInitAttempts++;
-            setTimeout(initGoogleAuth, 350);
-          } else if (fallbackBtn) {
-            fallbackBtn.style.display = 'flex';
-          }
-        } else {
-          // No client ID configured in backend
-          if (fallbackBtn) fallbackBtn.style.display = 'flex';
-          if (googleBtnContainer) googleBtnContainer.style.display = 'none';
         }
       } catch (err) {
-        console.warn('Google Auth config fetch:', err.message);
-        const fallbackBtn = document.getElementById('googleBtnFallback');
-        if (fallbackBtn) fallbackBtn.style.display = 'flex';
+        // Backend waking up or offline; default client ID continues to work
+        console.log('Background auth config notice:', err.message);
       }
     }
 
     function triggerGoogleSignIn() {
       if (!configuredGoogleClientId) {
-        showAlert('ℹ️ To enable 1-Click Google Sign-In, add your free GOOGLE_CLIENT_ID to .env (see setup guide).', false);
+        showAlert('ℹ️ To enable 1-Click Google Sign-In, add your free GOOGLE_CLIENT_ID to .env.', false);
         return;
       }
-      if (window.google && window.google.accounts) {
-        google.accounts.id.prompt();
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed()) {
+            console.warn('Google prompt not displayed:', notification.getNotDisplayedReason());
+            showAlert('Please use the official Google button above or allow popups/cookies in your browser.');
+          }
+        });
+      } else {
+        showAlert('Google Sign-In is still connecting. Please wait a moment and try again.');
       }
     }
 
@@ -571,21 +604,22 @@
       const role = document.getElementById('regRole') ? document.getElementById('regRole').value : 'Worker';
 
       try {
-        showAlert('Verifying Google account...', false);
+        showAlert('⏳ Verifying with Google... If this is your first visit, please give us a moment to prepare your workspace.', false);
         const res = await BluKaamAuth.googleLogin(response.credential, role);
         BluKaamAuth.showToast(res.message || 'Logged in successfully with Google!', 'success');
         setTimeout(() => {
           window.location.href = 'dashboard.html';
-        }, 400);
+        }, 350);
       } catch (err) {
         showAlert(err.message || 'Google authentication failed. Please try again.');
       }
     }
 
-    // Initialize Google Sign-in on page ready
-    window.addEventListener('load', () => {
-      // Small timeout to allow gsi/client script to attach
-      setTimeout(initGoogleAuth, 300);
+    // Initialize Google Sign-in and warm up cloud instance immediately
+    window.addEventListener('DOMContentLoaded', () => {
+      initGoogleAuth();
+      // Proactively warm up backend in background
+      fetch((typeof API_BASE !== 'undefined' ? API_BASE : '/api') + '/status').catch(() => {});
     });
   </script>
 </body>

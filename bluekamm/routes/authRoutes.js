@@ -55,10 +55,24 @@ router.post('/google', async (req, res) => {
             return res.status(400).json({ error: 'Google credential token is required.' });
         }
 
-        // Verify Google token via Google's official free tokeninfo endpoint
-        const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+        // Verify Google token via Google's official free tokeninfo endpoint with 10s timeout
+        let verifyRes;
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+        } catch (fetchErr) {
+            console.error('Google token verification connection failed:', fetchErr.message);
+            return res.status(504).json({ error: 'Google verification timed out or connection failed. Please try again.' });
+        }
+
         if (!verifyRes.ok) {
-            return res.status(401).json({ error: 'Invalid Google authentication token.' });
+            const details = await verifyRes.text().catch(() => '');
+            console.warn('Google token verification rejected by Google:', details);
+            return res.status(401).json({ error: 'Invalid Google authentication token. Please sign in again.' });
         }
 
         const payload = await verifyRes.json();
@@ -91,9 +105,18 @@ router.post('/google', async (req, res) => {
                 await user.save();
             }
 
-            let profile = await Profile.findOne({ userId: user._id });
+            // Link existing profile by userId or email to avoid duplicate or orphaned profiles
+            let profile = await Profile.findOne({
+                $or: [
+                    { userId: user._id },
+                    { email: normalizedEmail },
+                    { 'contactInfo.email': normalizedEmail }
+                ]
+            });
+
+            const displayName = name || normalizedEmail.split('@')[0];
+
             if (!profile) {
-                const displayName = name || normalizedEmail.split('@')[0];
                 profile = new Profile({
                     userId: user._id,
                     fullName: displayName,
@@ -105,17 +128,31 @@ router.post('/google', async (req, res) => {
                     isVerified: true
                 });
                 await profile.save();
-            } else if (picture && (!profile.avatarUrl || profile.avatarUrl.includes('dicebear'))) {
-                profile.avatarUrl = picture;
-                await profile.save();
+            } else {
+                let updated = false;
+                if (!profile.userId) {
+                    profile.userId = user._id;
+                    updated = true;
+                }
+                if (picture && (!profile.avatarUrl || profile.avatarUrl.includes('dicebear'))) {
+                    profile.avatarUrl = picture;
+                    updated = true;
+                }
+                if (updated) {
+                    await profile.save();
+                }
             }
 
-            await logActivity({
-                userId: user._id,
-                action: isNewUser ? 'AUTH_REGISTER' : 'AUTH_LOGIN',
-                description: isNewUser ? 'Registered via Google Sign-In' : 'Logged in via Google Sign-In',
-                req
-            });
+            try {
+                await logActivity({
+                    userId: user._id,
+                    action: isNewUser ? 'AUTH_REGISTER' : 'AUTH_LOGIN',
+                    description: isNewUser ? 'Registered via Google Sign-In' : 'Logged in via Google Sign-In',
+                    req
+                });
+            } catch (actErr) {
+                console.warn('Activity log error (non-fatal):', actErr.message);
+            }
 
             const token = jwt.sign(
                 { userId: user._id, email: user.email, role: user.role },
@@ -151,7 +188,7 @@ router.post('/google', async (req, res) => {
             }
             user.lastLogin = new Date().toISOString();
 
-            let profile = db.profiles.find(p => p.userId === user._id || p.userId === user.id);
+            let profile = db.profiles.find(p => p.userId === user._id || p.userId === user.id || p.email === normalizedEmail);
             if (!profile) {
                 const displayName = name || normalizedEmail.split('@')[0];
                 profile = {

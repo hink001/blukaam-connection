@@ -3,19 +3,23 @@
  * Handles token storage, API communications, route protection, and dynamic UI updates.
  */
 
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const isLocal = window.location.hostname === 'localhost' || 
+                window.location.hostname === '127.0.0.1' ||
+                window.location.hostname.startsWith('192.168.') ||
+                window.location.hostname.startsWith('10.') ||
+                window.location.hostname.endsWith('.local');
 const isRender = window.location.hostname.includes('onrender.com');
 
 // Smart API endpoint detection:
-// 1. If on Node server directly (port 3000) -> use /api
-// 2. If on Live Server (e.g. port 5500, 5173, etc.) -> use http://localhost:3000/api
+// 1. If served directly by the Node server (port 3000 or production proxy) -> use /api
+// 2. If on Local/LAN dev server (Live Server port 5500, Vite port 5173, etc.) -> use http://<hostname>:3000/api
 // 3. If on Render -> use /api
 // 4. If on GitHub Pages (hink001.github.io) or file:/// -> use Render live backend
 let API_BASE;
-if (isLocal && (window.location.port === '3000' || window.location.port === '')) {
+if (window.location.port === '3000') {
     API_BASE = '/api';
 } else if (isLocal) {
-    API_BASE = 'http://localhost:3000/api';
+    API_BASE = `http://${window.location.hostname || 'localhost'}:3000/api`;
 } else if (isRender) {
     API_BASE = '/api';
 } else {
@@ -111,11 +115,17 @@ const BluKaamAuth = {
             headers['Content-Type'] = 'application/json';
         }
 
+        const controller = new AbortController();
+        const timeoutMs = options.timeout || 45000;
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
         try {
             const response = await fetch(`${API_BASE}${endpoint}`, {
                 ...options,
+                signal: options.signal || controller.signal,
                 headers
             });
+            clearTimeout(timeoutId);
 
             const data = await response.json().catch(() => ({}));
 
@@ -130,6 +140,11 @@ const BluKaamAuth = {
 
             return data;
         } catch (err) {
+            clearTimeout(timeoutId);
+            if (err.name === 'AbortError') {
+                console.warn(`API Error [${endpoint}]: Request timed out`);
+                throw new Error('Connection timed out. The server may be warming up, please try again.');
+            }
             console.error(`API Error [${endpoint}]:`, err.message);
             throw err;
         }
@@ -179,7 +194,7 @@ const BluKaamAuth = {
     },
 
     async getAuthConfig() {
-        return this.request('/auth/config');
+        return this.request('/auth/config', { timeout: 8000 });
     },
 
     async googleLogin(credential, role = 'Worker') {
