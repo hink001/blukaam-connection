@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BluKaam Connection – Apni Skill Dikhao, Sahi Job Pao</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <meta name="description"
     content="India's #1 platform connecting skilled blue-collar workers with contractors. Carpenters, Electricians, Plumbers and more – find jobs near you.">
     <!-- Favicon / Brand Icons for browser tabs, bookmarks, and mobile PWA -->
@@ -112,68 +114,201 @@
       <div class="section-tag">Popular Trades</div>
       <h2 class="section-title">Kaunsi Skill Chahiye?</h2>
       <p class="section-sub">Browse India's most in-demand blue-collar skills and find work near you</p>
-      <div class="skills-grid">
-        <a class="skill-chip" href="jobs.html">
-          <span class="icon">⚡</span>
-          <div class="label">Electrician</div>
-          <div class="count">1,240 workers</div>
-        </a>
-        <a class="skill-chip" href="jobs.html">
-          <span class="icon">🔧</span>
-          <div class="label">Plumber</div>
-          <div class="count">980 workers</div>
-        </a>
-        <a class="skill-chip" href="jobs.html">
-          <span class="icon">🪚</span>
-          <div class="label">Carpenter</div>
-          <div class="count">760 workers</div>
-        </a>
-        <a class="skill-chip" href="jobs.html">
-          <span class="icon">🎨</span>
-          <div class="label">Painter</div>
-          <div class="count">650 workers</div>
-        </a>
-        <a class="skill-chip" href="jobs.html">
-          <span class="icon">🧱</span>
-          <div class="label">Mason / Mistri</div>
-          <div class="count">890 workers</div>
-        </a>
-        <a class="skill-chip" href="jobs.html">
-          <span class="icon">🔩</span>
-          <div class="label">Welder</div>
-          <div class="count">430 workers</div>
-        </a>
-        <a class="skill-chip" href="jobs.html">
-          <span class="icon">🪟</span>
-          <div class="label">Marble / Flooring</div>
-          <div class="count">380 workers</div>
-        </a>
-        <a class="skill-chip" href="jobs.html">
-          <span class="icon">❄️</span>
-          <div class="label">AC / Refrigeration</div>
-          <div class="count">510 workers</div>
-        </a>
-        <a class="skill-chip" href="jobs.html">
-          <span class="icon">🚿</span>
-          <div class="label">Tile Fitter</div>
-          <div class="count">340 workers</div>
-        </a>
-        <a class="skill-chip" href="jobs.html">
-          <span class="icon">🏗️</span>
-          <div class="label">Construction Helper</div>
-          <div class="count">2,100 workers</div>
-        </a>
-        <a class="skill-chip" href="jobs.html">
-          <span class="icon">🔨</span>
-          <div class="label">Fabricator</div>
-          <div class="count">290 workers</div>
-        </a>
-        <a class="skill-chip" href="jobs.html">
-          <span class="icon">+</span>
-          <div class="label">More Skills</div>
-          <div class="count">50+ categories</div>
-        </a>
-      </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 gap-x-6 pt-8 px-4 max-w-7xl mx-auto">
+  
+  <!-- Electrician -->
+  <div class="relative flex flex-col rounded-2xl bg-white text-gray-700 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div class="relative mx-4 -mt-6 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-2xl text-white shadow-lg shadow-blue-500/30">
+      ⚡
+    </div>
+    <div class="p-6">
+      <h5 class="mb-1 text-lg font-semibold text-gray-900">Electrician</h5>
+      <p class="text-sm text-gray-500">1,240 workers</p>
+    </div>
+    <div class="p-6 pt-0 mt-auto">
+      <a href="jobs.html" class="inline-block w-full rounded-lg bg-blue-500 py-2.5 px-4 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-blue-500/20 transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-90">
+        View Jobs
+      </a>
+    </div>
+  </div>
+
+  <!-- Plumber -->
+  <div class="relative flex flex-col rounded-2xl bg-white text-gray-700 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div class="relative mx-4 -mt-6 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-2xl text-white shadow-lg shadow-blue-500/30">
+      🔧
+    </div>
+    <div class="p-6">
+      <h5 class="mb-1 text-lg font-semibold text-gray-900">Plumber</h5>
+      <p class="text-sm text-gray-500">980 workers</p>
+    </div>
+    <div class="p-6 pt-0 mt-auto">
+      <a href="jobs.html" class="inline-block w-full rounded-lg bg-blue-500 py-2.5 px-4 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-blue-500/20 transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-90">
+        View Jobs
+      </a>
+    </div>
+  </div>
+
+  <!-- Carpenter -->
+  <div class="relative flex flex-col rounded-2xl bg-white text-gray-700 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div class="relative mx-4 -mt-6 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-2xl text-white shadow-lg shadow-blue-500/30">
+      🪚
+    </div>
+    <div class="p-6">
+      <h5 class="mb-1 text-lg font-semibold text-gray-900">Carpenter</h5>
+      <p class="text-sm text-gray-500">760 workers</p>
+    </div>
+    <div class="p-6 pt-0 mt-auto">
+      <a href="jobs.html" class="inline-block w-full rounded-lg bg-blue-500 py-2.5 px-4 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-blue-500/20 transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-90">
+        View Jobs
+      </a>
+    </div>
+  </div>
+
+  <!-- Painter -->
+  <div class="relative flex flex-col rounded-2xl bg-white text-gray-700 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div class="relative mx-4 -mt-6 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-2xl text-white shadow-lg shadow-blue-500/30">
+      🎨
+    </div>
+    <div class="p-6">
+      <h5 class="mb-1 text-lg font-semibold text-gray-900">Painter</h5>
+      <p class="text-sm text-gray-500">650 workers</p>
+    </div>
+    <div class="p-6 pt-0 mt-auto">
+      <a href="jobs.html" class="inline-block w-full rounded-lg bg-blue-500 py-2.5 px-4 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-blue-500/20 transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-90">
+        View Jobs
+      </a>
+    </div>
+  </div>
+
+  <!-- Mason / Mistri -->
+  <div class="relative flex flex-col rounded-2xl bg-white text-gray-700 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div class="relative mx-4 -mt-6 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-2xl text-white shadow-lg shadow-blue-500/30">
+      🧱
+    </div>
+    <div class="p-6">
+      <h5 class="mb-1 text-lg font-semibold text-gray-900">Mason / Mistri</h5>
+      <p class="text-sm text-gray-500">890 workers</p>
+    </div>
+    <div class="p-6 pt-0 mt-auto">
+      <a href="jobs.html" class="inline-block w-full rounded-lg bg-blue-500 py-2.5 px-4 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-blue-500/20 transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-90">
+        View Jobs
+      </a>
+    </div>
+  </div>
+
+  <!-- Welder -->
+  <div class="relative flex flex-col rounded-2xl bg-white text-gray-700 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div class="relative mx-4 -mt-6 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-2xl text-white shadow-lg shadow-blue-500/30">
+      🔩
+    </div>
+    <div class="p-6">
+      <h5 class="mb-1 text-lg font-semibold text-gray-900">Welder</h5>
+      <p class="text-sm text-gray-500">430 workers</p>
+    </div>
+    <div class="p-6 pt-0 mt-auto">
+      <a href="jobs.html" class="inline-block w-full rounded-lg bg-blue-500 py-2.5 px-4 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-blue-500/20 transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-90">
+        View Jobs
+      </a>
+    </div>
+  </div>
+
+  <!-- Marble / Flooring -->
+  <div class="relative flex flex-col rounded-2xl bg-white text-gray-700 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div class="relative mx-4 -mt-6 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-2xl text-white shadow-lg shadow-blue-500/30">
+      🪟
+    </div>
+    <div class="p-6">
+      <h5 class="mb-1 text-lg font-semibold text-gray-900">Marble / Flooring</h5>
+      <p class="text-sm text-gray-500">380 workers</p>
+    </div>
+    <div class="p-6 pt-0 mt-auto">
+      <a href="jobs.html" class="inline-block w-full rounded-lg bg-blue-500 py-2.5 px-4 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-blue-500/20 transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-90">
+        View Jobs
+      </a>
+    </div>
+  </div>
+
+  <!-- AC / Refrigeration -->
+  <div class="relative flex flex-col rounded-2xl bg-white text-gray-700 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div class="relative mx-4 -mt-6 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-2xl text-white shadow-lg shadow-blue-500/30">
+      ❄️
+    </div>
+    <div class="p-6">
+      <h5 class="mb-1 text-lg font-semibold text-gray-900">AC / Refrigeration</h5>
+      <p class="text-sm text-gray-500">510 workers</p>
+    </div>
+    <div class="p-6 pt-0 mt-auto">
+      <a href="jobs.html" class="inline-block w-full rounded-lg bg-blue-500 py-2.5 px-4 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-blue-500/20 transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-90">
+        View Jobs
+      </a>
+    </div>
+  </div>
+
+  <!-- Tile Fitter -->
+  <div class="relative flex flex-col rounded-2xl bg-white text-gray-700 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div class="relative mx-4 -mt-6 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-2xl text-white shadow-lg shadow-blue-500/30">
+      🚿
+    </div>
+    <div class="p-6">
+      <h5 class="mb-1 text-lg font-semibold text-gray-900">Tile Fitter</h5>
+      <p class="text-sm text-gray-500">340 workers</p>
+    </div>
+    <div class="p-6 pt-0 mt-auto">
+      <a href="jobs.html" class="inline-block w-full rounded-lg bg-blue-500 py-2.5 px-4 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-blue-500/20 transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-90">
+        View Jobs
+      </a>
+    </div>
+  </div>
+
+  <!-- Construction Helper -->
+  <div class="relative flex flex-col rounded-2xl bg-white text-gray-700 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div class="relative mx-4 -mt-6 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-2xl text-white shadow-lg shadow-blue-500/30">
+      🏗️
+    </div>
+    <div class="p-6">
+      <h5 class="mb-1 text-lg font-semibold text-gray-900">Construction Helper</h5>
+      <p class="text-sm text-gray-500">2,100 workers</p>
+    </div>
+    <div class="p-6 pt-0 mt-auto">
+      <a href="jobs.html" class="inline-block w-full rounded-lg bg-blue-500 py-2.5 px-4 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-blue-500/20 transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-90">
+        View Jobs
+      </a>
+    </div>
+  </div>
+
+  <!-- Fabricator -->
+  <div class="relative flex flex-col rounded-2xl bg-white text-gray-700 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div class="relative mx-4 -mt-6 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-2xl text-white shadow-lg shadow-blue-500/30">
+      🔨
+    </div>
+    <div class="p-6">
+      <h5 class="mb-1 text-lg font-semibold text-gray-900">Fabricator</h5>
+      <p class="text-sm text-gray-500">290 workers</p>
+    </div>
+    <div class="p-6 pt-0 mt-auto">
+      <a href="jobs.html" class="inline-block w-full rounded-lg bg-blue-500 py-2.5 px-4 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-blue-500/20 transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-90">
+        View Jobs
+      </a>
+    </div>
+  </div>
+
+  <!-- More Skills -->
+  <div class="relative flex flex-col rounded-2xl bg-white text-gray-700 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border-2 border-dashed border-blue-200">
+    <div class="relative mx-4 -mt-6 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-gray-700 to-gray-800 text-2xl text-white shadow-lg shadow-gray-700/30">
+      +
+    </div>
+    <div class="p-6">
+      <h5 class="mb-1 text-lg font-semibold text-gray-900">More Skills</h5>
+      <p class="text-sm text-gray-500">50+ categories</p>
+    </div>
+    <div class="p-6 pt-0 mt-auto">
+      <a href="jobs.html" class="inline-block w-full rounded-lg bg-gray-800 py-2.5 px-4 text-center text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-gray-800/20 transition-all hover:bg-gray-900 hover:shadow-lg hover:shadow-gray-800/40 active:opacity-90">
+        Explore All
+      </a>
+    </div>
+  </div>
+
+</div>
     </div>
   </section>
 
