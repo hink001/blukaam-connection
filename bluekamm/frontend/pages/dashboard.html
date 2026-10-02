@@ -7,10 +7,10 @@
   <title>User Dashboard – BluKaam Connection</title>
   <meta name="description" content="Manage your professional profile, skills, photos, and track activity on BluKaam Connection.">
     <!-- Favicon / Brand Icons for browser tabs, bookmarks, and mobile PWA -->
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#0D2F6E">
 
@@ -18,8 +18,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="social.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/social.css">
 </head>
 
 <body style="background: var(--off-white);">
@@ -28,7 +28,7 @@
   <nav>
     <div class="nav-inner">
       <a class="logo-wrap" href="index.html">
-        <img class="logo-icon-img" src="logo-emblem.png" alt="BluKaam Logo">
+        <img class="logo-icon-img" src="assets/images/logo-emblem.png" alt="BluKaam Logo">
         <div class="logo-text">
           <div class="brand">BluKaam</div>
           <div class="sub">Connection</div>
@@ -67,7 +67,7 @@
       <div class="linkedin-card" style="margin-bottom: 20px;">
         <div class="linkedin-banner" style="height: 90px;"></div>
         <div class="linkedin-avatar-wrap" style="padding: 0 16px; margin-top: -45px; justify-content: center;">
-          <img id="sidebarAvatar" src="logo-emblem.png" class="linkedin-avatar" style="width: 90px; height: 90px;" alt="Avatar" onerror="this.src='logo.png'">
+          <img id="sidebarAvatar" src="assets/images/logo-emblem.png" class="linkedin-avatar" style="width: 90px; height: 90px;" alt="Avatar" onerror="this.src='assets/images/logo.png'">
         </div>
         <div style="padding: 14px 16px 20px; text-align: center;">
           <div id="sidebarName" style="font-family: 'Baloo 2', sans-serif; font-size: 20px; font-weight: 800; color: var(--gray-800); line-height: 1.2;">
@@ -382,9 +382,9 @@
     </div>
   </footer>
 
-  <script src="script.js"></script>
-  <script src="auth-profile.js"></script>
-  <script src="social-sdk.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth-profile.js"></script>
+  <script src="js/social-sdk.js"></script>
   <script>
     // Enforce Authentication
     BluKaamAuth.requireAuth('login.html');
