@@ -68,7 +68,7 @@ router.post('/supabase-sync', async (req, res) => {
         }
 
         if (!supabaseUser || !supabaseUser.email) {
-            return res.status(400).json({ error: 'Valid Supabase user object with email is required.' });
+            return res.status(400).json({ error: 'Valid authentication session with email is required.' });
         }
 
         const normalizedEmail = supabaseUser.email.trim().toLowerCase();
@@ -146,12 +146,12 @@ router.post('/supabase-sync', async (req, res) => {
             logActivity({
                 userId: user._id,
                 action: isNewUser ? 'AUTH_REGISTER' : 'AUTH_LOGIN',
-                description: `${fullName} logged in via Supabase Authentication`,
+                description: `${fullName} logged in`,
                 ipAddress: req.ip
             });
 
             return res.json({
-                message: isNewUser ? 'Account created & synced with BluKaam!' : 'Welcome back!',
+                message: isNewUser ? 'Welcome to BluKaam!' : 'Welcome back!',
                 token,
                 user: { id: user._id, email: user.email, role: user.role, isEmailVerified: true },
                 profile
@@ -212,8 +212,8 @@ router.post('/supabase-sync', async (req, res) => {
             });
         }
     } catch (err) {
-        console.error('Supabase sync error:', err);
-        return res.status(500).json({ error: 'Failed to sync Supabase user: ' + err.message });
+        console.error('Auth sync error:', err);
+        return res.status(500).json({ error: 'Failed to sync authentication session: ' + err.message });
     }
 });
 

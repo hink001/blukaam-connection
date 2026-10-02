@@ -284,44 +284,6 @@ const BluKaamAuth = {
     },
 
     async register(data) {
-        const sb = this.getSupabase();
-        if (sb) {
-            try {
-                const { data: sbData, error: sbError } = await sb.auth.signUp({
-                    email: data.email,
-                    password: data.password,
-                    options: {
-                        data: {
-                            fullName: data.fullName,
-                            role: data.role,
-                            phone: data.phone,
-                            city: data.city,
-                            workType: data.workType
-                        }
-                    }
-                });
-                if (sbError) {
-                    if (sbError.message && (sbError.message.includes('already registered') || sbError.status === 422)) {
-                        throw new Error('An account with this email already exists in Supabase. Please Sign In.');
-                    }
-                    throw new Error(sbError.message);
-                }
-                if (sbData.user && sbData.session) {
-                    return await this.syncSupabaseSession(sbData.user, data, sbData.session.access_token);
-                }
-                return {
-                    requiresEmailConfirmation: true,
-                    user: sbData.user,
-                    ...data
-                };
-            } catch (sbErr) {
-                if (sbErr.message.includes('already exists') || sbErr.message.includes('Password should be')) {
-                    throw sbErr;
-                }
-                console.warn('Supabase signup notice, using backend register fallback:', sbErr.message);
-            }
-        }
-
         const res = await this.request('/auth/register', {
             method: 'POST',
             body: JSON.stringify(data)
@@ -329,26 +291,33 @@ const BluKaamAuth = {
         if (res.token) {
             this.setSession(res.token, res.user, res.profile);
         }
+
+        // Silently sync with Supabase in the background
+        const sb = this.getSupabase();
+        if (sb && data.password) {
+            sb.auth.signUp({
+                email: data.email,
+                password: data.password,
+                options: {
+                    data: {
+                        fullName: data.fullName,
+                        role: data.role,
+                        phone: data.phone,
+                        city: data.city,
+                        workType: data.workType
+                    }
+                }
+            }).then(({ data: sbData }) => {
+                if (sbData?.session?.access_token) {
+                    localStorage.setItem(this.SB_ACCESS_KEY, sbData.session.access_token);
+                }
+            }).catch(() => {});
+        }
         return res;
     },
 
     async login(email, password) {
-        const sb = this.getSupabase();
-        if (sb) {
-            try {
-                const { data, error } = await sb.auth.signInWithPassword({ email, password });
-                if (!error && data && data.user) {
-                    return await this.syncSupabaseSession(data.user, { email }, data.session?.access_token);
-                }
-                if (error && error.message && error.message.toLowerCase().includes('email not confirmed')) {
-                    throw new Error('Your email is not confirmed yet. Please verify using the code sent to your email.');
-                }
-            } catch (sbErr) {
-                if (sbErr.message.includes('not confirmed')) throw sbErr;
-                console.warn('Supabase login check note, checking local auth fallback:', sbErr.message);
-            }
-        }
-
+        // Authenticate directly with BluKaam backend
         const res = await this.request('/auth/login', {
             method: 'POST',
             body: JSON.stringify({ email, password })
@@ -356,15 +325,26 @@ const BluKaamAuth = {
         if (res.token) {
             this.setSession(res.token, res.user, res.profile);
         }
+
+        // Silently sync Supabase session in background
+        const sb = this.getSupabase();
+        if (sb) {
+            sb.auth.signInWithPassword({ email, password }).then(({ data }) => {
+                if (data?.session?.access_token) {
+                    localStorage.setItem(this.SB_ACCESS_KEY, data.session.access_token);
+                }
+            }).catch(() => {});
+        }
+
         return res;
     },
 
     async supabaseResetPassword(email) {
         const sb = this.getSupabase();
-        if (!sb) throw new Error('Supabase authentication client is not loaded. Please refresh the page.');
+        if (!sb) throw new Error('Password reset service is currently unavailable. Please try again.');
         const redirectTo = window.location.origin + window.location.pathname;
         const { data, error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
-        if (error) throw new Error(error.message);
+        if (error) throw new Error(error.message.replace(/supabase/gi, 'BluKaam'));
         return data;
     },
 

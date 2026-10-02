@@ -485,7 +485,7 @@
       }
 
       try {
-        showAlert('Sending password reset link via Supabase...', false);
+        showAlert('Sending password reset link to your email...', false);
         await BluKaamAuth.supabaseResetPassword(email);
         showAlert(`Password reset email sent to ${email}! Please check your inbox.`, false);
         BluKaamAuth.showToast('Reset email sent!', 'success');
@@ -685,33 +685,16 @@
       }
     }
 
-    async function triggerGoogleSignIn() {
-      const sb = BluKaamAuth.getSupabase();
-      if (sb) {
-        try {
-          showAlert('Redirecting to Google via Supabase...', false);
-          const redirectTarget = window.location.href.includes('login.html') 
-            ? window.location.href.replace('login.html', 'dashboard.html')
-            : window.location.origin + '/dashboard.html';
-          
-          const { error } = await sb.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo: redirectTarget
-            }
-          });
-          if (error) throw error;
-          return;
-        } catch (sbErr) {
-          console.warn('Supabase OAuth notice, trying Google One-Tap prompt:', sbErr.message);
-        }
+    function triggerGoogleSignIn() {
+      if (!configuredGoogleClientId) {
+        showAlert('ℹ️ To enable 1-Click Google Sign-In, add your free GOOGLE_CLIENT_ID to .env.', false);
+        return;
       }
-
       if (window.google && window.google.accounts && window.google.accounts.id) {
         google.accounts.id.prompt((notification) => {
           if (notification.isNotDisplayed()) {
             console.warn('Google prompt not displayed:', notification.getNotDisplayedReason());
-            showAlert('Please use the official Google button above or allow popups/cookies in your browser.');
+            showAlert('Please click the "Continue with Google" button above or allow popups/third-party cookies in your browser.');
           }
         });
       } else {
