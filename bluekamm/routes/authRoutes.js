@@ -1124,4 +1124,125 @@ router.post('/logout', authMiddleware, async (req, res) => {
     }
 });
 
+// --------------------------------------------------------
+// POST /api/auth/forgot-password
+// Sends a 6-digit reset OTP to the user's email (no Supabase needed)
+// --------------------------------------------------------
+const resetOtps = {}; // In-memory store for password reset OTPs
+
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ error: 'Email address is required.' });
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(normalizedEmail)) {
+            return res.status(400).json({ error: 'Please enter a valid email address.' });
+        }
+
+        // Check user exists
+        let userExists = false;
+        let displayName = 'Professional';
+        if (mongoose.connection.readyState === 1) {
+            const user = await User.findOne({ email: normalizedEmail });
+            if (user) {
+                userExists = true;
+                const profile = await Profile.findOne({ $or: [{ userId: user._id }, { email: normalizedEmail }] });
+                if (profile && profile.fullName) displayName = profile.fullName;
+            }
+        } else {
+            const db = getOfflineDb();
+            const user = db.users.find(u => u.email === normalizedEmail);
+            if (user) { userExists = true; }
+        }
+
+        if (!userExists) {
+            return res.status(404).json({ error: 'No account found with this email address.' });
+        }
+
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 10 * 60000); // 10 minutes for reset
+
+        // Store in DB and in-memory
+        if (mongoose.connection.readyState === 1) {
+            await Otp.deleteMany({ identifier: `reset_${normalizedEmail}` });
+            await new Otp({ identifier: `reset_${normalizedEmail}`, otp: otpCode, expiresAt }).save();
+        } else {
+            resetOtps[normalizedEmail] = { otp: otpCode, expiresAt };
+        }
+
+        // Send reset email
+        const emailResult = await sendOtpEmail(normalizedEmail, otpCode, displayName);
+
+        return res.json({
+            message: 'Password reset code sent to your email!',
+            email: normalizedEmail,
+            simulated: emailResult.simulated,
+            devOtp: emailResult.devOtp
+        });
+    } catch (err) {
+        console.error('Forgot password error:', err);
+        return res.status(500).json({ error: 'Failed to send reset code: ' + err.message });
+    }
+});
+
+// --------------------------------------------------------
+// POST /api/auth/reset-password
+// Verifies reset OTP and updates password
+// --------------------------------------------------------
+router.post('/reset-password', async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ error: 'Email, verification code, and new password are all required.' });
+        }
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: 'New password must be at least 6 characters long.' });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const trimmedOtp = otp.toString().trim();
+
+        // Verify OTP
+        let isValidOtp = false;
+        if (mongoose.connection.readyState === 1) {
+            const record = await Otp.findOne({ identifier: `reset_${normalizedEmail}`, otp: trimmedOtp });
+            if (record && record.expiresAt > new Date()) {
+                isValidOtp = true;
+                await Otp.deleteOne({ _id: record._id });
+            }
+        } else {
+            const record = resetOtps[normalizedEmail];
+            if (record && record.otp === trimmedOtp && record.expiresAt > new Date()) {
+                isValidOtp = true;
+                delete resetOtps[normalizedEmail];
+            }
+        }
+
+        if (!isValidOtp) {
+            return res.status(400).json({ error: 'Invalid or expired reset code. Please request a new one.' });
+        }
+
+        // Update password
+        if (mongoose.connection.readyState === 1) {
+            const user = await User.findOne({ email: normalizedEmail });
+            if (!user) return res.status(404).json({ error: 'User account not found.' });
+            user.password = newPassword; // pre-save hook will hash this
+            await user.save();
+        } else {
+            const db = getOfflineDb();
+            const user = db.users.find(u => u.email === normalizedEmail);
+            if (!user) return res.status(404).json({ error: 'User account not found.' });
+            user.password = await require('bcryptjs').hash(newPassword, 10);
+            saveOfflineDb(db);
+        }
+
+        return res.json({ message: 'Password updated successfully! You can now sign in with your new password.' });
+    } catch (err) {
+        console.error('Reset password error:', err);
+        return res.status(500).json({ error: 'Failed to reset password: ' + err.message });
+    }
+});
+
 module.exports = router;

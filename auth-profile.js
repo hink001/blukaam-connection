@@ -339,13 +339,24 @@ const BluKaamAuth = {
         return res;
     },
 
+    // Backend OTP-based password reset (no Supabase needed)
+    async forgotPassword(email) {
+        return await this.request('/auth/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify({ email })
+        });
+    },
+
+    async resetPassword(email, otp, newPassword) {
+        return await this.request('/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify({ email, otp, newPassword })
+        });
+    },
+
+    // Kept for backward compat — now delegates to backend OTP flow
     async supabaseResetPassword(email) {
-        const sb = this.getSupabase();
-        if (!sb) throw new Error('Password reset service is currently unavailable. Please try again.');
-        const redirectTo = window.location.origin + window.location.pathname;
-        const { data, error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
-        if (error) throw new Error(error.message.replace(/supabase/gi, 'BluKaam'));
-        return data;
+        return await this.forgotPassword(email);
     },
 
     async getAuthConfig() {
