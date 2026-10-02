@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="frontend/assets/images/logo.png" alt="Blukaam Connection logo" width="140" />
+<img src="../assets/images/logo.png" alt="Blukaam Connection logo" width="140" />
 
 # Blukaam Connection
 
