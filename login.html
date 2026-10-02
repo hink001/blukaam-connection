@@ -20,6 +20,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <!-- Supabase Cloud Authentication SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- 100% Free Google Sign-In SDK -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -94,7 +96,7 @@
         <div class="form-group" style="margin-bottom: 20px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <label class="form-label" for="loginPassword" style="margin-bottom: 0;">Password *</label>
-            <a href="javascript:void(0)" onclick="alert('Password reset link will be sent to your registered email.')" style="font-size: 12px; color: var(--blue-mid); text-decoration: none; font-weight: 600;">Forgot Password?</a>
+            <a href="javascript:void(0)" onclick="handleForgotPassword()" style="font-size: 12px; color: var(--blue-mid); text-decoration: none; font-weight: 600;">Forgot Password?</a>
           </div>
           <div style="position: relative;">
             <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required autocomplete="current-password" style="padding-right: 40px;">
@@ -408,6 +410,27 @@
       }
     }
 
+    async function handleForgotPassword() {
+      const emailInput = document.getElementById('loginEmail');
+      let email = emailInput ? emailInput.value.trim() : '';
+      if (!email) {
+        email = prompt('Enter your registered email address to receive a password reset link:');
+      }
+      if (!email || !email.includes('@')) {
+        showAlert('Please enter a valid email address.');
+        return;
+      }
+
+      try {
+        showAlert('Sending password reset link via Supabase...', false);
+        await BluKaamAuth.supabaseResetPassword(email);
+        showAlert(`Password reset email sent to ${email}! Please check your inbox.`, false);
+        BluKaamAuth.showToast('Reset email sent!', 'success');
+      } catch (err) {
+        showAlert(err.message || 'Could not send reset email. Please try again.');
+      }
+    }
+
     async function handleRegisterSubmit(e) {
       e.preventDefault();
       const fullName = document.getElementById('regFullName').value.trim();
@@ -437,10 +460,19 @@
 
       try {
         btn.disabled = true;
-        btn.innerText = 'Sending verification code...';
+        btn.innerText = 'Creating account with Supabase...';
 
-        const res = await BluKaamAuth.sendEmailOtp(email, fullName);
-        
+        const res = await BluKaamAuth.register(pendingRegistrationData);
+
+        // If session was established immediately
+        if (BluKaamAuth.isAuthenticated()) {
+          BluKaamAuth.showToast('Account created successfully! Welcome to BluKaam.', 'success');
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 300);
+          return;
+        }
+
         // Advance to OTP Step
         document.getElementById('registerForm').style.display = 'none';
         document.getElementById('otpStep').style.display = 'block';
@@ -453,13 +485,13 @@
           showAlert(`(Dev Simulation Mode) Your code is ${res.devOtp}. Enter below to test.`, false);
           document.getElementById('regOtpCode').value = res.devOtp;
         } else {
-          showAlert(`Verification code sent to ${email}! Please check your inbox.`, false);
+          showAlert(`Verification code sent to ${email}! Please check your email inbox.`, false);
         }
         
         startResendCountdown();
         setTimeout(() => document.getElementById('regOtpCode').focus(), 200);
       } catch (err) {
-        showAlert(err.message || 'Failed to send verification code. Please check your email.');
+        showAlert(err.message || 'Failed to create account. Please check your details.');
         btn.disabled = false;
         btn.innerText = 'Create Free Account';
       }

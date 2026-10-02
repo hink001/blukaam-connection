@@ -26,13 +26,45 @@ if (window.location.port === '3000') {
     API_BASE = 'https://blukaam-connection.onrender.com/api';
 }
 
+// Supabase Cloud Configuration
+const SUPABASE_URL = 'https://tgzhjepxjpbxpypwaypz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_vzjADvqW9Wu4g3nlXSC2DQ_8G-g03I5';
+
+let supabaseClient = null;
+function getSupabaseClient() {
+    if (!supabaseClient && typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function') {
+        try {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true
+                }
+            });
+            if (window.BluKaamAuth) window.BluKaamAuth.supabase = supabaseClient;
+        } catch (e) {
+            console.warn('Failed to initialize Supabase client:', e);
+        }
+    }
+    return supabaseClient;
+}
+
 const BluKaamAuth = {
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
+    supabase: null,
+
+    getSupabase() {
+        return getSupabaseClient();
+    },
+
     // -------------------------------------------------------------
     // Token & Storage Management
     // -------------------------------------------------------------
     TOKEN_KEY: 'blukaam_token',
     USER_KEY: 'blukaam_user',
     PROFILE_KEY: 'blukaam_profile',
+    SB_ACCESS_KEY: 'blukaam_sb_access_token',
 
     getToken() {
         return localStorage.getItem(this.TOKEN_KEY);
@@ -71,6 +103,10 @@ const BluKaamAuth = {
     },
 
     async logout() {
+        const sb = this.getSupabase();
+        if (sb) {
+            try { await sb.auth.signOut(); } catch (e) {}
+        }
         const token = this.getToken();
         if (token) {
             try {
@@ -85,6 +121,7 @@ const BluKaamAuth = {
         localStorage.removeItem(this.TOKEN_KEY);
         localStorage.removeItem(this.USER_KEY);
         localStorage.removeItem(this.PROFILE_KEY);
+        localStorage.removeItem(this.SB_ACCESS_KEY);
         window.location.href = 'login.html';
     },
 
@@ -151,9 +188,44 @@ const BluKaamAuth = {
     },
 
     // -------------------------------------------------------------
-    // Auth Endpoints
+    // Supabase Session Synchronization
+    // -------------------------------------------------------------
+    async syncSupabaseSession(supabaseUser, profileData = {}, accessToken = null) {
+        if (accessToken) {
+            localStorage.setItem(this.SB_ACCESS_KEY, accessToken);
+        }
+        const res = await this.request('/auth/supabase-sync', {
+            method: 'POST',
+            body: JSON.stringify({
+                supabaseUser,
+                profileData,
+                token: accessToken
+            })
+        });
+        if (res.token) {
+            this.setSession(res.token, res.user, res.profile);
+        }
+        return res;
+    },
+
+    // -------------------------------------------------------------
+    // Auth Endpoints (Supabase + Hybrid Fallback)
     // -------------------------------------------------------------
     async sendEmailOtp(email, fullName) {
+        const sb = this.getSupabase();
+        if (sb) {
+            try {
+                const { data, error } = await sb.auth.signInWithOtp({
+                    email,
+                    options: { shouldCreateUser: true }
+                });
+                if (!error) {
+                    return { success: true, provider: 'supabase', message: 'Verification code sent via Supabase' };
+                }
+            } catch (e) {
+                console.warn('Supabase OTP notice, using backend SMTP:', e.message);
+            }
+        }
         return await this.request('/auth/send-email-otp', {
             method: 'POST',
             body: JSON.stringify({ email, fullName })
@@ -161,6 +233,28 @@ const BluKaamAuth = {
     },
 
     async verifyEmailAndRegister(data) {
+        const sb = this.getSupabase();
+        if (sb && data.otp) {
+            try {
+                let verifyResult = await sb.auth.verifyOtp({
+                    email: data.email,
+                    token: data.otp,
+                    type: 'signup'
+                });
+                if (verifyResult.error) {
+                    verifyResult = await sb.auth.verifyOtp({
+                        email: data.email,
+                        token: data.otp,
+                        type: 'email'
+                    });
+                }
+                if (!verifyResult.error && verifyResult.data?.user) {
+                    return await this.syncSupabaseSession(verifyResult.data.user, data, verifyResult.data.session?.access_token);
+                }
+            } catch (sbErr) {
+                console.warn('Supabase verifyOtp notice, checking backend OTP:', sbErr.message);
+            }
+        }
         const res = await this.request('/auth/verify-email-register', {
             method: 'POST',
             body: JSON.stringify(data)
@@ -172,6 +266,44 @@ const BluKaamAuth = {
     },
 
     async register(data) {
+        const sb = this.getSupabase();
+        if (sb) {
+            try {
+                const { data: sbData, error: sbError } = await sb.auth.signUp({
+                    email: data.email,
+                    password: data.password,
+                    options: {
+                        data: {
+                            fullName: data.fullName,
+                            role: data.role,
+                            phone: data.phone,
+                            city: data.city,
+                            workType: data.workType
+                        }
+                    }
+                });
+                if (sbError) {
+                    if (sbError.message && (sbError.message.includes('already registered') || sbError.status === 422)) {
+                        throw new Error('An account with this email already exists in Supabase. Please Sign In.');
+                    }
+                    throw new Error(sbError.message);
+                }
+                if (sbData.user && sbData.session) {
+                    return await this.syncSupabaseSession(sbData.user, data, sbData.session.access_token);
+                }
+                return {
+                    requiresEmailConfirmation: true,
+                    user: sbData.user,
+                    ...data
+                };
+            } catch (sbErr) {
+                if (sbErr.message.includes('already exists') || sbErr.message.includes('Password should be')) {
+                    throw sbErr;
+                }
+                console.warn('Supabase signup notice, using backend register fallback:', sbErr.message);
+            }
+        }
+
         const res = await this.request('/auth/register', {
             method: 'POST',
             body: JSON.stringify(data)
@@ -183,6 +315,22 @@ const BluKaamAuth = {
     },
 
     async login(email, password) {
+        const sb = this.getSupabase();
+        if (sb) {
+            try {
+                const { data, error } = await sb.auth.signInWithPassword({ email, password });
+                if (!error && data && data.user) {
+                    return await this.syncSupabaseSession(data.user, { email }, data.session?.access_token);
+                }
+                if (error && error.message && error.message.toLowerCase().includes('email not confirmed')) {
+                    throw new Error('Your email is not confirmed yet. Please verify using the code sent to your email.');
+                }
+            } catch (sbErr) {
+                if (sbErr.message.includes('not confirmed')) throw sbErr;
+                console.warn('Supabase login check note, checking local auth fallback:', sbErr.message);
+            }
+        }
+
         const res = await this.request('/auth/login', {
             method: 'POST',
             body: JSON.stringify({ email, password })
@@ -191,6 +339,15 @@ const BluKaamAuth = {
             this.setSession(res.token, res.user, res.profile);
         }
         return res;
+    },
+
+    async supabaseResetPassword(email) {
+        const sb = this.getSupabase();
+        if (!sb) throw new Error('Supabase authentication client is not loaded. Please refresh the page.');
+        const redirectTo = window.location.origin + window.location.pathname;
+        const { data, error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+        if (error) throw new Error(error.message);
+        return data;
     },
 
     async getAuthConfig() {
@@ -346,12 +503,38 @@ const BluKaamAuth = {
                 mobileMenu.insertAdjacentHTML('beforeend', mobileSnippet);
             }
         }
+    },
+
+    // -------------------------------------------------------------
+    // Supabase Auth State Change Listener
+    // -------------------------------------------------------------
+    initSupabaseAuthListener() {
+        const sb = this.getSupabase();
+        if (sb && sb.auth && typeof sb.auth.onAuthStateChange === 'function') {
+            try {
+                sb.auth.onAuthStateChange(async (event, session) => {
+                    if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session?.user) {
+                        const currentUser = this.getUser();
+                        if (!this.isAuthenticated() || (currentUser && currentUser.email !== session.user.email)) {
+                            try {
+                                await this.syncSupabaseSession(session.user, {}, session.access_token);
+                            } catch (err) {
+                                console.warn('Supabase auth state sync note:', err.message);
+                            }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.warn('Could not register Supabase onAuthStateChange listener:', e);
+            }
+        }
     }
 };
 
-// Auto-run nav check when DOM loads
+// Auto-run nav check and Supabase listener when DOM loads
 document.addEventListener('DOMContentLoaded', () => {
     BluKaamAuth.initNav();
+    BluKaamAuth.initSupabaseAuthListener();
 });
 
 // Export globally for inline scripts

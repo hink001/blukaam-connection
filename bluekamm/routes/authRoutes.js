@@ -12,6 +12,7 @@ const Otp = require('../models/Otp');
 const authMiddleware = require('../middleware/auth');
 const { logActivity } = require('../services/activityService');
 const { sendOtpEmail, isEmailConfigured } = require('../services/emailService');
+const { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } = require('../services/supabaseClient');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-blukaam-key';
 const DB_FILE = path.join(__dirname, '..', 'local_database.json');
@@ -35,13 +36,185 @@ const saveOfflineDb = (data) => {
 
 // --------------------------------------------------------
 // GET /api/auth/config
-// Public auth configuration (Google Client ID, email service status)
+// Public auth configuration (Google Client ID, Supabase URL/Key, email service status)
 // --------------------------------------------------------
 router.get('/config', (req, res) => {
     res.json({
         googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+        supabaseUrl: SUPABASE_URL,
+        supabaseAnonKey: SUPABASE_ANON_KEY,
         isEmailConfigured: isEmailConfigured()
     });
+});
+
+// --------------------------------------------------------
+// POST /api/auth/supabase-sync
+// Synchronizes a Supabase authenticated session with BluKaam MongoDB Profile & User store
+// --------------------------------------------------------
+router.post('/supabase-sync', async (req, res) => {
+    try {
+        let { supabaseUser, profileData = {}, token: supabaseToken } = req.body;
+
+        // If client passes an access token, verify with Supabase
+        if (supabase && supabaseToken) {
+            try {
+                const { data: verified, error: verifyErr } = await supabase.auth.getUser(supabaseToken);
+                if (!verifyErr && verified && verified.user) {
+                    supabaseUser = verified.user;
+                }
+            } catch (vErr) {
+                console.warn('Supabase token verification check note:', vErr.message);
+            }
+        }
+
+        if (!supabaseUser || !supabaseUser.email) {
+            return res.status(400).json({ error: 'Valid Supabase user object with email is required.' });
+        }
+
+        const normalizedEmail = supabaseUser.email.trim().toLowerCase();
+        const role = profileData.role || supabaseUser.user_metadata?.role || 'Worker';
+        const fullName = profileData.fullName || 
+                         supabaseUser.user_metadata?.fullName || 
+                         supabaseUser.user_metadata?.full_name || 
+                         supabaseUser.user_metadata?.name || 
+                         normalizedEmail.split('@')[0];
+        const phone = profileData.phone || supabaseUser.phone || supabaseUser.user_metadata?.phone || '';
+        const city = profileData.city || supabaseUser.user_metadata?.city || '';
+        const workType = profileData.workType || supabaseUser.user_metadata?.workType || supabaseUser.user_metadata?.trade || '';
+        const avatarUrl = supabaseUser.user_metadata?.avatar_url || 
+                          supabaseUser.user_metadata?.picture || 
+                          `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName)}&backgroundColor=0D2F6E&textColor=ffffff`;
+
+        if (mongoose.connection.readyState === 1) {
+            let user = await User.findOne({ email: normalizedEmail });
+            let isNewUser = false;
+
+            if (!user) {
+                isNewUser = true;
+                user = new User({
+                    email: normalizedEmail,
+                    password: 'sb_' + Math.random().toString(36).slice(-8) + Date.now(),
+                    role: role === 'Contractor' ? 'Contractor' : 'Worker',
+                    isEmailVerified: true,
+                    lastLogin: new Date()
+                });
+                await user.save();
+            } else {
+                user.lastLogin = new Date();
+                user.isEmailVerified = true;
+                if (role && !user.role) user.role = role;
+                await user.save();
+            }
+
+            let profile = await Profile.findOne({ $or: [{ userId: user._id }, { email: normalizedEmail }] });
+            if (!profile) {
+                profile = new Profile({
+                    userId: user._id,
+                    fullName,
+                    name: fullName,
+                    role: user.role,
+                    email: normalizedEmail,
+                    phone: phone || '',
+                    city: city || '',
+                    workType: workType || '',
+                    skills: workType ? [workType] : [],
+                    headline: workType ? `${workType} in ${city || 'India'}` : 'Skilled Professional at BluKaam',
+                    avatarUrl,
+                    isVerified: true
+                });
+                await profile.save();
+            } else {
+                let updated = false;
+                if (!profile.userId) { profile.userId = user._id; updated = true; }
+                if (phone && !profile.phone) { profile.phone = phone; updated = true; }
+                if (city && !profile.city) { profile.city = city; updated = true; }
+                if (workType && !profile.workType) {
+                    profile.workType = workType;
+                    if (!profile.skills || profile.skills.length === 0) profile.skills = [workType];
+                    updated = true;
+                }
+                if (updated) await profile.save();
+            }
+
+            // Issue BluKaam JWT token for all existing API routes
+            const token = jwt.sign(
+                { userId: user._id, email: user.email, role: user.role },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            logActivity({
+                userId: user._id,
+                action: isNewUser ? 'AUTH_REGISTER' : 'AUTH_LOGIN',
+                description: `${fullName} logged in via Supabase Authentication`,
+                ipAddress: req.ip
+            });
+
+            return res.json({
+                message: isNewUser ? 'Account created & synced with BluKaam!' : 'Welcome back!',
+                token,
+                user: { id: user._id, email: user.email, role: user.role, isEmailVerified: true },
+                profile
+            });
+        } else {
+            // Offline fallback
+            const db = getOfflineDb();
+            let user = db.users.find(u => u.email === normalizedEmail);
+            let isNewUser = false;
+
+            if (!user) {
+                isNewUser = true;
+                const userId = 'usr_' + Date.now();
+                user = {
+                    _id: userId,
+                    id: userId,
+                    email: normalizedEmail,
+                    role: role === 'Contractor' ? 'Contractor' : 'Worker',
+                    isActive: true,
+                    isEmailVerified: true,
+                    createdAt: new Date().toISOString()
+                };
+                db.users.push(user);
+            }
+            user.lastLogin = new Date().toISOString();
+
+            let profile = db.profiles.find(p => p.userId === user._id || p.userId === user.id || p.email === normalizedEmail);
+            if (!profile) {
+                profile = {
+                    _id: 'prf_' + Date.now(),
+                    userId: user._id,
+                    fullName,
+                    name: fullName,
+                    role: user.role,
+                    email: normalizedEmail,
+                    phone,
+                    city,
+                    trade: workType,
+                    avatarUrl,
+                    isVerified: true,
+                    createdAt: new Date().toISOString()
+                };
+                db.profiles.push(profile);
+            }
+            saveOfflineDb(db);
+
+            const token = jwt.sign(
+                { userId: user._id, email: user.email, role: user.role },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            return res.json({
+                message: isNewUser ? 'Account created & synced with BluKaam!' : 'Welcome back!',
+                token,
+                user: { id: user._id, email: user.email, role: user.role, isEmailVerified: true },
+                profile
+            });
+        }
+    } catch (err) {
+        console.error('Supabase sync error:', err);
+        return res.status(500).json({ error: 'Failed to sync Supabase user: ' + err.message });
+    }
 });
 
 // --------------------------------------------------------
