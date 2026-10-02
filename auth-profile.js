@@ -129,6 +129,13 @@ const BluKaamAuth = {
     // Protected Route Guard
     // -------------------------------------------------------------
     requireAuth(redirectUrl = 'login.html') {
+        // If returning from Supabase OAuth (access_token in hash or auth code in query)
+        if (typeof window !== 'undefined' && (
+            (window.location.hash && window.location.hash.includes('access_token=')) ||
+            (window.location.search && window.location.search.includes('code='))
+        )) {
+            return true;
+        }
         if (!this.isAuthenticated()) {
             sessionStorage.setItem('redirect_after_login', window.location.href);
             window.location.href = redirectUrl;

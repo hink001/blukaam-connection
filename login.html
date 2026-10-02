@@ -614,11 +614,28 @@
       }
     }
 
-    function triggerGoogleSignIn() {
-      if (!configuredGoogleClientId) {
-        showAlert('ℹ️ To enable 1-Click Google Sign-In, add your free GOOGLE_CLIENT_ID to .env.', false);
-        return;
+    async function triggerGoogleSignIn() {
+      const sb = BluKaamAuth.getSupabase();
+      if (sb) {
+        try {
+          showAlert('Redirecting to Google via Supabase...', false);
+          const redirectTarget = window.location.href.includes('login.html') 
+            ? window.location.href.replace('login.html', 'dashboard.html')
+            : window.location.origin + '/dashboard.html';
+          
+          const { error } = await sb.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: redirectTarget
+            }
+          });
+          if (error) throw error;
+          return;
+        } catch (sbErr) {
+          console.warn('Supabase OAuth notice, trying Google One-Tap prompt:', sbErr.message);
+        }
       }
+
       if (window.google && window.google.accounts && window.google.accounts.id) {
         google.accounts.id.prompt((notification) => {
           if (notification.isNotDisplayed()) {
