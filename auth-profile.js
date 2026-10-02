@@ -218,21 +218,10 @@ const BluKaamAuth = {
     // -------------------------------------------------------------
     // Auth Endpoints (Supabase + Hybrid Fallback)
     // -------------------------------------------------------------
+    // Auth Endpoints (Email OTP Verification + Supabase Sync)
+    // -------------------------------------------------------------
     async sendEmailOtp(email, fullName) {
-        const sb = this.getSupabase();
-        if (sb) {
-            try {
-                const { data, error } = await sb.auth.signInWithOtp({
-                    email,
-                    options: { shouldCreateUser: true }
-                });
-                if (!error) {
-                    return { success: true, provider: 'supabase', message: 'Verification code sent via Supabase' };
-                }
-            } catch (e) {
-                console.warn('Supabase OTP notice, using backend SMTP:', e.message);
-            }
-        }
+        // Enforce backend Gmail SMTP service to guarantee 6-digit code delivery to inbox
         return await this.request('/auth/send-email-otp', {
             method: 'POST',
             body: JSON.stringify({ email, fullName })
@@ -240,31 +229,53 @@ const BluKaamAuth = {
     },
 
     async verifyEmailAndRegister(data) {
-        const sb = this.getSupabase();
-        if (sb && data.otp) {
-            try {
-                let verifyResult = await sb.auth.verifyOtp({
-                    email: data.email,
-                    token: data.otp,
-                    type: 'signup'
-                });
-                if (verifyResult.error) {
-                    verifyResult = await sb.auth.verifyOtp({
-                        email: data.email,
-                        token: data.otp,
-                        type: 'email'
-                    });
-                }
-                if (!verifyResult.error && verifyResult.data?.user) {
-                    return await this.syncSupabaseSession(verifyResult.data.user, data, verifyResult.data.session?.access_token);
-                }
-            } catch (sbErr) {
-                console.warn('Supabase verifyOtp notice, checking backend OTP:', sbErr.message);
-            }
-        }
+        // 1. Verify OTP and create profile atomically in MongoDB
         const res = await this.request('/auth/verify-email-register', {
             method: 'POST',
             body: JSON.stringify(data)
+        });
+        if (res.token) {
+            this.setSession(res.token, res.user, res.profile);
+        }
+
+        // 2. Synchronize with Supabase Cloud Auth in the background
+        const sb = this.getSupabase();
+        if (sb && data.password) {
+            try {
+                const { data: sbData } = await sb.auth.signUp({
+                    email: data.email,
+                    password: data.password,
+                    options: {
+                        data: {
+                            fullName: data.fullName,
+                            role: data.role,
+                            phone: data.phone,
+                            city: data.city,
+                            workType: data.workType
+                        }
+                    }
+                });
+                if (sbData?.session?.access_token) {
+                    localStorage.setItem(this.SB_ACCESS_KEY, sbData.session.access_token);
+                }
+            } catch (sbErr) {
+                console.log('Supabase post-verification sync notice:', sbErr.message);
+            }
+        }
+        return res;
+    },
+
+    async sendLoginOtp(email) {
+        return await this.request('/auth/send-login-otp', {
+            method: 'POST',
+            body: JSON.stringify({ email })
+        });
+    },
+
+    async verifyLoginOtp(email, otp) {
+        const res = await this.request('/auth/verify-login-otp', {
+            method: 'POST',
+            body: JSON.stringify({ email, otp })
         });
         if (res.token) {
             this.setSession(res.token, res.user, res.profile);

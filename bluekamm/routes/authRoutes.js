@@ -410,7 +410,7 @@ router.post('/send-email-otp', async (req, res) => {
         }
 
         const normalizedEmail = email.trim().toLowerCase();
-        const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(normalizedEmail)) {
             return res.status(400).json({ error: 'Please enter a valid email address.' });
         }
@@ -453,7 +453,174 @@ router.post('/send-email-otp', async (req, res) => {
         });
     } catch (err) {
         console.error('Send OTP error:', err);
-        return res.status(500).json({ error: 'Failed to send verification code. ' + err.message });
+        return res.status(500).json({ error: 'Failed to send verification code: ' + err.message });
+    }
+});
+
+// --------------------------------------------------------
+// POST /api/auth/send-login-otp
+// Sends 6-digit OTP to existing users for passwordless login
+// --------------------------------------------------------
+router.post('/send-login-otp', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ error: 'Valid email address is required.' });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(normalizedEmail)) {
+            return res.status(400).json({ error: 'Please enter a valid email address.' });
+        }
+
+        // Check if user exists
+        let userExists = false;
+        let displayName = 'Professional';
+
+        if (mongoose.connection.readyState === 1) {
+            const user = await User.findOne({ email: normalizedEmail });
+            if (user) {
+                userExists = true;
+                const profile = await Profile.findOne({ $or: [{ userId: user._id }, { email: normalizedEmail }] });
+                if (profile && profile.fullName) displayName = profile.fullName;
+            }
+        } else {
+            const db = getOfflineDb();
+            const user = db.users.find(u => u.email === normalizedEmail);
+            if (user) {
+                userExists = true;
+                const profile = db.profiles.find(p => p.userId === user._id || p.userId === user.id || p.email === normalizedEmail);
+                if (profile && profile.fullName) displayName = profile.fullName;
+            }
+        }
+
+        if (!userExists) {
+            return res.status(404).json({ error: 'No account found with this email. Please click "Create Account" to register.' });
+        }
+
+        // Generate 6-digit OTP
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 5 * 60000); // 5 minutes
+
+        // Store OTP in database
+        if (mongoose.connection.readyState === 1) {
+            await Otp.deleteMany({ identifier: normalizedEmail });
+            await new Otp({ identifier: normalizedEmail, otp: otpCode, expiresAt }).save();
+        } else {
+            offlineOtps[normalizedEmail] = { otp: otpCode, expiresAt };
+        }
+
+        // Dispatch email
+        const emailResult = await sendOtpEmail(normalizedEmail, otpCode, displayName);
+
+        return res.json({
+            message: 'Login verification code sent to your email!',
+            email: normalizedEmail,
+            simulated: emailResult.simulated,
+            devOtp: emailResult.devOtp,
+            warning: emailResult.warning
+        });
+    } catch (err) {
+        console.error('Send Login OTP error:', err);
+        return res.status(500).json({ error: 'Failed to send login code: ' + err.message });
+    }
+});
+
+// --------------------------------------------------------
+// POST /api/auth/verify-login-otp
+// Verifies OTP for existing user and issues session token
+// --------------------------------------------------------
+router.post('/verify-login-otp', async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        if (!email || !otp) {
+            return res.status(400).json({ error: 'Email and 6-digit verification code are required.' });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const trimmedOtp = otp.toString().trim();
+
+        // 1. Verify OTP
+        let isValidOtp = false;
+        if (mongoose.connection.readyState === 1) {
+            const otpRecord = await Otp.findOne({ identifier: normalizedEmail, otp: trimmedOtp });
+            if (otpRecord && otpRecord.expiresAt > new Date()) {
+                isValidOtp = true;
+                await Otp.deleteOne({ _id: otpRecord._id });
+            }
+        } else {
+            const record = offlineOtps[normalizedEmail];
+            if (record && record.otp === trimmedOtp && record.expiresAt > new Date()) {
+                isValidOtp = true;
+                delete offlineOtps[normalizedEmail];
+            }
+        }
+
+        if (!isValidOtp) {
+            return res.status(400).json({ error: 'Invalid or expired verification code. Please check your email or request a new code.' });
+        }
+
+        // 2. Load User and Profile
+        if (mongoose.connection.readyState === 1) {
+            const user = await User.findOne({ email: normalizedEmail });
+            if (!user) {
+                return res.status(404).json({ error: 'User account not found.' });
+            }
+
+            user.lastLogin = new Date();
+            user.isEmailVerified = true;
+            await user.save();
+
+            let profile = await Profile.findOne({ $or: [{ userId: user._id }, { email: normalizedEmail }] });
+
+            const token = jwt.sign(
+                { userId: user._id, email: user.email, role: user.role },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            logActivity({
+                userId: user._id,
+                action: 'AUTH_LOGIN',
+                description: `${profile?.fullName || normalizedEmail} logged in via Email OTP`,
+                req
+            });
+
+            return res.json({
+                message: 'Logged in successfully!',
+                token,
+                user: { id: user._id, email: user.email, role: user.role, isEmailVerified: true },
+                profile
+            });
+        } else {
+            const db = getOfflineDb();
+            const user = db.users.find(u => u.email === normalizedEmail);
+            if (!user) {
+                return res.status(404).json({ error: 'User account not found.' });
+            }
+
+            user.lastLogin = new Date().toISOString();
+            user.isEmailVerified = true;
+            const profile = db.profiles.find(p => p.userId === user._id || p.userId === user.id || p.email === normalizedEmail);
+            saveOfflineDb(db);
+
+            const token = jwt.sign(
+                { userId: user._id, email: user.email, role: user.role },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            return res.json({
+                message: 'Logged in successfully!',
+                token,
+                user: { id: user._id, email: user.email, role: user.role, isEmailVerified: true },
+                profile
+            });
+        }
+    } catch (err) {
+        console.error('Verify Login OTP error:', err);
+        return res.status(500).json({ error: 'Server error during login verification: ' + err.message });
     }
 });
 

@@ -107,6 +107,12 @@
         <button type="submit" id="loginBtn" class="apply-btn" style="width: 100%; padding: 13px; font-size: 16px;">
           Sign In to Dashboard
         </button>
+
+        <div style="text-align: center; margin-top: 14px;">
+          <a href="javascript:void(0)" onclick="handleSendLoginOtp()" style="font-size: 13px; color: var(--blue-mid); text-decoration: none; font-weight: 600;">
+            ✉️ Sign In with Email OTP instead
+          </a>
+        </div>
       </form>
 
       <!-- ================= REGISTER FORM ================= -->
@@ -173,10 +179,10 @@
           <div style="width: 54px; height: 54px; border-radius: 50%; background: #E0F2FE; color: #0284C7; display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 12px; box-shadow: 0 4px 12px rgba(2,132,199,0.15);">
             ✉️
           </div>
-          <h2 style="font-size: 22px; font-weight: 800; color: var(--blue-dark); margin-bottom: 6px;">
+          <h2 id="otpStepTitle" style="font-size: 22px; font-weight: 800; color: var(--blue-dark); margin-bottom: 6px;">
             Verify Your Email
           </h2>
-          <p style="font-size: 13.5px; color: var(--gray-600); line-height: 1.5;">
+          <p id="otpStepSubtitle" style="font-size: 13.5px; color: var(--gray-600); line-height: 1.5;">
             We sent a 6-digit verification code to<br>
             <strong id="otpEmailTarget" style="color: var(--blue-mid); word-break: break-all;">user@example.com</strong>
           </p>
@@ -254,6 +260,8 @@
     }
 
     let pendingRegistrationData = null;
+    let pendingLoginEmail = null;
+    let currentOtpMode = 'register'; // 'register' or 'login'
     let resendTimerInterval = null;
 
     function switchAuthTab(tab) {
@@ -291,13 +299,19 @@
 
     function backToRegisterForm() {
       document.getElementById('otpStep').style.display = 'none';
-      document.getElementById('registerForm').style.display = 'block';
+      if (currentOtpMode === 'login') {
+        document.getElementById('loginForm').style.display = 'block';
+      } else {
+        document.getElementById('registerForm').style.display = 'block';
+      }
       const googleSec = document.getElementById('googleAuthSection');
       if (googleSec) googleSec.style.display = 'block';
       document.getElementById('authAlert').style.display = 'none';
       const btn = document.getElementById('regBtn');
-      btn.disabled = false;
-      btn.innerText = 'Create Free Account';
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = 'Create Free Account';
+      }
     }
 
     function startResendCountdown() {
@@ -323,12 +337,18 @@
     }
 
     async function resendOtp() {
-      if (!pendingRegistrationData) return;
+      const email = currentOtpMode === 'login' ? pendingLoginEmail : (pendingRegistrationData && pendingRegistrationData.email);
+      const name = currentOtpMode === 'login' ? '' : (pendingRegistrationData && pendingRegistrationData.fullName);
+      if (!email) return;
+
       const btn = document.getElementById('resendOtpBtn');
       try {
         btn.disabled = true;
         btn.innerText = 'Sending...';
-        const res = await BluKaamAuth.sendEmailOtp(pendingRegistrationData.email, pendingRegistrationData.fullName);
+        const res = currentOtpMode === 'login'
+          ? await BluKaamAuth.sendLoginOtp(email)
+          : await BluKaamAuth.sendEmailOtp(email, name);
+
         if (res.simulated && res.devOtp) {
           showAlert(`(Dev Mode) New OTP Code: ${res.devOtp}`, false);
         } else {
@@ -339,6 +359,49 @@
         showAlert(err.message || 'Failed to resend code. Please try again.');
         btn.disabled = false;
         btn.innerText = 'Resend Code';
+      }
+    }
+
+    async function handleSendLoginOtp() {
+      const emailInput = document.getElementById('loginEmail');
+      let email = emailInput ? emailInput.value.trim() : '';
+      if (!email) {
+        email = prompt('Enter your registered email address to receive an OTP:');
+        if (email) email = email.trim();
+      }
+      if (!email || !email.includes('@')) {
+        showAlert('Please enter a valid email address.');
+        return;
+      }
+
+      try {
+        showAlert('Sending 6-digit login code to your email...', false);
+        const res = await BluKaamAuth.sendLoginOtp(email);
+        pendingLoginEmail = email;
+        currentOtpMode = 'login';
+
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('otpStep').style.display = 'block';
+        const googleSec = document.getElementById('googleAuthSection');
+        if (googleSec) googleSec.style.display = 'none';
+
+        document.getElementById('otpStepTitle').innerText = 'Enter Sign-In Code';
+        document.getElementById('otpStepSubtitle').innerHTML = `We sent a 6-digit login code to<br><strong id="otpEmailTarget" style="color: var(--blue-mid); word-break: break-all;">${email}</strong>`;
+        document.getElementById('regOtpCode').value = '';
+        document.getElementById('verifyOtpBtn').innerText = 'Verify & Sign In';
+
+        if (res.simulated && res.devOtp) {
+          showAlert(`(Dev Simulation Mode) Your login code is ${res.devOtp}. Enter below to test.`, false);
+          document.getElementById('regOtpCode').value = res.devOtp;
+        } else {
+          showAlert(`Login verification code sent to ${email}! Please check your email inbox.`, false);
+        }
+
+        startResendCountdown();
+        setTimeout(() => document.getElementById('regOtpCode').focus(), 200);
+      } catch (err) {
+        showAlert(err.message || 'Failed to send login code.');
       }
     }
 
@@ -448,6 +511,11 @@
         return;
       }
 
+      if (password.length < 6) {
+        showAlert('Password must be at least 6 characters long.');
+        return;
+      }
+
       pendingRegistrationData = {
         fullName,
         email,
@@ -457,29 +525,25 @@
         password,
         role
       };
+      currentOtpMode = 'register';
 
       try {
         btn.disabled = true;
-        btn.innerText = 'Creating account with Supabase...';
+        btn.innerText = 'Sending verification code...';
 
-        const res = await BluKaamAuth.register(pendingRegistrationData);
-
-        // If session was established immediately
-        if (BluKaamAuth.isAuthenticated()) {
-          BluKaamAuth.showToast('Account created successfully! Welcome to BluKaam.', 'success');
-          setTimeout(() => {
-            window.location.href = 'dashboard.html';
-          }, 300);
-          return;
-        }
+        const res = await BluKaamAuth.sendEmailOtp(email, fullName);
 
         // Advance to OTP Step
         document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'none';
         document.getElementById('otpStep').style.display = 'block';
         const googleSec = document.getElementById('googleAuthSection');
         if (googleSec) googleSec.style.display = 'none';
-        document.getElementById('otpEmailTarget').innerText = email;
+
+        document.getElementById('otpStepTitle').innerText = 'Verify Your Email';
+        document.getElementById('otpStepSubtitle').innerHTML = `We sent a 6-digit verification code to<br><strong id="otpEmailTarget" style="color: var(--blue-mid); word-break: break-all;">${email}</strong>`;
         document.getElementById('regOtpCode').value = '';
+        document.getElementById('verifyOtpBtn').innerText = 'Verify & Create Profile';
         
         if (res.simulated && res.devOtp) {
           showAlert(`(Dev Simulation Mode) Your code is ${res.devOtp}. Enter below to test.`, false);
@@ -491,7 +555,7 @@
         startResendCountdown();
         setTimeout(() => document.getElementById('regOtpCode').focus(), 200);
       } catch (err) {
-        showAlert(err.message || 'Failed to create account. Please check your details.');
+        showAlert(err.message || 'Failed to send verification code. Please check your email.');
         btn.disabled = false;
         btn.innerText = 'Create Free Account';
       }
@@ -509,21 +573,28 @@
 
       try {
         btn.disabled = true;
-        btn.innerText = 'Verifying & Creating Profile...';
+        btn.innerText = currentOtpMode === 'login' ? 'Verifying & Signing In...' : 'Verifying & Creating Profile...';
 
-        await BluKaamAuth.verifyEmailAndRegister({
-          ...pendingRegistrationData,
-          otp
-        });
+        if (currentOtpMode === 'login') {
+          await BluKaamAuth.verifyLoginOtp(pendingLoginEmail, otp);
+          BluKaamAuth.showToast('Logged in successfully!', 'success');
+        } else {
+          await BluKaamAuth.verifyEmailAndRegister({
+            ...pendingRegistrationData,
+            otp
+          });
+          BluKaamAuth.showToast('Email verified! Welcome to BluKaam.', 'success');
+        }
 
-        BluKaamAuth.showToast('Email verified! Welcome to BluKaam.', 'success');
+        const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
+        sessionStorage.removeItem('redirect_after_login');
         setTimeout(() => {
-          window.location.href = 'dashboard.html';
+          window.location.href = nextUrl;
         }, 400);
       } catch (err) {
         showAlert(err.message || 'Invalid or expired code. Please try again.');
         btn.disabled = false;
-        btn.innerText = 'Verify & Create Profile';
+        btn.innerText = currentOtpMode === 'login' ? 'Verify & Sign In' : 'Verify & Create Profile';
       }
     }
 
