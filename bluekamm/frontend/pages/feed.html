@@ -19,26 +19,7 @@
 <body style="background: var(--off-white);">
 
   <!-- TOP NAVIGATION (identical structure to the rest of the site) -->
-  <nav>
-    <div class="nav-inner">
-      <a class="logo-wrap" href="../index.html">
-        <img class="logo-icon-img" src="logo-emblem.png" alt="BluKaam Logo">
-        <div class="logo-text">
-          <div class="brand">BluKaam</div>
-          <div class="sub">Connection</div>
-        </div>
-      </a>
-      <div class="nav-links">
-        <a href="../index.html">Home</a>
-        <a href="../pages/jobs.html">Find Jobs</a>
-        <a href="../pages/workers.html">Browse Workers</a>
-        <a href="../pages/training.html">Training</a>
-      </div>
-      <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </nav>
+  <div id="navbar"></div>
   <div class="mobile-menu" id="mobileMenu">
     <a href="../index.html">Home</a>
     <a href="../pages/jobs.html">Find Jobs</a>
@@ -118,5 +99,9 @@
   <script src="auth-profile.js"></script>
   <script src="social-sdk.js"></script>
   <script src="feed.js"></script>
+  <script src="../js/navbar.js"></script>
+<script src="../js/auth-profile.js"></script>
+<script src="../js/social-sdk.js"></script>
+<script src="../js/feed.js"></script>
 </body>
 </html>

@@ -29,27 +29,7 @@
 <body>
 
   <!-- NAV -->
-  <nav>
-    <div class="nav-inner">
-      <a class="logo-wrap" href="#">
-        <img class="logo-icon-img" src="assets/images/logo-emblem.png" alt="BluKaam Logo">
-        <div class="logo-text">
-          <div class="brand">BluKaam</div>
-          <div class="sub">Connection</div>
-        </div>
-      </a>
-      <div class="nav-links">
-        <a href="pages/feed.html">Feed</a>
-        <a href="pages/network.html">My Network</a>
-        <a href="pages/jobs.html">Find Jobs</a>
-        <a href="pages/workers.html">Browse Workers</a>
-        <a href="pages/login.html" class="nav-cta">Login / Sign Up</a>
-      </div>
-      <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </nav>
+  <div id="navbar"></div>
 
   <!-- Mobile Menu -->
   <div class="mobile-menu" id="mobileMenu">
@@ -379,6 +359,7 @@
   <!-- Supabase Cloud Authentication SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="auth-profile.js"></script>
+   <script src="js/navbar.js"></script>
 </body>
 
 </html>
