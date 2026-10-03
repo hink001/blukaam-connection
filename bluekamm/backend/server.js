@@ -17,22 +17,22 @@ for (const p of envPaths) {
     }
 }
 
-const connectDB = require('./db');
-const Profile = require('./models/Profile');
-const GeneralData = require('./models/GeneralData');
-const User = require('./models/User');
-const ActivityLog = require('./models/ActivityLog');
+const connectDB = require('./src/config/db');
+const Profile = require('./src/models/Profile');
+const GeneralData = require('./src/models/GeneralData');
+const User = require('./src/models/User');
+const ActivityLog = require('./src/models/ActivityLog');
 
 // Route modules
-const authRoutes = require('./routes/authRoutes');
-const profileRoutes = require('./routes/profileRoutes');
-const activityRoutes = require('./routes/activityRoutes');
-const postRoutes = require('./routes/postRoutes');               // Phase 1: Social Feed & Posts
-const connectionRoutes = require('./routes/connectionRoutes');   // Phase 2: Networking & Connections
-const messageRoutes = require('./routes/messageRoutes');         // Phase 5: Direct Messaging
-const notificationRoutes = require('./routes/notificationRoutes'); // Phase 5: Notifications
-const { isCloudinaryConfigured } = require('./services/cloudinary');
-const { apiLimiter, authLimiter, otpLimiter, socialWriteLimiter } = require('./middleware/security'); // Phase 4: Security hardening
+const authRoutes = require('./src/routes/authRoutes');
+const profileRoutes = require('./src/routes/profileRoutes');
+const activityRoutes = require('./src/routes/activityRoutes');
+const postRoutes = require('./src/routes/postRoutes');               // Phase 1: Social Feed & Posts
+const connectionRoutes = require('./src/routes/connectionRoutes');   // Phase 2: Networking & Connections
+const messageRoutes = require('./src/routes/messageRoutes');         // Phase 5: Direct Messaging
+const notificationRoutes = require('./src/routes/notificationRoutes'); // Phase 5: Notifications
+const { isCloudinaryConfigured } = require('./src/services/cloudinary');
+const { apiLimiter, authLimiter, otpLimiter, socialWriteLimiter } = require('./src/middleware/security'); // Phase 4: Security hardening
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -203,7 +203,7 @@ app.use('/api/messages', socialWriteLimiter, messageRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 // --- Legacy OTP Routes (Retained for compatibility) --- //
-const Otp = require('./models/Otp');
+const Otp = require('./src/models/Otp');
 const jwt = require('jsonwebtoken');
 const offlineOtps = {};
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-blukaam-key';

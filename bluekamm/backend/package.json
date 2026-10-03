@@ -1,16 +1,12 @@
 {
-  "name": "bluekamm",
+  "name": "blukaam-connection",
   "version": "1.0.0",
-  "description": "",
-  "main": "db.js",
+  "description": "BluKaam Connection - Blue-Collar Profile and Workforce Platform",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "npm install --prefix bluekamm && npm install"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
     "bcryptjs": "^3.0.3",
@@ -23,7 +19,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.4.1",
     "multer": "^2.4.0",
-    "nodemailer": "^8.0.5",
+    "nodemailer": "^10.0.13",
     "sanitize-html": "^2.13.0"
   }
 }
