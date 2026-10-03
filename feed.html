@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feed – BluKaam Connection</title>
+  <meta name="description" content="See updates, job announcements and site photos from your BluKaam network.">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#0D2F6E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="social.css">
+</head>
+
+<body style="background: var(--off-white);">
+
+  <!-- TOP NAVIGATION (identical structure to the rest of the site) -->
+  <nav>
+    <div class="nav-inner">
+      <a class="logo-wrap" href="index.html">
+        <img class="logo-icon-img" src="logo-emblem.png" alt="BluKaam Logo">
+        <div class="logo-text">
+          <div class="brand">BluKaam</div>
+          <div class="sub">Connection</div>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="jobs.html">Find Jobs</a>
+        <a href="workers.html">Browse Workers</a>
+        <a href="training.html">Training</a>
+      </div>
+      <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Find Jobs</a>
+    <a href="workers.html">Browse Workers</a>
+    <a href="training.html">Training</a>
+    <a href="feed.html">Feed</a>
+    <a href="network.html">My Network</a>
+    <a href="messages.html">Messaging</a>
+  </div>
+
+  <!-- 3-COLUMN LINKEDIN-STYLE FEED LAYOUT -->
+  <main class="feed-layout">
+
+    <!-- LEFT COLUMN: mini profile summary -->
+    <aside class="feed-col-left">
+      <div class="linkedin-card">
+        <div class="linkedin-banner" style="height: 60px;"></div>
+        <div style="padding: 0 16px; margin-top: -32px;">
+          <img id="sidebarAvatar" src="logo-emblem.png" class="linkedin-avatar" style="width:64px;height:64px;" alt="Avatar" onerror="this.src='logo.png'">
+        </div>
+        <div style="padding: 10px 16px 18px;">
+          <div id="sidebarName" style="font-family:var(--font-heading); font-weight:800; color:var(--gray-800);">Loading...</div>
+          <div id="sidebarHeadline" style="font-size:12.5px; color:var(--gray-500); margin-top:2px;">Skilled Professional</div>
+          <div style="display:flex; justify-content:space-between; margin-top:14px; padding-top:12px; border-top:1px solid var(--gray-200); font-size:12.5px; color:var(--gray-600);">
+            <span>Connections</span>
+            <strong id="sidebarConnCount">0</strong>
+          </div>
+        </div>
+      </div>
+      <div class="feed-sidebar-card">
+        <div class="feed-sidebar-title">Quick Links</div>
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:13.5px;">
+          <a href="dashboard.html" style="color:var(--gray-700); text-decoration:none;">👤 My Dashboard</a>
+          <a href="network.html" style="color:var(--gray-700); text-decoration:none;">🤝 My Network</a>
+          <a href="messages.html" style="color:var(--gray-700); text-decoration:none;">💬 Messaging</a>
+          <a href="jobs.html" style="color:var(--gray-700); text-decoration:none;">💼 Trending Jobs</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER COLUMN: composer + live feed -->
+    <section>
+      <div class="post-composer">
+        <textarea id="postContent" placeholder="Share an update, a job announcement, or a before/after photo..."></textarea>
+        <div id="mediaPreview" class="post-media-preview"></div>
+        <div class="post-composer-actions">
+          <div class="post-composer-tools">
+            <label>📷 Photo
+              <input type="file" id="mediaInput" accept="image/*" multiple hidden>
+            </label>
+          </div>
+          <button class="btn-post" id="btnPublish" onclick="publishPost()">Post</button>
+        </div>
+      </div>
+
+      <div id="feedContainer"></div>
+      <div style="text-align:center; margin-top:10px;">
+        <button class="btn-post" style="background:var(--gray-100); color:var(--gray-700);" id="btnLoadMore" onclick="loadMore()">Load more</button>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: suggested connections + trending -->
+    <aside class="feed-col-right">
+      <div class="feed-sidebar-card">
+        <div class="feed-sidebar-title">Add to Your Network</div>
+        <div id="suggestionsContainer">Loading suggestions...</div>
+      </div>
+      <div class="feed-sidebar-card">
+        <div class="feed-sidebar-title">Trending Jobs Near You</div>
+        <a href="jobs.html" style="font-size:13px; color:var(--blue-mid); text-decoration:none; font-weight:700;">Browse all open jobs →</a>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Supabase Cloud Authentication SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth-profile.js"></script>
+  <script src="social-sdk.js"></script>
+  <script src="feed.js"></script>
+</body>
+</html>

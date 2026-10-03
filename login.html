@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login &amp; Register – BluKaam Connection</title>
+  <meta name="description"
+    content="Sign in or register on BluKaam Connection to manage your profile, showcase skills, and find jobs or hire skilled workers across India.">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#0D2F6E">
+
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Supabase SDK (background sync only) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Google Sign-In SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ============================================
+       AUTH PAGE — PREMIUM REDESIGN
+       ============================================ */
+
+    body.auth-page {
+      background: linear-gradient(135deg, #071E4A 0%, #0D2F6E 40%, #0369A1 100%);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Animated background blobs */
+    body.auth-page::before,
+    body.auth-page::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+      animation: blobFloat 8s ease-in-out infinite alternate;
+    }
+    body.auth-page::before {
+      width: 500px; height: 500px;
+      background: #38BDF8;
+      top: -100px; right: -100px;
+    }
+    body.auth-page::after {
+      width: 400px; height: 400px;
+      background: #818CF8;
+      bottom: -100px; left: -80px;
+      animation-delay: -4s;
+    }
+    @keyframes blobFloat {
+      from { transform: scale(1) translate(0,0); }
+      to   { transform: scale(1.15) translate(20px, 30px); }
+    }
+
+    /* Auth section */
+    .auth-section {
+      position: relative;
+      z-index: 1;
+      min-height: 85vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 1.5rem;
+    }
+
+    /* Auth card */
+    .auth-card {
+      background: rgba(255, 255, 255, 0.97);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 520px;
+      padding: 36px 32px;
+      box-shadow: 0 24px 80px rgba(7, 30, 74, 0.35), 0 0 0 1px rgba(255,255,255,0.2);
+      animation: cardIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(32px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Tab switcher */
+    .auth-tabs {
+      display: flex;
+      background: #F1F5F9;
+      border-radius: 999px;
+      padding: 4px;
+      margin-bottom: 24px;
+      gap: 4px;
+    }
+    .auth-tab-btn {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      background: transparent;
+      color: #64748B;
+      font-family: 'Outfit', sans-serif;
+    }
+    .auth-tab-btn.active {
+      background: white;
+      color: #071E4A;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    /* Form label and input */
+    .auth-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+      font-family: 'Outfit', sans-serif;
+    }
+    .auth-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #CBD5E1;
+      border-radius: 10px;
+      font-size: 14.5px;
+      font-family: 'Outfit', sans-serif;
+      color: #1E293B;
+      background: #F8FAFC;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+      outline: none;
+    }
+    .auth-input:focus {
+      border-color: #0284C7;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(2,132,199,0.12);
+    }
+    .auth-input.error {
+      border-color: #EF4444;
+      background: #FFF5F5;
+    }
+    select.auth-input {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 38px;
+      cursor: pointer;
+    }
+
+    /* Primary button */
+    .auth-btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #0D2F6E, #0284C7);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15.5px;
+      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.2px;
+    }
+    .auth-btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(2,132,199,0.35);
+    }
+    .auth-btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    .auth-btn-primary:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .auth-btn-primary .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2.5px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+    .auth-btn-primary.loading .btn-text { display: none; }
+    .auth-btn-primary.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Role selector */
+    .role-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .role-btn {
+      flex: 1;
+      padding: 14px 10px;
+      border: 2px solid #E2E8F0;
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      font-family: 'Outfit', sans-serif;
+    }
+    .role-btn .role-icon { font-size: 22px; margin-bottom: 4px; display: block; }
+    .role-btn .role-label { font-size: 13px; font-weight: 700; color: #475569; display: block; }
+    .role-btn .role-sub { font-size: 11px; color: #94A3B8; display: block; margin-top: 2px; }
+    .role-btn.active {
+      border-color: #0284C7;
+      background: #EFF6FF;
+    }
+    .role-btn.active .role-label { color: #0284C7; }
+
+    /* Step indicator */
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 24px;
+    }
+    .step-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #E2E8F0;
+      color: #94A3B8;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Outfit', sans-serif;
+      transition: all 0.3s ease;
+      z-index: 1;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .step-dot.active {
+      background: linear-gradient(135deg, #0D2F6E, #0284C7);
+      color: white;
+      box-shadow: 0 4px 12px rgba(2,132,199,0.35);
+      transform: scale(1.1);
+    }
+    .step-dot.done {
+      background: #10B981;
+      color: white;
+    }
+    .step-line {
+      height: 2px;
+      width: 32px;
+      background: #E2E8F0;
+      transition: background 0.3s ease;
+      flex-shrink: 0;
+    }
+    .step-line.done { background: #10B981; }
+
+    /* Alert banner */
+    #authAlert {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 13.5px;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      animation: alertIn 0.2s ease;
+    }
+    @keyframes alertIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* OTP boxes (6 separate inputs) */
+    .otp-boxes {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .otp-box {
+      width: 46px; height: 54px;
+      border: 2px solid #CBD5E1;
+      border-radius: 10px;
+      font-size: 22px;
+      font-weight: 800;
+      text-align: center;
+      font-family: monospace;
+      color: #0D2F6E;
+      background: #F8FAFC;
+      outline: none;
+      transition: all 0.2s ease;
+      caret-color: #0284C7;
+    }
+    .otp-box:focus {
+      border-color: #0284C7;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(2,132,199,0.15);
+    }
+    .otp-box.filled {
+      border-color: #10B981;
+      background: #ECFDF5;
+    }
+
+    /* Form group */
+    .auth-form-group { margin-bottom: 16px; }
+    .auth-form-row { display: flex; gap: 12px; margin-bottom: 16px; }
+    .auth-form-row .auth-form-group { flex: 1; margin-bottom: 0; }
+
+    /* Password input wrapper */
+    .pw-wrap { position: relative; }
+    .pw-wrap .auth-input { padding-right: 42px; }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: #94A3B8; font-size: 16px; padding: 4px;
+    }
+
+    /* Input hint */
+    .auth-hint {
+      font-size: 11.5px;
+      color: #94A3B8;
+      margin-top: 4px;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Divider */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #E2E8F0;
+    }
+    .auth-divider span {
+      padding: 0 12px;
+      font-size: 12px;
+      color: #94A3B8;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Footer legal note */
+    .auth-legal {
+      text-align: center;
+      font-size: 12px;
+      color: #94A3B8;
+      margin-top: 20px;
+      line-height: 1.5;
+      font-family: 'Outfit', sans-serif;
+    }
+    .auth-legal a { color: #0284C7; text-decoration: none; }
+
+    /* Step header */
+    .step-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .step-header h2 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #071E4A;
+      margin-bottom: 4px;
+      font-family: 'Baloo 2', sans-serif;
+    }
+    .step-header p {
+      font-size: 13.5px;
+      color: #64748B;
+      line-height: 1.5;
+    }
+
+    /* Nav override for dark hero */
+    nav {
+      background: rgba(7, 30, 74, 0.7) !important;
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+    }
+    nav .brand { color: white !important; }
+    nav .sub { color: #BAE6FD !important; }
+    nav .nav-links a { color: rgba(255,255,255,0.85) !important; }
+    nav .nav-links a.nav-cta {
+      background: linear-gradient(135deg, #0284C7, #38BDF8) !important;
+      color: white !important;
+    }
+    footer { background: #071E4A !important; }
+    footer p, footer a { color: rgba(255,255,255,0.6) !important; }
+    footer .footer-badge { border-color: rgba(255,255,255,0.2) !important; color: rgba(255,255,255,0.7) !important; }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .auth-card { padding: 28px 20px; border-radius: 20px; }
+      .otp-box { width: 40px; height: 48px; font-size: 18px; }
+      .auth-form-row { flex-direction: column; gap: 0; }
+      .auth-form-row .auth-form-group { margin-bottom: 16px; }
+    }
+  </style>
+</head>
+
+<body class="auth-page">
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a class="logo-wrap" href="index.html">
+        <img class="logo-icon-img" src="logo-emblem.png" alt="BluKaam Logo">
+        <div class="logo-text">
+          <div class="brand">BluKaam</div>
+          <div class="sub">Connection</div>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="jobs.html">Find Jobs</a>
+        <a href="workers.html">Browse Workers</a>
+        <a href="training.html">Training</a>
+        <a href="login.html" class="nav-cta">Login / Sign Up</a>
+      </div>
+      <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Home</a>
+    <a href="jobs.html">Find Jobs</a>
+    <a href="workers.html">Browse Workers</a>
+    <a href="training.html">Training</a>
+    <a href="login.html" style="color: var(--blue-mid);">Login / Sign Up</a>
+  </div>
+
+  <!-- AUTH SECTION -->
+  <section class="auth-section">
+    <div class="auth-card">
+
+      <!-- Brand Header -->
+      <div style="text-align: center; margin-bottom: 22px;">
+        <img src="logo-emblem.png" alt="BluKaam" style="width:48px; height:48px; object-fit:contain; margin-bottom:10px;">
+        <h1 style="font-family:'Baloo 2',sans-serif; font-size:27px; color:#071E4A; margin-bottom:4px; line-height:1.2;">
+          Welcome to BluKaam
+        </h1>
+        <p style="font-size:13.5px; color:#64748B; font-family:'Outfit',sans-serif;">
+          India's Professional Blue-Collar Network
+        </p>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="auth-tabs">
+        <button id="tabBtnLogin" class="auth-tab-btn active" onclick="switchAuthTab('login')">Sign In</button>
+        <button id="tabBtnRegister" class="auth-tab-btn" onclick="switchAuthTab('register')">Create Account</button>
+      </div>
+
+      <!-- Alert Banner -->
+      <div id="authAlert"></div>
+
+      <!-- ========== SIGN IN FORM ========== -->
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+        <div class="auth-form-group">
+          <label class="auth-label" for="loginEmail">Email Address *</label>
+          <input type="email" id="loginEmail" class="auth-input" placeholder="name@example.com" required autocomplete="email">
+        </div>
+
+        <div class="auth-form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label class="auth-label" for="loginPassword" style="margin-bottom:0;">Password *</label>
+            <a href="javascript:void(0)" onclick="showForgotPasswordStep()" id="forgotPwLink"
+               style="font-size:12.5px; color:#0284C7; text-decoration:none; font-weight:700; font-family:'Outfit',sans-serif;">
+              Forgot Password?
+            </a>
+          </div>
+          <div class="pw-wrap">
+            <input type="password" id="loginPassword" class="auth-input" placeholder="Enter your password"
+                   required autocomplete="current-password">
+            <button type="button" class="pw-toggle" onclick="togglePasswordVis('loginPassword', this)" aria-label="Toggle password">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" id="loginBtn" class="auth-btn-primary" style="margin-top:4px;">
+          <div class="spinner"></div>
+          <span class="btn-text">Sign In to Dashboard</span>
+        </button>
+
+        <div style="text-align:center; margin-top:14px;">
+          <a href="javascript:void(0)" onclick="showLoginOtpStep()"
+             style="font-size:13px; color:#0284C7; text-decoration:none; font-weight:600; font-family:'Outfit',sans-serif;">
+            ✉️ Sign In with Email OTP instead
+          </a>
+        </div>
+      </form>
+
+      <!-- ========== REGISTRATION: Multi-Step ========== -->
+      <div id="registerFlow" style="display:none;">
+
+        <!-- Step Indicator -->
+        <div class="step-indicator" id="stepIndicator">
+          <div class="step-dot active" id="dot1">1</div>
+          <div class="step-line" id="line1"></div>
+          <div class="step-dot" id="dot2">2</div>
+          <div class="step-line" id="line2"></div>
+          <div class="step-dot" id="dot3">3</div>
+          <div class="step-line" id="line3"></div>
+          <div class="step-dot" id="dot4">4</div>
+        </div>
+
+        <!-- STEP 1: Account Type -->
+        <div id="regStep1">
+          <div class="step-header">
+            <h2>What are you joining as?</h2>
+            <p>Choose your account type to get started</p>
+          </div>
+          <div class="role-selector">
+            <button type="button" id="roleWorkerBtn" class="role-btn active" onclick="selectRole('Worker')">
+              <span class="role-icon">🔧</span>
+              <span class="role-label">Worker / Karigar</span>
+              <span class="role-sub">Find work &amp; showcase skills</span>
+            </button>
+            <button type="button" id="roleContractorBtn" class="role-btn" onclick="selectRole('Contractor')">
+              <span class="role-icon">🏢</span>
+              <span class="role-label">Contractor / Hirer</span>
+              <span class="role-sub">Post jobs &amp; hire workers</span>
+            </button>
+          </div>
+          <input type="hidden" id="regRole" value="Worker">
+          <button type="button" class="auth-btn-primary" onclick="goToRegStep(2)">
+            <span class="btn-text">Continue →</span>
+          </button>
+        </div>
+
+        <!-- STEP 2: Personal Info -->
+        <div id="regStep2" style="display:none;">
+          <div class="step-header">
+            <h2>Your Details</h2>
+            <p>Tell us a bit about yourself</p>
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label" for="regFullName">Full Name *</label>
+            <input type="text" id="regFullName" class="auth-input" placeholder="e.g. Ramesh Kumar Singh" autocomplete="name">
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label" for="regEmail">Email Address *</label>
+            <input type="email" id="regEmail" class="auth-input" placeholder="e.g. ramesh@example.com" autocomplete="email">
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label" for="regPhone">Mobile Number *</label>
+            <div style="display:flex; gap:8px;">
+              <span style="padding:12px 10px; background:#F1F5F9; border:1.5px solid #CBD5E1; border-radius:10px; font-size:14px; font-weight:600; color:#475569; white-space:nowrap; font-family:'Outfit',sans-serif;">🇮🇳 +91</span>
+              <input type="tel" id="regPhone" class="auth-input" placeholder="10-digit mobile number"
+                     maxlength="10" pattern="[6-9][0-9]{9}" inputmode="numeric" autocomplete="tel"
+                     style="flex:1;" oninput="this.value=this.value.replace(/\D/g,'')">
+            </div>
+            <div class="auth-hint">Must be a valid Indian mobile number (starting with 6, 7, 8 or 9)</div>
+          </div>
+          <div class="auth-form-group" id="grpWorkType">
+            <label class="auth-label" for="regWorkType" id="workTypeLabel">Trade / Work Type *</label>
+            <input type="text" id="regWorkType" class="auth-input" placeholder="e.g. Electrician, Plumber, Carpenter">
+            <div class="auth-hint">Enter your main trade or skill</div>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:4px;">
+            <button type="button" class="auth-btn-primary" onclick="goToRegStep(1)"
+              style="flex:0 0 90px; background:linear-gradient(135deg,#64748B,#475569);">
+              <span class="btn-text">← Back</span>
+            </button>
+            <button type="button" class="auth-btn-primary" onclick="validateAndGoStep3()" style="flex:1;">
+              <span class="btn-text">Continue →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 3: Location (India) -->
+        <div id="regStep3" style="display:none;">
+          <div class="step-header">
+            <h2>Your Location</h2>
+            <p>Enter your State, City, and Pincode</p>
+          </div>
+
+          <div class="auth-form-group">
+            <label class="auth-label" for="regState">State *</label>
+            <select id="regState" class="auth-input" onchange="populateCities()">
+              <option value="">— Select your State —</option>
+            </select>
+          </div>
+
+          <div class="auth-form-group">
+            <label class="auth-label" for="regCity">City / District *</label>
+            <select id="regCity" class="auth-input" disabled>
+              <option value="">— Select State first —</option>
+            </select>
+          </div>
+
+          <div class="auth-form-row">
+            <div class="auth-form-group">
+              <label class="auth-label" for="regPincode">Pincode</label>
+              <input type="text" id="regPincode" class="auth-input" placeholder="e.g. 110001"
+                     maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                     oninput="this.value=this.value.replace(/\D/g,''); autoDetectFromPincode(this.value)">
+              <div class="auth-hint">Optional — auto-fills city &amp; state</div>
+            </div>
+            <div class="auth-form-group">
+              <label class="auth-label" for="regLocality">Locality / Area</label>
+              <input type="text" id="regLocality" class="auth-input" placeholder="e.g. Lajpat Nagar">
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:4px;">
+            <button type="button" class="auth-btn-primary" onclick="goToRegStep(2)"
+              style="flex:0 0 90px; background:linear-gradient(135deg,#64748B,#475569);">
+              <span class="btn-text">← Back</span>
+            </button>
+            <button type="button" class="auth-btn-primary" onclick="validateAndGoStep4()" style="flex:1;">
+              <span class="btn-text">Continue →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 4: Password -->
+        <div id="regStep4" style="display:none;">
+          <div class="step-header">
+            <h2>Set Your Password</h2>
+            <p>Create a strong password (min. 6 characters)</p>
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label" for="regPassword">Create Password *</label>
+            <div class="pw-wrap">
+              <input type="password" id="regPassword" class="auth-input" minlength="6"
+                     placeholder="At least 6 characters" autocomplete="new-password">
+              <button type="button" class="pw-toggle" onclick="togglePasswordVis('regPassword', this)" aria-label="Toggle">👁️</button>
+            </div>
+            <!-- Password strength bar -->
+            <div id="pwStrengthBar" style="height:4px; background:#E2E8F0; border-radius:2px; margin-top:6px; overflow:hidden;">
+              <div id="pwStrengthFill" style="height:100%; width:0%; border-radius:2px; transition:width 0.3s, background 0.3s;"></div>
+            </div>
+            <div id="pwStrengthText" class="auth-hint" style="margin-top:4px;"></div>
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label" for="regRepeatPassword">Confirm Password *</label>
+            <div class="pw-wrap">
+              <input type="password" id="regRepeatPassword" class="auth-input" minlength="6"
+                     placeholder="Repeat your password" autocomplete="new-password">
+              <button type="button" class="pw-toggle" onclick="togglePasswordVis('regRepeatPassword', this)" aria-label="Toggle">👁️</button>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:4px;">
+            <button type="button" class="auth-btn-primary" onclick="goToRegStep(3)"
+              style="flex:0 0 90px; background:linear-gradient(135deg,#64748B,#475569);">
+              <span class="btn-text">← Back</span>
+            </button>
+            <button type="button" id="regBtn" class="auth-btn-primary" onclick="handleRegisterSubmit()" style="flex:1;">
+              <div class="spinner"></div>
+              <span class="btn-text">Send Verification Code</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== OTP VERIFICATION STEP ========== -->
+      <div id="otpStep" style="display:none;">
+        <div style="text-align:center; margin-bottom:20px;">
+          <div style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#EFF6FF,#DBEAFE); display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 14px; box-shadow:0 4px 16px rgba(2,132,199,0.15);">✉️</div>
+          <h2 id="otpStepTitle" style="font-size:21px; font-weight:800; color:#071E4A; margin-bottom:6px; font-family:'Baloo 2',sans-serif;">
+            Verify Your Email
+          </h2>
+          <p id="otpStepSubtitle" style="font-size:13.5px; color:#64748B; line-height:1.6; font-family:'Outfit',sans-serif;">
+            We sent a 6-digit code to<br>
+            <strong id="otpEmailTarget" style="color:#0284C7;">user@example.com</strong>
+          </p>
+        </div>
+
+        <!-- 6 separate OTP boxes -->
+        <div class="otp-boxes" id="otpBoxes">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]"
+                 id="otp0" oninput="otpBoxInput(this,0)" onkeydown="otpBoxKey(event,0)" onpaste="otpPaste(event)" autocomplete="one-time-code">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]"
+                 id="otp1" oninput="otpBoxInput(this,1)" onkeydown="otpBoxKey(event,1)">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]"
+                 id="otp2" oninput="otpBoxInput(this,2)" onkeydown="otpBoxKey(event,2)">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]"
+                 id="otp3" oninput="otpBoxInput(this,3)" onkeydown="otpBoxKey(event,3)">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]"
+                 id="otp4" oninput="otpBoxInput(this,4)" onkeydown="otpBoxKey(event,4)">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]"
+                 id="otp5" oninput="otpBoxInput(this,5)" onkeydown="otpBoxKey(event,5)">
+        </div>
+
+        <button type="button" id="verifyOtpBtn" class="auth-btn-primary" onclick="handleOtpSubmit()" style="margin-bottom:16px;">
+          <div class="spinner"></div>
+          <span class="btn-text">Verify &amp; Continue</span>
+        </button>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; padding-top:14px; border-top:1px solid #E2E8F0;">
+          <a href="javascript:void(0)" onclick="backFromOtpStep()"
+             style="color:#64748B; text-decoration:none; font-weight:600; font-family:'Outfit',sans-serif;">
+            ← Go Back
+          </a>
+          <button type="button" id="resendOtpBtn" onclick="resendOtp()"
+                  style="background:none; border:none; color:#0284C7; font-size:13px; font-weight:700; cursor:pointer; padding:0; font-family:'Outfit',sans-serif;">
+            Resend Code
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== FORGOT PASSWORD STEP ========== -->
+      <div id="forgotPwStep" style="display:none;">
+        <div style="text-align:center; margin-bottom:20px;">
+          <div style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#FFF7ED,#FED7AA); display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 14px;">🔑</div>
+          <h2 style="font-size:21px; font-weight:800; color:#071E4A; margin-bottom:6px; font-family:'Baloo 2',sans-serif;">
+            Reset Your Password
+          </h2>
+          <p style="font-size:13.5px; color:#64748B; line-height:1.6; font-family:'Outfit',sans-serif;">
+            Enter your registered email and we'll send you a reset code
+          </p>
+        </div>
+
+        <!-- Sub-step A: Enter email -->
+        <div id="fpStepA">
+          <div class="auth-form-group">
+            <label class="auth-label" for="fpEmail">Registered Email *</label>
+            <input type="email" id="fpEmail" class="auth-input" placeholder="name@example.com" autocomplete="email">
+          </div>
+          <button type="button" id="fpSendBtn" class="auth-btn-primary" onclick="handleForgotPasswordSend()">
+            <div class="spinner"></div>
+            <span class="btn-text">Send Reset Code</span>
+          </button>
+        </div>
+
+        <!-- Sub-step B: OTP + new password -->
+        <div id="fpStepB" style="display:none;">
+          <p style="font-size:13px; color:#64748B; text-align:center; margin-bottom:16px; font-family:'Outfit',sans-serif;">
+            Reset code sent to <strong id="fpEmailDisplay" style="color:#0284C7;"></strong>
+          </p>
+          <div class="otp-boxes" id="fpOtpBoxes">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric" id="fpotp0" oninput="fpOtpInput(this,0)" onkeydown="fpOtpKey(event,0)" onpaste="fpOtpPaste(event)">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric" id="fpotp1" oninput="fpOtpInput(this,1)" onkeydown="fpOtpKey(event,1)">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric" id="fpotp2" oninput="fpOtpInput(this,2)" onkeydown="fpOtpKey(event,2)">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric" id="fpotp3" oninput="fpOtpInput(this,3)" onkeydown="fpOtpKey(event,3)">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric" id="fpotp4" oninput="fpOtpInput(this,4)" onkeydown="fpOtpKey(event,4)">
+            <input type="text" class="otp-box" maxlength="1" inputmode="numeric" id="fpotp5" oninput="fpOtpInput(this,5)" onkeydown="fpOtpKey(event,5)">
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label" for="fpNewPw">New Password *</label>
+            <div class="pw-wrap">
+              <input type="password" id="fpNewPw" class="auth-input" minlength="6" placeholder="At least 6 characters" autocomplete="new-password">
+              <button type="button" class="pw-toggle" onclick="togglePasswordVis('fpNewPw', this)">👁️</button>
+            </div>
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label" for="fpConfirmPw">Confirm New Password *</label>
+            <div class="pw-wrap">
+              <input type="password" id="fpConfirmPw" class="auth-input" minlength="6" placeholder="Repeat new password" autocomplete="new-password">
+              <button type="button" class="pw-toggle" onclick="togglePasswordVis('fpConfirmPw', this)">👁️</button>
+            </div>
+          </div>
+          <button type="button" id="fpResetBtn" class="auth-btn-primary" onclick="handlePasswordReset()">
+            <div class="spinner"></div>
+            <span class="btn-text">Reset Password</span>
+          </button>
+        </div>
+
+        <div style="text-align:center; margin-top:16px;">
+          <a href="javascript:void(0)" onclick="switchAuthTab('login')"
+             style="font-size:13px; color:#0284C7; text-decoration:none; font-weight:600; font-family:'Outfit',sans-serif;">
+            ← Back to Sign In
+          </a>
+        </div>
+      </div>
+
+      <!-- ========== GOOGLE SIGN-IN ========== -->
+      <div id="googleAuthSection">
+        <div class="auth-divider"><span>Or continue with</span></div>
+        <div id="googleSignInBtn" style="display:flex; justify-content:center; width:100%; min-height:44px;"></div>
+        <button id="googleBtnFallback" type="button" onclick="triggerGoogleSignIn()"
+          style="display:none; width:100%; padding:11px 16px; border-radius:10px; border:1.5px solid #CBD5E1; background:white; color:#475569; font-size:14.5px; font-weight:600; cursor:pointer; align-items:center; justify-content:center; gap:10px; transition:all 0.2s; font-family:'Outfit',sans-serif;">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.04h3.88c2.27-2.09 3.66-5.17 3.66-9.14z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.04c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.13C3.27 21.43 7.35 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.28c-.24-.72-.38-1.49-.38-2.28s.14-1.56.38-2.28V6.59H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.41l4.03-3.13z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.27 2.57 1.25 6.59l4.03 3.13c.95-2.83 3.6-4.97 6.72-4.97z"/>
+          </svg>
+          <span>Continue with Google</span>
+        </button>
+      </div>
+
+      <!-- Legal -->
+      <p class="auth-legal">
+        By continuing, you agree to BluKaam's
+        <a href="#">Terms of Service</a> &amp; <a href="#">Privacy Policy</a>
+      </p>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-bottom" style="border-top:none; padding-top:0;">
+        <p>© 2024 BluKaam Connection. Made with ❤️ for India's Blue-Collar Workforce.</p>
+        <div class="footer-badges">
+          <div class="footer-badge">Skill India Partner</div>
+          <div class="footer-badge">NSDC Certified</div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="auth-profile.js"></script>
+
+  <!-- India Location Data (embedded, no external API needed) -->
+  <script>
+  const INDIA_LOCATION_DATA = {
+    "Andhra Pradesh": ["Visakhapatnam","Vijayawada","Guntur","Nellore","Kurnool","Rajahmundry","Tirupati","Kakinada","Kadapa","Anantapur","Eluru","Ongole","Srikakulam","Vizianagaram","Chittoor","Bhimavaram","Machilipatnam","Adoni","Hindupur","Tenali"],
+    "Arunachal Pradesh": ["Itanagar","Naharlagun","Pasighat","Namsai","Bomdila","Ziro","Tezu","Aalo","Tawang","Seppa"],
+    "Assam": ["Guwahati","Dibrugarh","Jorhat","Silchar","Nagaon","Tinsukia","Tezpur","Bongaigaon","Sivasagar","Dhubri","Karimganj","North Lakhimpur","Barpeta","Goalpara","Hailakandi"],
+    "Bihar": ["Patna","Gaya","Bhagalpur","Muzaffarpur","Purnia","Darbhanga","Bihar Sharif","Arrah","Begusarai","Katihar","Munger","Chapra","Saharsa","Sitamarhi","Hajipur","Siwan","Motihari","Nawada","Samastipur"],
+    "Chhattisgarh": ["Raipur","Bhilai","Korba","Bilaspur","Durg","Rajnandgaon","Jagdalpur","Ambikapur","Raigarh","Dhamtari","Mahasamund"],
+    "Goa": ["Panaji","Margao","Vasco da Gama","Mapusa","Ponda","Bicholim","Curchorem","Canacona"],
+    "Gujarat": ["Ahmedabad","Surat","Vadodara","Rajkot","Bhavnagar","Jamnagar","Gandhinagar","Junagadh","Anand","Navsari","Morbi","Nadiad","Surendranagar","Bharuch","Mehsana","Porbandar","Amreli","Ankleshwar","Vapi","Godhra","Palanpur","Botad"],
+    "Haryana": ["Faridabad","Gurgaon","Panipat","Ambala","Yamunanagar","Rohtak","Hisar","Karnal","Sonipat","Panchkula","Bhiwani","Sirsa","Jhajjar","Rewari","Kaithal","Kurukshetra","Fatehabad","Palwal","Bahadurgarh","Narnaul"],
+    "Himachal Pradesh": ["Shimla","Dharamshala","Solan","Mandi","Palampur","Nahan","Hamirpur","Chamba","Una","Bilaspur","Kullu","Kangra"],
+    "Jharkhand": ["Ranchi","Jamshedpur","Dhanbad","Bokaro Steel City","Deoghar","Phusro","Hazaribagh","Giridih","Ramgarh","Medininagar","Chirkunda","Chaibasa"],
+    "Karnataka": ["Bangalore","Mysuru","Hubli","Mangaluru","Belagavi","Kalaburagi","Davanagere","Ballari","Vijayapura","Shivamogga","Tumkur","Bidar","Raichur","Dharwad","Gadag","Udupi","Hassan","Mandya","Chitradurga","Bagalkot"],
+    "Kerala": ["Thiruvananthapuram","Kochi","Kozhikode","Thrissur","Kollam","Alappuzha","Palakkad","Malappuram","Kannur","Kottayam","Kasaragod","Pathanamthitta","Idukki","Wayanad","Ernakulam"],
+    "Madhya Pradesh": ["Indore","Bhopal","Jabalpur","Gwalior","Ujjain","Sagar","Ratlam","Satna","Dewas","Murwara","Chhindwara","Rewa","Bina","Burhanpur","Khandwa","Bhind","Shivpuri","Vidisha","Chhatarpur","Damoh","Sehore","Hoshangabad","Itarsi","Mandsaur"],
+    "Maharashtra": ["Mumbai","Pune","Nagpur","Thane","Nashik","Aurangabad","Solapur","Kolhapur","Amravati","Nanded","Sangli","Latur","Jalgaon","Dhule","Ahmednagar","Chandrapur","Parbhani","Nandurbar","Hingoli","Washim","Osmanabad","Beed","Gondia","Wardha","Raigad","Satara","Ratnagiri","Akola","Buldhana","Yavatmal"],
+    "Manipur": ["Imphal","Thoubal","Bishnupur","Churachandpur","Senapati","Ukhrul","Jiribam","Moreh"],
+    "Meghalaya": ["Shillong","Tura","Jowai","Nongstoin","Baghmara","Williamnagar","Resubelpara"],
+    "Mizoram": ["Aizawl","Lunglei","Saiha","Champhai","Serchhip","Kolasib","Lawngtlai","Mamit"],
+    "Nagaland": ["Kohima","Dimapur","Mokokchung","Tuensang","Wokha","Zunheboto","Mon","Phek"],
+    "Odisha": ["Bhubaneswar","Cuttack","Rourkela","Brahmapur","Sambalpur","Puri","Balasore","Bhadrak","Baripada","Jharsuguda","Dhenkanal","Kendujhar","Angul","Balangir","Paradip","Jagatsinghpur","Jeypore"],
+    "Punjab": ["Ludhiana","Amritsar","Jalandhar","Patiala","Bathinda","Mohali","Hoshiarpur","Batala","Pathankot","Moga","Abohar","Malerkotla","Khanna","Phagwara","Muktsar","Barnala","Rajpura","Firozpur","Kapurthala"],
+    "Rajasthan": ["Jaipur","Jodhpur","Udaipur","Kota","Ajmer","Bikaner","Alwar","Bhilwara","Bharatpur","Sikar","Pali","Sri Ganganagar","Sardarshahar","Beawar","Hanumangarh","Dhaulpur","Barmer","Churu","Sawai Madhopur","Nagaur","Tonk","Bundi","Banswara","Jhalawar"],
+    "Sikkim": ["Gangtok","Namchi","Mangan","Gyalshing","Ravangla","Jorethang"],
+    "Tamil Nadu": ["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem","Tirunelveli","Tiruppur","Ranipet","Nagercoil","Thanjavur","Dindigul","Vellore","Erode","Tiruvannamalai","Pollachi","Rajapalayam","Sivakasi","Karur","Udhagamandalam","Hosur","Kumbakonam","Cuddalore","Kancheepuram","Namakkal","Pudukkottai","Thoothukudi"],
+    "Telangana": ["Hyderabad","Warangal","Nizamabad","Karimnagar","Ramagundam","Khammam","Mahbubnagar","Nalgonda","Adilabad","Suryapet","Miryalaguda","Jagtial","Mancherial","Siddipet"],
+    "Tripura": ["Agartala","Dharmanagar","Udaipur","Kailashahar","Belonia","Ambassa","Kumarghat"],
+    "Uttar Pradesh": ["Lucknow","Kanpur","Agra","Varanasi","Prayagraj","Meerut","Ghaziabad","Noida","Aligarh","Bareilly","Moradabad","Saharanpur","Gorakhpur","Mathura","Farrukhabad","Muzaffarnagar","Firozabad","Jhansi","Rampur","Shahjahanpur","Hapur","Sambhal","Amroha","Bulandshahr","Lakhimpur","Raebareli","Sitapur","Hardoi","Unnao","Banda","Chitrakoot","Jalaun"],
+    "Uttarakhand": ["Dehradun","Haridwar","Roorkee","Rishikesh","Haldwani","Kashipur","Rudrapur","Rampur","Mussoorie","Kotdwara","Almora","Pithoragarh"],
+    "West Bengal": ["Kolkata","Asansol","Siliguri","Durgapur","Bardhaman","Malda","Barasat","Krishnanagar","Howrah","Berhampore","Medinipur","Purulia","Bankura","Haldia","Kalyani","Jalpaiguri","Cooch Behar","Alipurduar"],
+    "Delhi": ["New Delhi","Central Delhi","North Delhi","South Delhi","East Delhi","West Delhi","Dwarka","Rohini","Pitampura","Lajpat Nagar","Connaught Place","Saket","Karol Bagh","Preet Vihar","Mayur Vihar","Janakpuri"],
+    "Jammu & Kashmir": ["Srinagar","Jammu","Sopore","Anantnag","Baramulla","Udhampur","Kathua","Rajouri","Punch","Kargil"],
+    "Ladakh": ["Leh","Kargil","Nubra","Zanskar"],
+    "Chandigarh": ["Chandigarh","Manimajra","Mohali (Part)"],
+    "Puducherry": ["Puducherry","Karaikal","Mahe","Yanam"],
+    "Andaman & Nicobar": ["Port Blair","Diglipur","Rangat","Havelock Island","Car Nicobar"],
+    "Dadra & Nagar Haveli and Daman & Diu": ["Daman","Diu","Silvassa"],
+    "Lakshadweep": ["Kavaratti","Agatti","Amini","Andrott"]
+  };
+
+  // Pincode → State/City (sample dataset for major pincodes)
+  const PINCODE_DATA = {
+    "110001":"Delhi|New Delhi","110002":"Delhi|New Delhi","110003":"Delhi|New Delhi",
+    "110004":"Delhi|New Delhi","110005":"Delhi|New Delhi","110006":"Delhi|New Delhi",
+    "400001":"Maharashtra|Mumbai","400002":"Maharashtra|Mumbai","400003":"Maharashtra|Mumbai",
+    "400004":"Maharashtra|Mumbai","400005":"Maharashtra|Mumbai","400050":"Maharashtra|Mumbai",
+    "400051":"Maharashtra|Mumbai","400053":"Maharashtra|Mumbai","400070":"Maharashtra|Mumbai",
+    "411001":"Maharashtra|Pune","411002":"Maharashtra|Pune","411003":"Maharashtra|Pune",
+    "411004":"Maharashtra|Pune","411005":"Maharashtra|Pune","411006":"Maharashtra|Pune",
+    "560001":"Karnataka|Bangalore","560002":"Karnataka|Bangalore","560003":"Karnataka|Bangalore",
+    "600001":"Tamil Nadu|Chennai","600002":"Tamil Nadu|Chennai","600003":"Tamil Nadu|Chennai",
+    "600004":"Tamil Nadu|Chennai","600005":"Tamil Nadu|Chennai","600006":"Tamil Nadu|Chennai",
+    "700001":"West Bengal|Kolkata","700002":"West Bengal|Kolkata","700003":"West Bengal|Kolkata",
+    "302001":"Rajasthan|Jaipur","302002":"Rajasthan|Jaipur","302003":"Rajasthan|Jaipur",
+    "226001":"Uttar Pradesh|Lucknow","226002":"Uttar Pradesh|Lucknow","226003":"Uttar Pradesh|Lucknow",
+    "500001":"Telangana|Hyderabad","500002":"Telangana|Hyderabad","500003":"Telangana|Hyderabad",
+    "380001":"Gujarat|Ahmedabad","380002":"Gujarat|Ahmedabad","380003":"Gujarat|Ahmedabad",
+    "160001":"Chandigarh|Chandigarh","160002":"Chandigarh|Chandigarh","160003":"Chandigarh|Chandigarh",
+    "248001":"Uttarakhand|Dehradun","248002":"Uttarakhand|Dehradun","201001":"Uttar Pradesh|Ghaziabad",
+    "201301":"Uttar Pradesh|Noida","201302":"Uttar Pradesh|Noida","201303":"Uttar Pradesh|Noida",
+    "122001":"Haryana|Gurgaon","122002":"Haryana|Gurgaon","122003":"Haryana|Gurgaon",
+    "121001":"Haryana|Faridabad","121002":"Haryana|Faridabad","131001":"Haryana|Sonipat",
+    "131001":"Haryana|Sonipat","132001":"Haryana|Karnal","134001":"Haryana|Ambala"
+  };
+
+  function populateStates() {
+    const sel = document.getElementById('regState');
+    if (!sel) return;
+    const states = Object.keys(INDIA_LOCATION_DATA).sort();
+    states.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      sel.appendChild(opt);
+    });
+  }
+
+  function populateCities() {
+    const state = document.getElementById('regState').value;
+    const citySelect = document.getElementById('regCity');
+    citySelect.innerHTML = '';
+    if (!state) {
+      citySelect.innerHTML = '<option value="">— Select State first —</option>';
+      citySelect.disabled = true;
+      return;
+    }
+    const cities = INDIA_LOCATION_DATA[state] || [];
+    const placeholder = document.createElement('option');
+    placeholder.value = ''; placeholder.textContent = '— Select City / District —';
+    citySelect.appendChild(placeholder);
+    cities.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      citySelect.appendChild(opt);
+    });
+    citySelect.disabled = false;
+  }
+
+  function autoDetectFromPincode(pincode) {
+    if (pincode.length !== 6) return;
+    const entry = PINCODE_DATA[pincode];
+    if (!entry) return;
+    const [state, city] = entry.split('|');
+    const stateSelect = document.getElementById('regState');
+    const citySelect = document.getElementById('regCity');
+    if (stateSelect && state) {
+      stateSelect.value = state;
+      populateCities();
+      if (citySelect && city) {
+        setTimeout(() => { citySelect.value = city; }, 50);
+      }
+    }
+  }
+  </script>
+
+  <script>
+  // =====================================================
+  // AUTH PAGE CONTROLLER
+  // =====================================================
+
+  if (BluKaamAuth.isAuthenticated()) {
+    window.location.href = 'dashboard.html';
+  }
+
+  let pendingRegistrationData = null;
+  let pendingLoginEmail = null;
+  let pendingForgotEmail = null;
+  let currentOtpMode = 'register'; // 'register' | 'login'
+  let resendTimerInterval = null;
+
+  // ---- Page initialization ----
+  window.addEventListener('DOMContentLoaded', () => {
+    populateStates();
+    initGoogleAuth();
+    fetch((typeof API_BASE !== 'undefined' ? API_BASE : '/api') + '/status').catch(() => {});
+  });
+
+  // ---- Tab switching ----
+  function switchAuthTab(tab) {
+    hideAllForms();
+    document.getElementById('authAlert').style.display = 'none';
+    document.getElementById('googleAuthSection').style.display = 'block';
+
+    if (tab === 'login') {
+      document.getElementById('loginForm').style.display = 'block';
+      document.getElementById('tabBtnLogin').classList.add('active');
+      document.getElementById('tabBtnRegister').classList.remove('active');
+    } else {
+      document.getElementById('registerFlow').style.display = 'block';
+      goToRegStep(1, false);
+      document.getElementById('tabBtnRegister').classList.add('active');
+      document.getElementById('tabBtnLogin').classList.remove('active');
+    }
+  }
+
+  function hideAllForms() {
+    ['loginForm','registerFlow','otpStep','forgotPwStep'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+  }
+
+  // ---- Alert ----
+  function showAlert(msg, isError = true) {
+    const el = document.getElementById('authAlert');
+    el.style.display = 'block';
+    el.innerText = msg;
+    el.style.background = isError ? '#FEE2E2' : '#DCFCE7';
+    el.style.color = isError ? '#B91C1C' : '#15803D';
+    el.style.border = isError ? '1.5px solid #FCA5A5' : '1.5px solid #86EFAC';
+  }
+
+  function clearAlert() {
+    document.getElementById('authAlert').style.display = 'none';
+  }
+
+  // ---- Button loading state ----
+  function setButtonLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.disabled = loading;
+    btn.classList.toggle('loading', loading);
+  }
+
+  // ---- Password visibility ----
+  function togglePasswordVis(inputId, btn) {
+    const input = document.getElementById(inputId);
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn.innerText = input.type === 'password' ? '👁️' : '🔒';
+  }
+
+  // ---- Multi-step registration ----
+  function goToRegStep(step, animate = true) {
+    [1,2,3,4].forEach(n => {
+      const el = document.getElementById(`regStep${n}`);
+      if (el) el.style.display = (n === step) ? 'block' : 'none';
+    });
+    updateStepIndicator(step);
+    if (step === 1 && document.getElementById('regRole').value === 'Contractor') {
+      // reflect current role selection
+      selectRole(document.getElementById('regRole').value);
+    }
+    clearAlert();
+  }
+
+  function updateStepIndicator(current) {
+    [1,2,3,4].forEach(n => {
+      const dot = document.getElementById(`dot${n}`);
+      const line = document.getElementById(`line${n}`);
+      if (dot) {
+        dot.classList.remove('active','done');
+        if (n < current) { dot.classList.add('done'); dot.innerHTML = '✓'; }
+        else if (n === current) { dot.classList.add('active'); dot.innerHTML = n; }
+        else { dot.innerHTML = n; }
+      }
+      if (line && n < 4) {
+        line.classList.toggle('done', n < current);
+      }
+    });
+  }
+
+  function selectRole(role) {
+    document.getElementById('regRole').value = role;
+    document.getElementById('roleWorkerBtn').classList.toggle('active', role === 'Worker');
+    document.getElementById('roleContractorBtn').classList.toggle('active', role === 'Contractor');
+    const workTypeLabel = document.getElementById('workTypeLabel');
+    const workTypeInput = document.getElementById('regWorkType');
+    if (role === 'Contractor') {
+      workTypeLabel.innerText = 'Company / Industry *';
+      workTypeInput.placeholder = 'e.g. Civil Construction, Electrical Contractor';
+    } else {
+      workTypeLabel.innerText = 'Trade / Work Type *';
+      workTypeInput.placeholder = 'e.g. Electrician, Plumber, Carpenter';
+    }
+  }
+
+  function validateAndGoStep3() {
+    const name = document.getElementById('regFullName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const workType = document.getElementById('regWorkType').value.trim();
+
+    if (!name) { showAlert('Please enter your full name.'); return; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAlert('Please enter a valid email address.'); return; }
+    if (!phone || !/^[6-9][0-9]{9}$/.test(phone)) { showAlert('Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).'); return; }
+    if (!workType) { showAlert(`Please enter your ${document.getElementById('regRole').value === 'Contractor' ? 'company / industry' : 'trade / work type'}.`); return; }
+
+    goToRegStep(3);
+  }
+
+  function validateAndGoStep4() {
+    const state = document.getElementById('regState').value;
+    const city = document.getElementById('regCity').value;
+    if (!state) { showAlert('Please select your State.'); return; }
+    if (!city) { showAlert('Please select your City / District.'); return; }
+    goToRegStep(4);
+  }
+
+  // ---- Password strength meter ----
+  document.addEventListener('DOMContentLoaded', () => {
+    const pwInput = document.getElementById('regPassword');
+    if (pwInput) {
+      pwInput.addEventListener('input', () => {
+        const pw = pwInput.value;
+        let score = 0;
+        if (pw.length >= 6) score++;
+        if (pw.length >= 10) score++;
+        if (/[A-Z]/.test(pw)) score++;
+        if (/[0-9]/.test(pw)) score++;
+        if (/[^A-Za-z0-9]/.test(pw)) score++;
+        const fill = document.getElementById('pwStrengthFill');
+        const text = document.getElementById('pwStrengthText');
+        if (!fill || !text) return;
+        const pct = (score / 5) * 100;
+        const colors = ['#EF4444','#F97316','#EAB308','#22C55E','#10B981'];
+        const labels = ['Too weak','Weak','Fair','Good','Strong'];
+        fill.style.width = pct + '%';
+        fill.style.background = colors[score - 1] || '#E2E8F0';
+        text.innerText = score > 0 ? labels[score - 1] : '';
+        text.style.color = colors[score - 1] || '#94A3B8';
+      });
+    }
+  });
+
+  // ---- Sign in (password) ----
+  async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    try {
+      setButtonLoading('loginBtn', true);
+      clearAlert();
+      await BluKaamAuth.login(email, password);
+      BluKaamAuth.showToast('Logged in successfully!', 'success');
+      const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
+      sessionStorage.removeItem('redirect_after_login');
+      setTimeout(() => { window.location.href = nextUrl; }, 300);
+    } catch (err) {
+      showAlert(err.message || 'Login failed. Please check your email and password.');
+      setButtonLoading('loginBtn', false);
+    }
+  }
+
+  // ---- Sign in with OTP ----
+  function showLoginOtpStep() {
+    const email = document.getElementById('loginEmail').value.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showAlert('Please enter your email address in the field above first.');
+      document.getElementById('loginEmail').focus();
+      return;
+    }
+    sendLoginOtp(email);
+  }
+
+  async function sendLoginOtp(email) {
+    try {
+      showAlert('Sending 6-digit login code to your email...', false);
+      const res = await BluKaamAuth.sendLoginOtp(email);
+      pendingLoginEmail = email;
+      currentOtpMode = 'login';
+      showOtpStep('Enter Sign-In Code', `We sent a 6-digit login code to`, email);
+      if (res.simulated && res.devOtp) {
+        showAlert(`(Dev Mode) Login code: ${res.devOtp}`, false);
+        fillOtpBoxes(res.devOtp);
+      } else {
+        showAlert(`Login code sent to ${email}! Check your inbox.`, false);
+      }
+      startResendCountdown();
+    } catch (err) {
+      showAlert(err.message || 'Failed to send login code.');
+    }
+  }
+
+  // ---- OTP Step ----
+  function showOtpStep(title, subtitle, email) {
+    hideAllForms();
+    document.getElementById('otpStep').style.display = 'block';
+    document.getElementById('googleAuthSection').style.display = 'none';
+    document.getElementById('otpStepTitle').innerText = title;
+    document.getElementById('otpStepSubtitle').innerHTML = `${subtitle}<br><strong style="color:#0284C7;">${email}</strong>`;
+    document.getElementById('otpEmailTarget').innerText = email;
+    clearOtpBoxes();
+    setTimeout(() => document.getElementById('otp0').focus(), 200);
+  }
+
+  function backFromOtpStep() {
+    if (currentOtpMode === 'login') {
+      switchAuthTab('login');
+    } else {
+      hideAllForms();
+      document.getElementById('registerFlow').style.display = 'block';
+      document.getElementById('googleAuthSection').style.display = 'block';
+      goToRegStep(4);
+    }
+    clearAlert();
+  }
+
+  // ---- 6-box OTP inputs ----
+  function clearOtpBoxes() {
+    for (let i = 0; i < 6; i++) {
+      const box = document.getElementById(`otp${i}`);
+      if (box) { box.value = ''; box.classList.remove('filled'); }
+    }
+  }
+
+  function fillOtpBoxes(code) {
+    const digits = code.toString().split('');
+    for (let i = 0; i < 6; i++) {
+      const box = document.getElementById(`otp${i}`);
+      if (box && digits[i]) {
+        box.value = digits[i];
+        box.classList.add('filled');
+      }
+    }
+  }
+
+  function otpBoxInput(el, idx) {
+    el.value = el.value.replace(/\D/g,'').slice(-1);
+    el.classList.toggle('filled', el.value.length > 0);
+    if (el.value && idx < 5) document.getElementById(`otp${idx+1}`).focus();
+  }
+
+  function otpBoxKey(e, idx) {
+    if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+      document.getElementById(`otp${idx-1}`).focus();
+    }
+    if (e.key === 'ArrowLeft' && idx > 0) document.getElementById(`otp${idx-1}`).focus();
+    if (e.key === 'ArrowRight' && idx < 5) document.getElementById(`otp${idx+1}`).focus();
+  }
+
+  function otpPaste(e) {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'');
+    fillOtpBoxes(text);
+  }
+
+  function getOtpValue() {
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      const box = document.getElementById(`otp${i}`);
+      code += box ? box.value : '';
+    }
+    return code;
+  }
+
+  // ---- Register ----
+  async function handleRegisterSubmit() {
+    const fullName = document.getElementById('regFullName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const workType = document.getElementById('regWorkType').value.trim();
+    const state = document.getElementById('regState').value;
+    const city = document.getElementById('regCity').value;
+    const pincode = document.getElementById('regPincode').value.trim();
+    const locality = document.getElementById('regLocality').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const repeatPassword = document.getElementById('regRepeatPassword').value;
+    const role = document.getElementById('regRole').value;
+
+    if (password !== repeatPassword) { showAlert('Passwords do not match. Please verify both passwords.'); return; }
+    if (password.length < 6) { showAlert('Password must be at least 6 characters long.'); return; }
+
+    pendingRegistrationData = { fullName, email, phone, state, city, pincode, locality, workType, password, role };
+    currentOtpMode = 'register';
+
+    try {
+      setButtonLoading('regBtn', true);
+      clearAlert();
+      const res = await BluKaamAuth.sendEmailOtp(email, fullName);
+      showOtpStep('Verify Your Email', 'We sent a 6-digit verification code to', email);
+      document.getElementById('verifyOtpBtn').querySelector('.btn-text').innerText = 'Verify & Create Account';
+      if (res.simulated && res.devOtp) {
+        showAlert(`(Dev Mode) Verification code: ${res.devOtp}`, false);
+        fillOtpBoxes(res.devOtp);
+      } else {
+        showAlert(`Verification code sent to ${email}! Check your inbox.`, false);
+      }
+      startResendCountdown();
+    } catch (err) {
+      showAlert(err.message || 'Failed to send verification code.');
+      setButtonLoading('regBtn', false);
+    }
+  }
+
+  // ---- OTP Submit ----
+  async function handleOtpSubmit() {
+    const otp = getOtpValue();
+    if (otp.length !== 6) { showAlert('Please enter all 6 digits of the verification code.'); return; }
+
+    try {
+      setButtonLoading('verifyOtpBtn', true);
+      clearAlert();
+
+      if (currentOtpMode === 'login') {
+        await BluKaamAuth.verifyLoginOtp(pendingLoginEmail, otp);
+        BluKaamAuth.showToast('Logged in successfully!', 'success');
+      } else {
+        await BluKaamAuth.verifyEmailAndRegister({ ...pendingRegistrationData, otp });
+        BluKaamAuth.showToast('Welcome to BluKaam! Your account is ready.', 'success');
+      }
+
+      const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
+      sessionStorage.removeItem('redirect_after_login');
+      setTimeout(() => { window.location.href = nextUrl; }, 400);
+    } catch (err) {
+      showAlert(err.message || 'Invalid or expired code. Please try again.');
+      setButtonLoading('verifyOtpBtn', false);
+    }
+  }
+
+  // ---- Resend OTP ----
+  function startResendCountdown() {
+    const btn = document.getElementById('resendOtpBtn');
+    let countdown = 60;
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.innerText = `Resend in ${countdown}s`;
+    if (resendTimerInterval) clearInterval(resendTimerInterval);
+    resendTimerInterval = setInterval(() => {
+      countdown--;
+      if (countdown <= 0) {
+        clearInterval(resendTimerInterval);
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.innerText = 'Resend Code';
+      } else {
+        btn.innerText = `Resend in ${countdown}s`;
+      }
+    }, 1000);
+  }
+
+  async function resendOtp() {
+    const email = currentOtpMode === 'login' ? pendingLoginEmail : (pendingRegistrationData && pendingRegistrationData.email);
+    const name = currentOtpMode === 'login' ? '' : (pendingRegistrationData && pendingRegistrationData.fullName);
+    if (!email) return;
+    try {
+      const btn = document.getElementById('resendOtpBtn');
+      btn.disabled = true; btn.innerText = 'Sending...';
+      const res = currentOtpMode === 'login'
+        ? await BluKaamAuth.sendLoginOtp(email)
+        : await BluKaamAuth.sendEmailOtp(email, name);
+      if (res.simulated && res.devOtp) {
+        showAlert(`(Dev Mode) New code: ${res.devOtp}`, false);
+        fillOtpBoxes(res.devOtp);
+      } else {
+        showAlert('A new code has been sent to your email!', false);
+      }
+      startResendCountdown();
+    } catch (err) {
+      showAlert(err.message || 'Failed to resend code.');
+      const btn = document.getElementById('resendOtpBtn');
+      btn.disabled = false; btn.innerText = 'Resend Code';
+    }
+  }
+
+  // ---- Forgot Password ----
+  function showForgotPasswordStep() {
+    hideAllForms();
+    document.getElementById('forgotPwStep').style.display = 'block';
+    document.getElementById('googleAuthSection').style.display = 'none';
+    document.getElementById('fpStepA').style.display = 'block';
+    document.getElementById('fpStepB').style.display = 'none';
+    // Pre-fill email if already typed
+    const loginEmail = document.getElementById('loginEmail').value.trim();
+    if (loginEmail) document.getElementById('fpEmail').value = loginEmail;
+    clearAlert();
+  }
+
+  async function handleForgotPasswordSend() {
+    const email = document.getElementById('fpEmail').value.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showAlert('Please enter a valid email address.');
+      return;
+    }
+    try {
+      setButtonLoading('fpSendBtn', true);
+      clearAlert();
+      const res = await BluKaamAuth.forgotPassword(email);
+      pendingForgotEmail = email;
+      document.getElementById('fpEmailDisplay').innerText = email;
+      document.getElementById('fpStepA').style.display = 'none';
+      document.getElementById('fpStepB').style.display = 'block';
+      clearFpOtpBoxes();
+      if (res.simulated && res.devOtp) {
+        showAlert(`(Dev Mode) Reset code: ${res.devOtp}`, false);
+        fillFpOtpBoxes(res.devOtp);
+      } else {
+        showAlert(`Reset code sent to ${email}! Check your inbox.`, false);
+      }
+      setTimeout(() => document.getElementById('fpotp0').focus(), 200);
+    } catch (err) {
+      showAlert(err.message || 'Failed to send reset code. Please check the email address.');
+      setButtonLoading('fpSendBtn', false);
+    }
+  }
+
+  async function handlePasswordReset() {
+    const otp = getFpOtpValue();
+    const newPw = document.getElementById('fpNewPw').value;
+    const confirmPw = document.getElementById('fpConfirmPw').value;
+    if (otp.length !== 6) { showAlert('Please enter the 6-digit reset code.'); return; }
+    if (!newPw || newPw.length < 6) { showAlert('New password must be at least 6 characters.'); return; }
+    if (newPw !== confirmPw) { showAlert('Passwords do not match.'); return; }
+    try {
+      setButtonLoading('fpResetBtn', true);
+      clearAlert();
+      await BluKaamAuth.resetPassword(pendingForgotEmail, otp, newPw);
+      showAlert('Password reset successfully! You can now sign in with your new password.', false);
+      setTimeout(() => switchAuthTab('login'), 2000);
+    } catch (err) {
+      showAlert(err.message || 'Failed to reset password. Please try again.');
+      setButtonLoading('fpResetBtn', false);
+    }
+  }
+
+  // Forgot-password OTP boxes
+  function clearFpOtpBoxes() {
+    for (let i=0;i<6;i++) { const b=document.getElementById(`fpotp${i}`); if(b){b.value='';b.classList.remove('filled');} }
+  }
+  function fillFpOtpBoxes(code) {
+    const d=code.toString().split('');
+    for(let i=0;i<6;i++){const b=document.getElementById(`fpotp${i}`);if(b&&d[i]){b.value=d[i];b.classList.add('filled');}}
+  }
+  function getFpOtpValue() {
+    let c=''; for(let i=0;i<6;i++){const b=document.getElementById(`fpotp${i}`);c+=b?b.value:'';}return c;
+  }
+  function fpOtpInput(el,idx){el.value=el.value.replace(/\D/g,'').slice(-1);el.classList.toggle('filled',el.value.length>0);if(el.value&&idx<5)document.getElementById(`fpotp${idx+1}`).focus();}
+  function fpOtpKey(e,idx){if(e.key==='Backspace'&&!e.target.value&&idx>0)document.getElementById(`fpotp${idx-1}`).focus();if(e.key==='ArrowLeft'&&idx>0)document.getElementById(`fpotp${idx-1}`).focus();if(e.key==='ArrowRight'&&idx<5)document.getElementById(`fpotp${idx+1}`).focus();}
+  function fpOtpPaste(e){e.preventDefault();const t=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');fillFpOtpBoxes(t);}
+
+  // =====================================================
+  // GOOGLE SIGN-IN
+  // =====================================================
+  let configuredGoogleClientId = '';
+  let authInitAttempts = 0;
+
+  function renderGoogleComponents() {
+    if (!configuredGoogleClientId || !window.google?.accounts?.id) return false;
+    const container = document.getElementById('googleSignInBtn');
+    const fallback = document.getElementById('googleBtnFallback');
+    try {
+      google.accounts.id.initialize({
+        client_id: configuredGoogleClientId,
+        callback: handleGoogleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        use_fedcm_for_prompt: true
+      });
+      if (container) {
+        container.style.display = 'flex';
+        const w = Math.min(380, Math.max(240, (container.parentElement?.clientWidth || 360) - 20));
+        google.accounts.id.renderButton(container, {
+          theme: 'outline', size: 'large', type: 'standard',
+          shape: 'rectangular', text: 'continue_with',
+          logo_alignment: 'left', width: w
+        });
+      }
+      if (fallback) fallback.style.display = 'none';
+      return true;
+    } catch (e) {
+      if (fallback) fallback.style.display = 'flex';
+      return false;
+    }
+  }
+
+  async function initGoogleAuth() {
+    if (window.google?.accounts?.id) {
+      // Fetch client ID from backend config (never hardcode in frontend)
+      try {
+        const config = await BluKaamAuth.getAuthConfig();
+        if (config?.googleClientId?.trim()) {
+          configuredGoogleClientId = config.googleClientId.trim();
+          renderGoogleComponents();
+        }
+      } catch(e) { /* backend waking up */ }
+    } else if (authInitAttempts < 20) {
+      authInitAttempts++;
+      setTimeout(initGoogleAuth, 150);
+    } else {
+      const fallback = document.getElementById('googleBtnFallback');
+      if (fallback) fallback.style.display = 'flex';
+    }
+    // Also try to fetch config independently in case SDK loads late
+    if (!configuredGoogleClientId) {
+      try {
+        const config = await BluKaamAuth.getAuthConfig();
+        if (config?.googleClientId?.trim()) {
+          configuredGoogleClientId = config.googleClientId.trim();
+          renderGoogleComponents();
+        }
+      } catch(e) {}
+    }
+  }
+
+  function triggerGoogleSignIn() {
+    if (!configuredGoogleClientId) {
+      showAlert('Google Sign-In is not configured yet. Please use email login.');
+      return;
+    }
+    if (window.google?.accounts?.id) {
+      google.accounts.id.prompt(n => {
+        if (n.isNotDisplayed()) showAlert('Please allow third-party cookies or use email login instead.');
+      });
+    } else {
+      showAlert('Google Sign-In is still loading. Please try again in a moment.');
+    }
+  }
+
+  async function handleGoogleCredentialResponse(response) {
+    if (!response?.credential) return;
+    const role = document.getElementById('regRole')?.value || 'Worker';
+    try {
+      showAlert('⏳ Signing in with Google...', false);
+      const res = await BluKaamAuth.googleLogin(response.credential, role);
+      BluKaamAuth.showToast(res.message || 'Signed in with Google!', 'success');
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 350);
+    } catch (err) {
+      showAlert(err.message || 'Google authentication failed. Please try again.');
+    }
+  }
+  </script>
+</body>
+
+</html>
