@@ -288,9 +288,9 @@ nav {
 
 /* HERO */
 .hero {
-  background: radial-gradient(circle at 85% 20%, rgba(0, 163, 255, 0.28) 0%, transparent 45%),
+  /* background: radial-gradient(circle at 85% 20%, rgba(0, 163, 255, 0.28) 0%, transparent 45%),
               radial-gradient(circle at 15% 80%, rgba(245, 158, 11, 0.16) 0%, transparent 40%),
-              linear-gradient(135deg, #051433 0%, #09204E 50%, #0B2553 100%);
+              linear-gradient(135deg, #051433 0%, #09204E 50%, #0B2553 100%); */
   padding: 72px 1.5rem 90px;
   position: relative; overflow: hidden;
   color: white;
