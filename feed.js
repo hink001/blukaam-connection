@@ -104,13 +104,17 @@ function renderPost(post) {
     el.innerHTML = `
         ${post.originalPostId ? `<div class="post-repost-tag">🔁 Reposted</div>` : ''}
         <div class="post-card-header">
-            <img class="post-avatar" src="${post.authorAvatar || 'logo-emblem.png'}" onerror="this.src='logo-emblem.png'">
-            <div style="flex:1;">
-                <div class="post-author-name">${escapeHtml(post.authorName || 'Member')}</div>
+            <a href="profile.html?id=${encodeURIComponent(post.authorId)}" style="text-decoration:none;">
+                <img class="post-avatar" src="${post.authorAvatar || 'logo-emblem.png'}" onerror="this.src='logo-emblem.png'">
+            </a>
+            <div style="flex:1; min-width:0;">
+                <a href="profile.html?id=${encodeURIComponent(post.authorId)}" style="text-decoration:none; color:inherit;">
+                    <div class="post-author-name">${escapeHtml(post.authorName || 'Member')}</div>
+                </a>
                 <div class="post-author-headline">${escapeHtml(post.authorHeadline || '')}</div>
                 <div class="post-time">${timeAgo(post.createdAt)}</div>
             </div>
-            ${canDelete ? `<button onclick="deletePost('${post._id}')" style="background:none;border:none;cursor:pointer;color:var(--gray-400);">✕</button>` : ''}
+            ${canDelete ? `<button onclick="deletePost('${post._id}')" style="background:none;border:none;cursor:pointer;color:var(--gray-400);" title="Delete post">✕</button>` : ''}
         </div>
         <div class="post-content">${escapeHtml(post.content)}</div>
         ${(post.mediaUrls && post.mediaUrls.length) ? `
@@ -126,6 +130,7 @@ function renderPost(post) {
                 👍 ${myReaction ? capitalize(myReaction.type) : 'Like'}
             </button>
             <button class="post-action-btn" onclick="toggleComments('${post._id}')">💬 Comment</button>
+            ${!canDelete ? `<a href="messages.html?to=${encodeURIComponent(post.authorId)}" class="post-action-btn" style="text-decoration:none; display:inline-flex; align-items:center;">💬 Chat</a>` : ''}
             <button class="post-action-btn" onclick="sharePost('${post._id}')">🔁 Share</button>
         </div>
         <div class="post-comments" id="comments-${post._id}" style="display:none;">

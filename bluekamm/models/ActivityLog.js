@@ -18,7 +18,12 @@ const ActivityLogSchema = new mongoose.Schema({
             'AVATAR_UPDATE',
             'SKILL_ADD',
             'SKILL_REMOVE',
-            'PROFILE_VIEW'
+            'PROFILE_VIEW',
+            'POST_CREATE',
+            'POST_DELETE',
+            'CONNECTION_REQUEST',
+            'CONNECTION_ACCEPT',
+            'FOLLOW_USER'
         ]
     },
     description: {

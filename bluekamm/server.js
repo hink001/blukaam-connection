@@ -31,6 +31,10 @@ const postRoutes = require('./routes/postRoutes');               // Phase 1: Soc
 const connectionRoutes = require('./routes/connectionRoutes');   // Phase 2: Networking & Connections
 const messageRoutes = require('./routes/messageRoutes');         // Phase 5: Direct Messaging
 const notificationRoutes = require('./routes/notificationRoutes'); // Phase 5: Notifications
+const followRoutes = require('./routes/followRoutes');
+const blockRoutes = require('./routes/blockRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const userRoutes = require('./routes/userRoutes');
 const { isCloudinaryConfigured } = require('./services/cloudinary');
 const { apiLimiter, authLimiter, otpLimiter, socialWriteLimiter } = require('./middleware/security'); // Phase 4: Security hardening
 
@@ -70,9 +74,12 @@ if (!fs.existsSync(DB_FILE)) {
         if (!db.connections) db.connections = [];
         if (!db.messages) db.messages = [];
         if (!db.notifications) db.notifications = [];
+        if (!db.follows) db.follows = [];
+        if (!db.blocks) db.blocks = [];
+        if (!db.reports) db.reports = [];
         fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
     } catch (e) {
-        fs.writeFileSync(DB_FILE, JSON.stringify({ users: [], profiles: [], activityLogs: [], generalData: [], posts: [], connections: [], messages: [], notifications: [] }));
+        fs.writeFileSync(DB_FILE, JSON.stringify({ users: [], profiles: [], activityLogs: [], generalData: [], posts: [], connections: [], messages: [], notifications: [], follows: [], blocks: [], reports: [] }));
     }
 }
 console.log("Local JSON Database initialized at:", DB_FILE);
@@ -201,6 +208,10 @@ app.use('/api/posts', socialWriteLimiter, postRoutes);
 app.use('/api/connections', connectionRoutes);
 app.use('/api/messages', socialWriteLimiter, messageRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/follows', followRoutes);
+app.use('/api/blocks', blockRoutes);
+app.use('/api/reports', reportRoutes);
 
 // --- Legacy OTP Routes (Retained for compatibility) --- //
 const Otp = require('./models/Otp');

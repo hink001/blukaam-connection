@@ -6,12 +6,31 @@ const fs = require('fs');
 
 const Connection = require('../models/Connection');
 const Profile = require('../models/Profile');
+const Block = require('../models/Block');
 const authMiddleware = require('../middleware/auth');
 const { logActivity } = require('../services/activityService');
 const { createNotification } = require('../services/notificationService');
 
 const DB_FILE = path.join(__dirname, '..', 'local_database.json');
 const isMongo = () => mongoose.connection.readyState === 1;
+
+async function isBlocked(userA, userB) {
+    if (isMongo()) {
+        const blk = await Block.findOne({
+            $or: [
+                { blockerId: userA, blockedId: userB },
+                { blockerId: userB, blockedId: userA }
+            ]
+        });
+        return !!blk;
+    } else {
+        const db = getOfflineDb();
+        return (db.blocks || []).some(b =>
+            (b.blockerId === userA && b.blockedId === userB) ||
+            (b.blockerId === userB && b.blockedId === userA)
+        );
+    }
+}
 
 const getOfflineDb = () => {
     if (!fs.existsSync(DB_FILE)) {
@@ -45,6 +64,10 @@ router.post('/request/:userId', authMiddleware, async (req, res) => {
 
         if (String(requesterId) === String(recipientId)) {
             return res.status(400).json({ error: 'You cannot connect with yourself.' });
+        }
+
+        if (await isBlocked(requesterId, recipientId)) {
+            return res.status(403).json({ error: 'Cannot connect with this user due to block restrictions.' });
         }
 
         if (isMongo()) {
@@ -269,9 +292,9 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 });
 
 // --------------------------------------------------------
-// GET /api/connections/my — accepted connections, with profile snapshots
+// GET /api/connections/my (and /api/connections) — accepted connections
 // --------------------------------------------------------
-router.get('/my', authMiddleware, async (req, res) => {
+router.get(['/my', '/'], authMiddleware, async (req, res) => {
     try {
         const { userId } = req.user;
         let records;
@@ -303,9 +326,9 @@ router.get('/my', authMiddleware, async (req, res) => {
 });
 
 // --------------------------------------------------------
-// GET /api/connections/pending — incoming requests awaiting my response
+// GET /api/connections/pending (and /api/connections/requests) — incoming requests
 // --------------------------------------------------------
-router.get('/pending', authMiddleware, async (req, res) => {
+router.get(['/pending', '/requests'], authMiddleware, async (req, res) => {
     try {
         const { userId } = req.user;
         let records;

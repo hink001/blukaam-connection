@@ -38,19 +38,68 @@
   </div>
 
   <main class="chat-layout">
-    <div class="chat-list" id="chatList">Loading conversations...</div>
+    <!-- LEFT PANEL: Conversation list + New Chat -->
+    <div class="chat-list">
+      <div class="chat-list-top">
+        <div class="chat-list-top-row">
+          <div class="chat-list-title">💬 Messages</div>
+          <button class="btn-new-chat" onclick="openNewChatModal()">+ New Chat</button>
+        </div>
+        <input type="text" id="chatSearchInput" class="chat-search-input" placeholder="Search conversations..." oninput="filterConversationList(this.value)">
+      </div>
+      <div id="chatListContainer" style="overflow-y:auto; height:calc(100% - 85px);">Loading conversations...</div>
+    </div>
+
+    <!-- RIGHT PANEL: Active thread panel -->
     <div class="chat-thread-panel">
-      <div id="chatEmptyState" class="chat-empty-state">Select a connection to start messaging.</div>
-      <div id="chatActiveThread" style="display:none; height:100%; display:flex; flex-direction:column;">
-        <div class="chat-thread-header" id="chatThreadHeader"></div>
+      <div id="chatEmptyState" class="chat-empty-state" style="flex-direction:column; gap:12px; text-align:center; padding:20px;">
+        <div style="font-size:36px;">💬</div>
+        <div style="font-weight:700; color:var(--gray-700);">Your Messages</div>
+        <p style="font-size:13px; color:var(--gray-500); max-width:280px; margin:0 auto;">
+          Select an existing conversation or click <strong>+ New Chat</strong> to message any worker or contractor.
+        </p>
+        <button class="btn-post" onclick="openNewChatModal()" style="margin-top:6px;">Start New Chat</button>
+      </div>
+
+      <div id="chatActiveThread" style="display:none; height:100%; flex-direction:column;">
+        <div class="chat-thread-header" id="chatThreadHeader">
+          <div class="chat-thread-header-content">
+            <div class="chat-thread-user">
+              <img id="threadPartnerAvatar" src="logo-emblem.png" class="chat-thread-avatar" alt="Avatar">
+              <div>
+                <div id="threadPartnerName" class="chat-thread-title">Conversation</div>
+                <div id="threadPartnerSubtitle" class="chat-thread-subtitle">BluKaam Member</div>
+              </div>
+            </div>
+            <div class="chat-thread-actions">
+              <a id="threadViewProfileBtn" href="#" class="btn-secondary-li" style="padding:4px 12px; font-size:12px; text-decoration:none;">View Profile</a>
+            </div>
+          </div>
+        </div>
         <div class="chat-thread-messages" id="chatThreadMessages"></div>
         <div class="chat-input-row">
           <input type="text" id="chatInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter') sendChatMessage()">
-          <button class="btn-post" onclick="sendChatMessage()">Send</button>
+          <button class="btn-post" id="btnSendChat" onclick="sendChatMessage()">Send</button>
         </div>
       </div>
     </div>
   </main>
+
+  <!-- START NEW CHAT MODAL -->
+  <div id="newChatModal" class="bk-modal-backdrop" style="display:none;">
+    <div class="bk-modal-card">
+      <div class="bk-modal-header">
+        <div class="bk-modal-title">Start a New Chat</div>
+        <button onclick="closeNewChatModal()" style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--gray-500);">&times;</button>
+      </div>
+      <div style="padding:12px 16px; border-bottom:1px solid var(--gray-100);">
+        <input type="text" id="newChatSearchInput" class="chat-search-input" placeholder="Type name, trade, or skill to search..." oninput="handleNewChatSearch(this.value)">
+      </div>
+      <div class="bk-modal-body" id="newChatUserList">
+        <div style="text-align:center; color:var(--gray-400); padding:20px;">Loading members...</div>
+      </div>
+    </div>
+  </div>
 
   <!-- Supabase Cloud Authentication SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Network – BluKaam Connection</title>
+  <title>Networking & Discover People – BluKaam Connection</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#0D2F6E">
@@ -37,21 +37,118 @@
     <a href="training.html">Training</a><a href="feed.html">Feed</a><a href="network.html">My Network</a><a href="messages.html">Messaging</a>
   </div>
 
-  <main style="max-width:1000px; margin: 30px auto 60px; padding: 0 1.5rem;">
-    <h1 style="font-family:var(--font-heading); font-size:26px; font-weight:800; color:var(--gray-800); margin-bottom:4px;">My Network</h1>
-    <p style="color:var(--gray-500); margin-bottom:20px;">Manage your connections, invitations and discover people you may know.</p>
-
-    <div class="tab-row">
-      <button class="tab-btn active" data-tab="connections" onclick="switchTab('connections')">My Connections</button>
-      <button class="tab-btn" data-tab="pending" onclick="switchTab('pending')">Invitations Received</button>
-      <button class="tab-btn" data-tab="sent" onclick="switchTab('sent')">Sent Invitations</button>
-      <button class="tab-btn" data-tab="suggestions" onclick="switchTab('suggestions')">People You May Know</button>
+  <main style="max-width:1100px; margin: 30px auto 60px; padding: 0 1.5rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+      <div>
+        <h1 style="font-family:var(--font-heading); font-size:26px; font-weight:800; color:var(--gray-800); margin:0;">
+          Professional Network & Discovery
+        </h1>
+        <p style="color:var(--gray-500); margin:4px 0 0; font-size:14px;">
+          Connect with verified workers, contractors, and employers across India.
+        </p>
+      </div>
+      <div>
+        <button onclick="switchTab('discover')" class="btn-primary-li" style="text-decoration:none;">
+          🔍 Discover People
+        </button>
+      </div>
     </div>
 
-    <div id="tab-connections" class="tab-panel"><div class="network-grid" id="connectionsGrid">Loading...</div></div>
-    <div id="tab-pending" class="tab-panel" style="display:none;"><div class="network-grid" id="pendingGrid">Loading...</div></div>
-    <div id="tab-sent" class="tab-panel" style="display:none;"><div class="network-grid" id="sentGrid">Loading...</div></div>
-    <div id="tab-suggestions" class="tab-panel" style="display:none;"><div class="network-grid" id="suggestionsGrid">Loading...</div></div>
+    <!-- 5 NETWORK TABS -->
+    <div class="tab-row" style="overflow-x:auto; white-space:nowrap; gap:10px;">
+      <button class="tab-btn active" data-tab="connections" onclick="switchTab('connections')">
+        🤝 Connections (<span id="tabCountConn">0</span>)
+      </button>
+      <button class="tab-btn" data-tab="requests" onclick="switchTab('requests')">
+        📩 Requests (<span id="tabCountReq">0</span>)
+      </button>
+      <button class="tab-btn" data-tab="following" onclick="switchTab('following')">
+        ⭐ Following (<span id="tabCountFollowing">0</span>)
+      </button>
+      <button class="tab-btn" data-tab="followers" onclick="switchTab('followers')">
+        👥 Followers (<span id="tabCountFollowers">0</span>)
+      </button>
+      <button class="tab-btn" data-tab="discover" onclick="switchTab('discover')">
+        🔍 Discover People
+      </button>
+    </div>
+
+    <!-- TAB 1: CONNECTIONS -->
+    <div id="tab-connections" class="tab-panel">
+      <div class="network-grid" id="connectionsGrid">Loading connections...</div>
+    </div>
+
+    <!-- TAB 2: REQUESTS (PENDING & SENT) -->
+    <div id="tab-requests" class="tab-panel" style="display:none;">
+      <h3 style="font-family:var(--font-heading); font-size:16px; color:var(--gray-800); margin-bottom:12px;">
+        Received Connection Invitations
+      </h3>
+      <div class="network-grid" id="pendingGrid" style="margin-bottom:28px;">Loading incoming requests...</div>
+
+      <h3 style="font-family:var(--font-heading); font-size:16px; color:var(--gray-800); margin-bottom:12px;">
+        Sent Invitations Pending
+      </h3>
+      <div class="network-grid" id="sentGrid">Loading sent invitations...</div>
+    </div>
+
+    <!-- TAB 3: FOLLOWING -->
+    <div id="tab-following" class="tab-panel" style="display:none;">
+      <div class="network-grid" id="followingGrid">Loading following list...</div>
+    </div>
+
+    <!-- TAB 4: FOLLOWERS -->
+    <div id="tab-followers" class="tab-panel" style="display:none;">
+      <div class="network-grid" id="followersGrid">Loading followers list...</div>
+    </div>
+
+    <!-- TAB 5: DISCOVER PEOPLE (SEARCH & FILTERS) -->
+    <div id="tab-discover" class="tab-panel" style="display:none;">
+      <!-- Search & Filters Bar -->
+      <div class="feed-sidebar-card" style="margin-bottom:20px; padding:18px;">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:12px;">
+          <div>
+            <label style="font-size:11px; font-weight:700; color:var(--gray-500); text-transform:uppercase;">Keyword / Name</label>
+            <input type="text" id="discSearchInput" class="form-input" placeholder="e.g. Electrician, Rahul..." onkeydown="if(event.key==='Enter') executeDiscoverSearch()">
+          </div>
+          <div>
+            <label style="font-size:11px; font-weight:700; color:var(--gray-500); text-transform:uppercase;">Role</label>
+            <select id="discRoleSelect" class="form-input" style="padding:10px;">
+              <option value="">All Roles</option>
+              <option value="Worker">Worker</option>
+              <option value="Contractor">Contractor</option>
+              <option value="Employer">Employer</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px; font-weight:700; color:var(--gray-500); text-transform:uppercase;">Skill</label>
+            <input type="text" id="discSkillInput" class="form-input" placeholder="e.g. Wiring, Plumbing" onkeydown="if(event.key==='Enter') executeDiscoverSearch()">
+          </div>
+          <div>
+            <label style="font-size:11px; font-weight:700; color:var(--gray-500); text-transform:uppercase;">City / State</label>
+            <input type="text" id="discCityInput" class="form-input" placeholder="e.g. Meerut, Noida, Delhi" onkeydown="if(event.key==='Enter') executeDiscoverSearch()">
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; gap:10px; align-items:center;">
+            <label style="font-size:12px; color:var(--gray-600); font-weight:600;">Min Exp:</label>
+            <input type="number" id="discExpInput" class="form-input" style="width:70px; padding:6px 10px;" min="0" placeholder="0">
+            <span style="font-size:12px; color:var(--gray-500);">years</span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-secondary-li" onclick="resetDiscoverFilters()" style="padding:7px 16px;">Reset</button>
+            <button class="btn-primary-li" onclick="executeDiscoverSearch()" style="padding:7px 20px;">Search</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Discovered Grid -->
+      <div class="network-grid" id="discoverGrid">Loading members...</div>
+
+      <!-- Pagination Bar -->
+      <div id="discoverPagination" style="display:flex; justify-content:center; align-items:center; gap:14px; margin-top:24px;"></div>
+    </div>
+
   </main>
 
   <!-- Supabase Cloud Authentication SDK -->

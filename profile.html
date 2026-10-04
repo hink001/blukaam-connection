@@ -104,17 +104,21 @@
           </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="linkedin-actions">
+        <!-- Social Counters Row (Live from Database) -->
+        <div style="display: flex; gap: 24px; margin: 16px 0 16px; padding: 12px 0; border-top: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200); font-size: 13.5px; flex-wrap: wrap;">
+          <div><strong id="cntFollowers" style="color:var(--blue-dark); font-size:16px;">0</strong> <span style="color:var(--gray-500);">Followers</span></div>
+          <div><strong id="cntFollowing" style="color:var(--blue-dark); font-size:16px;">0</strong> <span style="color:var(--gray-500);">Following</span></div>
+          <div><strong id="cntConnections" style="color:var(--blue-dark); font-size:16px;">0</strong> <span style="color:var(--gray-500);">Connections</span></div>
+        </div>
+
+        <!-- Action Buttons (Rendered dynamically based on database relationship) -->
+        <div class="linkedin-actions" id="profileActionButtons" style="flex-wrap: wrap; gap: 8px;">
           <button class="btn-primary-li" onclick="openContactModal()">
             📞 Contact & Hire
           </button>
           <button class="btn-secondary-li" onclick="shareCurrentProfile()">
             🔗 Share Profile
           </button>
-          <a href="workers.html" class="btn-secondary-li" style="border-color: var(--gray-200); color: var(--gray-600);">
-            ← Browse Other Workers
-          </a>
         </div>
       </div>
     </section>
@@ -161,6 +165,21 @@
           <div style="font-size: 11px; color: var(--gray-400); text-transform: uppercase; font-weight: 700;">Industry / Sector</div>
           <div id="detailIndustry" style="font-size: 15px; font-weight: 700; color: var(--gray-800); margin-top: 4px;">Construction & Technical</div>
         </div>
+      </div>
+    </section>
+
+    <!-- POSTS & COMMUNITY UPDATES SECTION -->
+    <section class="linkedin-card" style="padding: 24px 28px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h2 style="font-family: 'Baloo 2', sans-serif; font-size: 20px; color: var(--blue-dark); margin: 0;">
+          Posts & Updates
+        </h2>
+        <a id="btnNewPostLink" href="feed.html" class="btn-primary-li" style="font-size: 12px; padding: 5px 14px; text-decoration: none; display: none;">
+          ✍️ Create Post
+        </a>
+      </div>
+      <div id="profilePostsList">
+        <div style="text-align: center; color: var(--gray-400); padding: 20px;">Loading posts...</div>
       </div>
     </section>
 
@@ -240,6 +259,40 @@
     </div>
   </div>
 
+  <!-- REPORT USER MODAL -->
+  <div id="reportUserModal" class="bk-modal-backdrop" style="display: none;">
+    <div class="bk-modal-card">
+      <div class="bk-modal-header">
+        <div class="bk-modal-title">🚩 Report User</div>
+        <button onclick="closeReportModal()" style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--gray-500);">&times;</button>
+      </div>
+      <div class="bk-modal-body">
+        <p style="font-size:13px; color:var(--gray-600); margin-bottom:14px;">
+          Please select a reason for reporting this profile. Our safety and moderation team reviews every report.
+        </p>
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:12.5px; font-weight:700; color:var(--gray-700); margin-bottom:6px;">Reason *</label>
+          <select id="reportReason" class="form-input" style="width:100%; padding:9px;">
+            <option value="spam">Spam / Advertising</option>
+            <option value="harassment">Harassment or Abuse</option>
+            <option value="fake profile">Fake Profile or Impersonation</option>
+            <option value="inappropriate content">Inappropriate / Offensive Content</option>
+            <option value="scam">Scam / Fraud</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:12.5px; font-weight:700; color:var(--gray-700); margin-bottom:6px;">Additional Details (Optional)</label>
+          <textarea id="reportDescription" class="form-input" rows="3" style="width:100%; resize:vertical;" placeholder="Explain what happened..."></textarea>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button onclick="closeReportModal()" class="btn-secondary-li" style="padding:8px 16px;">Cancel</button>
+          <button onclick="submitReport()" class="btn-primary-li" style="padding:8px 18px; background:#dc2626; border-color:#dc2626;">Submit Report</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <footer>
     <div class="footer-inner">
@@ -273,7 +326,9 @@
           try {
             activeProfile = await BluKaamAuth.getMyProfile();
             renderProfile(activeProfile, true);
-            loadPublicActivities(activeProfile.userId || activeProfile._id);
+            const uid = activeProfile.userId || activeProfile._id;
+            loadPublicActivities(uid);
+            loadUserPosts(uid, true);
           } catch (e) {
             window.location.href = 'workers.html';
           }
@@ -289,7 +344,9 @@
         const currentUser = BluKaamAuth.getUser();
         const isOwner = currentUser && (currentUser.id === activeProfile.userId || currentUser.id === activeProfile._id);
         renderProfile(activeProfile, isOwner);
-        loadPublicActivities(activeProfile.userId || activeProfile._id);
+        const uid = activeProfile.userId || activeProfile._id;
+        loadPublicActivities(uid);
+        loadUserPosts(uid, isOwner);
       } catch (err) {
         console.error('Error loading public profile:', err);
         document.getElementById('profileFullName').innerText = 'Profile Not Found';
@@ -351,14 +408,255 @@
         skillsContainer.innerHTML = `<span style="color:var(--gray-400); font-size:14px;">No skills specified yet.</span>`;
       }
 
-      // Owner Actions (e.g. "Edit Profile" button)
-      const ownerActions = document.getElementById('ownerActions');
+      // Dynamic Action Buttons and Social Counters
+      const targetUserId = p.userId || p._id || p.id;
+      renderRelationshipAndCounters(targetUserId, isOwner);
+    }
+
+    let currentRelState = null;
+
+    async function renderRelationshipAndCounters(targetUserId, isOwner) {
+      const actionContainer = document.getElementById('profileActionButtons');
+      if (!actionContainer) return;
+
       if (isOwner) {
-        ownerActions.innerHTML = `
-          <a href="dashboard.html" class="btn-primary-li" style="font-size:13px; padding:6px 16px;">
-            ✏️ Edit Profile
-          </a>
+        actionContainer.innerHTML = `
+          <a href="dashboard.html" class="btn-primary-li" style="text-decoration:none;">✏️ Edit Profile & Bio</a>
+          <a href="feed.html" class="btn-secondary-li" style="text-decoration:none;">✍️ Share a Post</a>
+          <button class="btn-secondary-li" onclick="shareCurrentProfile()">🔗 Share My Profile</button>
         `;
+        const postLink = document.getElementById('btnNewPostLink');
+        if (postLink) postLink.style.display = 'inline-block';
+
+        // Load counters for owner
+        try {
+          const rel = await BluKaamAuth.getRelationship(targetUserId);
+          document.getElementById('cntFollowers').textContent = rel.followersCount || 0;
+          document.getElementById('cntFollowing').textContent = rel.followingCount || 0;
+          document.getElementById('cntConnections').textContent = rel.connectionsCount || 0;
+        } catch (e) {}
+        return;
+      }
+
+      // Visitor viewing another profile
+      actionContainer.innerHTML = `<span style="font-size:13px; color:var(--gray-400);">Loading actions...</span>`;
+
+      try {
+        const rel = await BluKaamAuth.getRelationship(targetUserId);
+        currentRelState = rel;
+
+        // Set real counters from database
+        document.getElementById('cntFollowers').textContent = rel.followersCount || 0;
+        document.getElementById('cntFollowing').textContent = rel.followingCount || 0;
+        document.getElementById('cntConnections').textContent = rel.connectionsCount || 0;
+
+        if (rel.isBlocked) {
+          actionContainer.innerHTML = `
+            <button class="btn-secondary-li" style="color:#dc2626; border-color:#dc2626;" onclick="handleUnblockUser('${targetUserId}')">🚫 Unblock User</button>
+            <button class="btn-secondary-li" onclick="shareCurrentProfile()">🔗 Share Profile</button>
+          `;
+          return;
+        }
+
+        let buttonsHtml = '';
+
+        // 1. Follow / Following button
+        if (rel.isFollowing) {
+          buttonsHtml += `<button class="btn-secondary-li" style="background:var(--blue-subtle); color:var(--blue-mid); font-weight:700;" onclick="handleToggleFollow('${targetUserId}')">✓ Following</button>`;
+        } else {
+          buttonsHtml += `<button class="btn-secondary-li" onclick="handleToggleFollow('${targetUserId}')">+ Follow</button>`;
+        }
+
+        // 2. Connection state button
+        if (rel.connectionStatus === 'accepted') {
+          buttonsHtml += `<button class="btn-secondary-li" disabled style="color:var(--green); border-color:var(--green); font-weight:700;">✓ Connected</button>`;
+          buttonsHtml += `<a href="messages.html?to=${encodeURIComponent(targetUserId)}" class="btn-primary-li" style="text-decoration:none;">💬 Message</a>`;
+        } else if (rel.connectionStatus === 'pending_sent') {
+          buttonsHtml += `<button class="btn-secondary-li" disabled style="opacity:0.75;">⏳ Request Sent</button>`;
+        } else if (rel.connectionStatus === 'pending_received') {
+          buttonsHtml += `<button class="btn-primary-li" onclick="handleAcceptConnect('${rel.connectionId}', '${targetUserId}')">✓ Accept Request</button>`;
+          buttonsHtml += `<button class="btn-secondary-li" onclick="handleRejectConnect('${rel.connectionId}', '${targetUserId}')">✕ Ignore</button>`;
+        } else {
+          buttonsHtml += `<button class="btn-primary-li" onclick="handleProfileConnect('${targetUserId}')">🤝 Connect</button>`;
+        }
+
+        // 3. Contact Info + Share + More options
+        buttonsHtml += `
+          <button class="btn-secondary-li" onclick="openContactModal()">📞 Contact</button>
+          <button class="btn-secondary-li" onclick="shareCurrentProfile()">🔗 Share</button>
+          <div style="position:relative; display:inline-block;">
+            <button class="btn-secondary-li" onclick="toggleMoreMenu(event)" style="padding:6px 12px;">•••</button>
+            <div id="profileMoreMenu" style="display:none; position:absolute; right:0; top:110%; background:#fff; border:1px solid var(--gray-200); border-radius:var(--radius-sm); box-shadow:var(--shadow-md); z-index:100; min-width:140px; overflow:hidden;">
+              <button onclick="openReportModal('${targetUserId}')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:none; border:none; font-size:13px; color:var(--gray-700); cursor:pointer;">🚩 Report User</button>
+              <button onclick="handleBlockUser('${targetUserId}')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:none; border:none; font-size:13px; color:#dc2626; cursor:pointer;">🚫 Block User</button>
+            </div>
+          </div>
+        `;
+
+        actionContainer.innerHTML = buttonsHtml;
+      } catch (err) {
+        console.error('Failed to load relationship:', err);
+        actionContainer.innerHTML = `
+          <button class="btn-primary-li" onclick="openContactModal()">📞 Contact & Hire</button>
+          <button class="btn-secondary-li" onclick="shareCurrentProfile()">🔗 Share Profile</button>
+        `;
+      }
+    }
+
+    function toggleMoreMenu(e) {
+      e.stopPropagation();
+      const menu = document.getElementById('profileMoreMenu');
+      if (menu) menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    document.addEventListener('click', () => {
+      const menu = document.getElementById('profileMoreMenu');
+      if (menu) menu.style.display = 'none';
+    });
+
+    async function handleToggleFollow(targetUserId) {
+      if (!BluKaamAuth.isAuthenticated()) {
+        BluKaamAuth.showToast('Please login to follow members.', 'info');
+        setTimeout(() => { window.location.href = 'login.html'; }, 800);
+        return;
+      }
+      try {
+        if (currentRelState && currentRelState.isFollowing) {
+          const res = await BluKaamAuth.unfollowUser(targetUserId);
+          BluKaamAuth.showToast('Unfollowed successfully.');
+        } else {
+          const res = await BluKaamAuth.followUser(targetUserId);
+          BluKaamAuth.showToast('You are now following this user!');
+        }
+        await renderRelationshipAndCounters(targetUserId, false);
+      } catch (e) {
+        BluKaamAuth.showToast(e.message || 'Action failed', 'error');
+      }
+    }
+
+    async function handleProfileConnect(targetUserId) {
+      if (!BluKaamAuth.isAuthenticated()) {
+        BluKaamAuth.showToast('Please login to connect with members.', 'info');
+        setTimeout(() => { window.location.href = 'login.html'; }, 800);
+        return;
+      }
+      try {
+        await BluKaamAuth.sendConnectionRequest(targetUserId);
+        BluKaamAuth.showToast('Connection invitation sent successfully!', 'success');
+        await renderRelationshipAndCounters(targetUserId, false);
+      } catch (err) {
+        BluKaamAuth.showToast(err.message || 'Could not send request', 'error');
+      }
+    }
+
+    async function handleAcceptConnect(connectionId, targetUserId) {
+      try {
+        await BluKaamAuth.acceptConnection(connectionId);
+        BluKaamAuth.showToast('Connection accepted!');
+        await renderRelationshipAndCounters(targetUserId, false);
+      } catch (err) {
+        BluKaamAuth.showToast(err.message || 'Failed to accept', 'error');
+      }
+    }
+
+    async function handleRejectConnect(connectionId, targetUserId) {
+      try {
+        await BluKaamAuth.rejectConnection(connectionId);
+        BluKaamAuth.showToast('Connection ignored.');
+        await renderRelationshipAndCounters(targetUserId, false);
+      } catch (err) {
+        BluKaamAuth.showToast(err.message || 'Failed to reject', 'error');
+      }
+    }
+
+    async function handleBlockUser(targetUserId) {
+      if (!confirm('Are you sure you want to block this user? They will not be able to message you or view full updates.')) return;
+      try {
+        await BluKaamAuth.blockUser(targetUserId);
+        BluKaamAuth.showToast('User blocked.', 'info');
+        await renderRelationshipAndCounters(targetUserId, false);
+      } catch (err) {
+        BluKaamAuth.showToast(err.message || 'Failed to block user', 'error');
+      }
+    }
+
+    async function handleUnblockUser(targetUserId) {
+      try {
+        await BluKaamAuth.unblockUser(targetUserId);
+        BluKaamAuth.showToast('User unblocked.');
+        await renderRelationshipAndCounters(targetUserId, false);
+      } catch (err) {
+        BluKaamAuth.showToast(err.message || 'Failed to unblock user', 'error');
+      }
+    }
+
+    let reportTargetUserId = null;
+    function openReportModal(targetUserId) {
+      reportTargetUserId = targetUserId;
+      document.getElementById('reportReason').value = 'spam';
+      document.getElementById('reportDescription').value = '';
+      document.getElementById('reportUserModal').style.display = 'flex';
+    }
+
+    function closeReportModal() {
+      document.getElementById('reportUserModal').style.display = 'none';
+      reportTargetUserId = null;
+    }
+
+    async function submitReport() {
+      if (!reportTargetUserId) return;
+      const reason = document.getElementById('reportReason').value;
+      const description = document.getElementById('reportDescription').value.trim();
+
+      try {
+        await BluKaamAuth.reportUser(reportTargetUserId, reason, description);
+        BluKaamAuth.showToast('Report submitted. Thank you for helping keep the community safe!', 'success');
+        closeReportModal();
+      } catch (err) {
+        BluKaamAuth.showToast(err.message || 'Failed to submit report', 'error');
+      }
+    }
+
+    async function loadUserPosts(userId, isOwner) {
+      const container = document.getElementById('profilePostsList');
+      if (!container || !userId) return;
+
+      try {
+        const posts = await BluKaamAuth.getUserPosts(userId);
+        if (!posts || posts.length === 0) {
+          if (isOwner) {
+            container.innerHTML = `
+              <div style="text-align: center; color: var(--gray-500); padding: 24px;">
+                You haven't shared any posts yet.<br>
+                <a href="feed.html" class="btn-post" style="display:inline-block; margin-top:10px; text-decoration:none;">
+                  ✍️ Share Your First Post
+                </a>
+              </div>
+            `;
+          } else {
+            container.innerHTML = `<div style="text-align: center; color: var(--gray-400); padding: 20px;">No posts shared yet by this member.</div>`;
+          }
+          return;
+        }
+
+        container.innerHTML = posts.map(post => `
+          <div class="profile-post-item">
+            <div class="profile-post-date">${formatDate(post.createdAt)}</div>
+            <div class="profile-post-text">${escapeHtml(post.content)}</div>
+            ${(post.mediaUrls && post.mediaUrls.length) ? `
+              <div class="post-media-grid" style="margin-top:10px;">
+                ${post.mediaUrls.map(u => `<img src="${u}" style="max-height:220px; border-radius:8px; object-fit:cover;">`).join('')}
+              </div>
+            ` : ''}
+            <div style="margin-top:10px; display:flex; gap:16px; font-size:12.5px; color:var(--gray-500);">
+              <span>👍 ${post.likesCount || 0} likes</span>
+              <span>💬 ${post.commentsCount || 0} comments</span>
+              <a href="feed.html" style="color:var(--blue-mid); text-decoration:none; font-weight:700; margin-left:auto;">View in Feed →</a>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        container.innerHTML = `<div style="color: var(--gray-400); text-align: center;">Could not load posts.</div>`;
       }
     }
 

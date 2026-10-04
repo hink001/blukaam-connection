@@ -5,12 +5,14 @@ const NotificationSchema = new mongoose.Schema({
     type: {
         type: String,
         enum: [
+            'follow',
             'connection_request',
             'connection_accepted',
             'post_reaction',
             'post_comment',
             'post_share',
-            'new_message'
+            'new_message',
+            'message'
         ],
         required: true
     },

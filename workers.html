@@ -73,7 +73,7 @@
         <button class="tab-btn" onclick="filterProfiles(this)">Delhi NCR</button>
       </div>
 
-      <div class="profiles-grid">
+      <div class="profiles-grid" id="workersGrid">
         <!-- Card 1 -->
         <div class="profile-card">
           <div class="profile-cover"></div>
@@ -455,6 +455,57 @@
   <!-- Supabase Cloud Authentication SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="auth-profile.js"></script>
+  <script src="social-sdk.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const workers = await BluKaamAuth.listProfiles({});
+        if (workers && workers.length > 0) {
+          const grid = document.getElementById('workersGrid');
+          const dynamicHtml = workers.map(w => {
+            const wId = w.userId || w._id || w.id;
+            const name = w.fullName || w.name || 'Skilled Worker';
+            const headline = w.headline || `${w.workType || 'Specialist'} | ${w.city || 'India'}`;
+            const avatar = w.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=0D2F6E&textColor=ffffff`;
+            const skills = (w.skills || []).slice(0, 3);
+            const exp = w.experienceYears ? `${w.experienceYears} Yrs Exp` : 'Verified Pro';
+
+            return `
+              <div class="profile-card">
+                <div class="profile-cover"></div>
+                <div class="profile-avatar" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                  <img src="${avatar}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='logo-emblem.png'">
+                </div>
+                <div class="profile-body">
+                  <div class="profile-name">${escapeHtml(name)}</div>
+                  <div class="profile-headline">${escapeHtml(headline)}</div>
+                  <div class="profile-tags">
+                    ${skills.map(s => `<span class="tag">${escapeHtml(s)}</span>`).join('')}
+                    <span class="tag orange">${escapeHtml(exp)}</span>
+                  </div>
+                  <div class="profile-footer" style="flex-wrap:wrap; gap:8px;">
+                    <div class="avail-badge">● ${escapeHtml(w.availability || 'Available')}</div>
+                    <div style="display:flex; gap:6px; margin-left:auto;">
+                      <a href="profile.html?id=${encodeURIComponent(wId)}" class="view-btn" style="text-decoration:none; padding:4px 10px;">Profile</a>
+                      <a href="messages.html?to=${encodeURIComponent(wId)}" class="view-btn" style="text-decoration:none; padding:4px 10px; background:var(--blue-mid); color:#fff; border-color:var(--blue-mid);">💬 Chat</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+          grid.insertAdjacentHTML('afterbegin', dynamicHtml);
+        }
+      } catch (err) {
+        console.log('Worker listing note:', err.message);
+      }
+    });
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+  </script>
 </body>
 
 </html>

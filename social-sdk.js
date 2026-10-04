@@ -137,6 +137,69 @@
     };
 
     // -------------------------------------------------------------
+    // Follow System
+    // -------------------------------------------------------------
+    BK.followUser = async function (userId) {
+        return this.request(`/follows/${encodeURIComponent(userId)}`, { method: 'POST' });
+    };
+
+    BK.unfollowUser = async function (userId) {
+        return this.request(`/follows/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+    };
+
+    BK.getFollowers = async function (userId, page = 1, limit = 20) {
+        return this.request(`/follows/${encodeURIComponent(userId)}/followers?page=${page}&limit=${limit}`);
+    };
+
+    BK.getFollowing = async function (userId, page = 1, limit = 20) {
+        return this.request(`/follows/${encodeURIComponent(userId)}/following?page=${page}&limit=${limit}`);
+    };
+
+    // -------------------------------------------------------------
+    // Relationship State & Counters (One-Stop API)
+    // -------------------------------------------------------------
+    BK.getRelationship = async function (userId) {
+        return this.request(`/users/${encodeURIComponent(userId)}/relationship`);
+    };
+
+    // -------------------------------------------------------------
+    // User Discovery & Search
+    // -------------------------------------------------------------
+    BK.discoverUsers = async function (params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return this.request(`/users/discover${query ? '?' + query : ''}`);
+    };
+
+    // -------------------------------------------------------------
+    // Block System
+    // -------------------------------------------------------------
+    BK.blockUser = async function (userId) {
+        return this.request(`/blocks/${encodeURIComponent(userId)}`, { method: 'POST' });
+    };
+
+    BK.unblockUser = async function (userId) {
+        return this.request(`/blocks/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+    };
+
+    BK.getBlockedUsers = async function () {
+        return this.request('/blocks');
+    };
+
+    BK.getBlockStatus = async function (userId) {
+        return this.request(`/blocks/status/${encodeURIComponent(userId)}`);
+    };
+
+    // -------------------------------------------------------------
+    // Report System
+    // -------------------------------------------------------------
+    BK.reportUser = async function (userId, reason, description = '') {
+        return this.request(`/reports/${encodeURIComponent(userId)}`, {
+            method: 'POST',
+            body: JSON.stringify({ reason, description })
+        });
+    };
+
+    // -------------------------------------------------------------
     // Nav injector: adds Feed / My Network / Messages + notification bell
     // to the existing .nav-links bar without touching auth-profile.js.
     // Safe to call multiple times; it de-dupes on class name.

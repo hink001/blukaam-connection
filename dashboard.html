@@ -120,6 +120,28 @@
     <!-- RIGHT MAIN SECTION: TABBED PROFILE EDITOR & ACTIVITY -->
     <section>
       
+      <!-- Welcome & Quick Action Card -->
+      <div class="linkedin-card" style="padding: 18px 24px; margin-bottom: 20px; background: linear-gradient(135deg, #0D2F6E 0%, #1E50A2 100%); color: #fff; border-radius: var(--radius-md);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+          <div>
+            <div style="font-family: 'Baloo 2', sans-serif; font-size: 20px; font-weight: 800; line-height: 1.2;">
+              Welcome, <span id="dashWelcomeName">Member</span>! 👋
+            </div>
+            <div style="font-size: 13.5px; opacity: 0.9; margin-top: 4px;">
+              Complete your profile & bio, share community posts, and chat with workers & clients.
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="feed.html" class="btn-primary-li" style="background: #fff; color: var(--blue-dark); text-decoration: none; font-size: 13px; font-weight: 700; border: none; padding: 8px 16px;">
+              ✍️ Share a Post
+            </a>
+            <a href="messages.html" class="btn-secondary-li" style="background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; font-weight: 700; padding: 8px 16px;">
+              💬 Open Messages
+            </a>
+          </div>
+        </div>
+      </div>
+
       <!-- Card Container -->
       <div class="linkedin-card" style="padding: 24px 28px;">
         
@@ -420,7 +442,9 @@
       const pincode = (p.location && p.location.pincode) || p.pincode || '';
       const avatar = p.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName)}&backgroundColor=0D2F6E&textColor=ffffff`;
 
-      // Sidebar
+      // Header & Sidebar
+      const welcomeEl = document.getElementById('dashWelcomeName');
+      if (welcomeEl) welcomeEl.innerText = fullName.split(' ')[0] || 'Member';
       document.getElementById('sidebarName').innerText = fullName;
       document.getElementById('sidebarHeadline').innerText = headline;
       document.getElementById('sidebarLocation').innerText = `📍 ${city}${state ? ', ' + state : ''}`;

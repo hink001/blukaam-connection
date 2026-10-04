@@ -7,12 +7,31 @@ const fs = require('fs');
 const Message = require('../models/Message');
 const Connection = require('../models/Connection');
 const Profile = require('../models/Profile');
+const Block = require('../models/Block');
 const authMiddleware = require('../middleware/auth');
 const { cleanText } = require('../utils/sanitize');
 const { createNotification } = require('../services/notificationService');
 
 const DB_FILE = path.join(__dirname, '..', 'local_database.json');
 const isMongo = () => mongoose.connection.readyState === 1;
+
+async function isBlocked(userA, userB) {
+    if (isMongo()) {
+        const blk = await Block.findOne({
+            $or: [
+                { blockerId: userA, blockedId: userB },
+                { blockerId: userB, blockedId: userA }
+            ]
+        });
+        return !!blk;
+    } else {
+        const db = getOfflineDb();
+        return (db.blocks || []).some(b =>
+            (b.blockerId === userA && b.blockedId === userB) ||
+            (b.blockerId === userB && b.blockedId === userA)
+        );
+    }
+}
 
 const getOfflineDb = () => {
     if (!fs.existsSync(DB_FILE)) {
@@ -69,9 +88,55 @@ router.post('/send/:userId', authMiddleware, async (req, res) => {
             return res.status(400).json({ error: 'You cannot message yourself.' });
         }
 
+        if (await isBlocked(senderId, recipientId)) {
+            return res.status(403).json({ error: 'Cannot send message due to block restrictions.' });
+        }
+
+        // Check and establish connection so users can message each other seamlessly
         const connected = await areConnected(senderId, recipientId);
         if (!connected) {
-            return res.status(403).json({ error: 'You must be connected with this person before you can message them.' });
+            if (isMongo()) {
+                const existing = await Connection.findOne({
+                    $or: [
+                        { requesterId: senderId, recipientId },
+                        { requesterId: recipientId, recipientId: senderId }
+                    ]
+                });
+                if (existing) {
+                    existing.status = 'accepted';
+                    existing.respondedAt = new Date();
+                    await existing.save();
+                } else {
+                    await Connection.create({
+                        requesterId: senderId,
+                        recipientId,
+                        status: 'accepted',
+                        respondedAt: new Date()
+                    });
+                }
+            } else {
+                const db = getOfflineDb();
+                if (!db.connections) db.connections = [];
+                const existing = db.connections.find(c =>
+                    (c.requesterId === senderId && c.recipientId === recipientId) ||
+                    (c.requesterId === recipientId && c.recipientId === senderId)
+                );
+                if (existing) {
+                    existing.status = 'accepted';
+                    existing.respondedAt = new Date().toISOString();
+                } else {
+                    db.connections.push({
+                        _id: 'conn_' + Date.now(),
+                        requesterId: senderId,
+                        recipientId,
+                        status: 'accepted',
+                        respondedAt: new Date().toISOString(),
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    });
+                }
+                saveOfflineDb(db);
+            }
         }
 
         const messageData = {
