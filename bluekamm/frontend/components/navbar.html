@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
 <!-- NAVBAR -->
@@ -22,7 +23,46 @@
         <a href="pages/network.html">My Network</a>
         <a href="pages/jobs.html">Find Jobs</a>
         <a href="pages/workers.html">Browse Workers</a>
-        <a href="pages/login.html" class="nav-cta">Login / Sign Up</a>
+ <a
+  href="pages/login.html"
+  class="group inline-flex items-center gap-2
+         px-[1.8em] py-[1em]
+         rounded-[20px]
+         bg-[#645bff]
+         text-white
+         font-bold
+         transition-colors duration-200
+         hover:bg-[#111]"
+>
+  <span>Login / Sign Up</span>
+
+  <span class="flex items-center justify-center">
+    <span
+      class="relative mt-[1px]
+             w-[10px] h-[2px]
+             bg-[#645bff]
+             transition-all duration-200
+             group-hover:bg-white
+             after:content-['']
+             after:absolute
+             after:box-border
+             after:right-[3px]
+             after:top-[-3px]
+             after:w-[7px]
+             after:h-[7px]
+             after:border-solid
+             after:border-white
+             after:border-t-0
+             after:border-l-0
+             after:border-r-2
+             after:border-b-2
+             after:rotate-[-45deg]
+             after:transition-all
+             after:duration-200
+             group-hover:after:right-0"
+    ></span>
+  </span>
+</a>
       </div>
       <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
         <span></span><span></span><span></span>
