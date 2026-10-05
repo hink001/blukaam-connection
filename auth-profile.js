@@ -26,6 +26,34 @@ if (window.location.port === '3000') {
     API_BASE = 'https://blukaam-connection.onrender.com/api';
 }
 
+// Firebase Cloud Configuration
+const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyDTjZeRQ6xKNkMAiJq0q_4ZKkyy1TSSqu8",
+    authDomain: "blukaam-connection-afa4a.firebaseapp.com",
+    projectId: "blukaam-connection-afa4a",
+    storageBucket: "blukaam-connection-afa4a.firebasestorage.app",
+    messagingSenderId: "141626768308",
+    appId: "1:141626768308:web:966324a32ae5f4729450e1",
+    measurementId: "G-NMJT9J7F1H"
+};
+
+let firebaseApp = null;
+function getFirebaseApp() {
+    if (!firebaseApp && typeof window !== 'undefined' && window.firebase) {
+        try {
+            if (!window.firebase.apps.length) {
+                firebaseApp = window.firebase.initializeApp(FIREBASE_CONFIG);
+            } else {
+                firebaseApp = window.firebase.app();
+            }
+            if (window.BluKaamAuth) window.BluKaamAuth.firebase = firebaseApp;
+        } catch (e) {
+            console.warn('Failed to initialize Firebase app:', e);
+        }
+    }
+    return firebaseApp;
+}
+
 // Supabase Cloud Configuration
 const SUPABASE_URL = 'https://tgzhjepxjpbxpypwaypz.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_vzjADvqW9Wu4g3nlXSC2DQ_8G-g03I5';
@@ -50,9 +78,25 @@ function getSupabaseClient() {
 }
 
 const BluKaamAuth = {
+    FIREBASE_CONFIG,
     SUPABASE_URL,
     SUPABASE_ANON_KEY,
+    firebase: null,
     supabase: null,
+
+    getFirebase() {
+        return getFirebaseApp();
+    },
+
+    async firebaseGoogleSignIn() {
+        if (typeof window === 'undefined' || !window.firebase || !window.firebase.auth) {
+            throw new Error('Firebase Auth SDK is not available. Please refresh the page.');
+        }
+        this.getFirebase();
+        const provider = new window.firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        return await window.firebase.auth().signInWithPopup(provider);
+    },
 
     getSupabase() {
         return getSupabaseClient();

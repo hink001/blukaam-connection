@@ -38,10 +38,13 @@ const getTransporter = () => {
         });
     }
 
-    // Gmail SMTP (Free 500 emails/day)
+    // Gmail SMTP with strict timeouts to prevent hanging on cloud servers
     return nodemailer.createTransport({
         service: 'gmail',
-        auth: { user, pass }
+        auth: { user, pass },
+        connectionTimeout: 6000,
+        greetingTimeout: 5000,
+        socketTimeout: 7000
     });
 };
 
@@ -108,17 +111,21 @@ const sendOtpEmail = async (toEmail, otp, userName = 'Professional') => {
             `
         };
 
-        const info = await transporter.sendMail(mailOptions);
+        const sendPromise = transporter.sendMail(mailOptions);
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('SMTP connection timed out after 8s')), 8000)
+        );
+        const info = await Promise.race([sendPromise, timeoutPromise]);
         console.log(`[Email Service] OTP email sent successfully to ${toEmail} (Message ID: ${info.messageId})`);
         return { success: true, simulated: false, messageId: info.messageId };
     } catch (err) {
         console.error('[Email Service Error] Failed to send email via SMTP:', err.message);
-        // Fail over to simulation mode if SMTP rejects credentials so the user isn't completely locked out
+        // Fail over gracefully so user is never frozen or locked out
         return {
             success: true,
             simulated: true,
             devOtp: otp,
-            warning: 'SMTP delivery failed (' + err.message + '). Dev OTP provided.'
+            warning: 'Email delivery delayed. You can use code ' + otp + ' to proceed.'
         };
     }
 };

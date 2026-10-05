@@ -2,3 +2,4 @@ node_modules/
 local_database.json
 .vscode/
 .env
+.firebase/

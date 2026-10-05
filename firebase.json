@@ -1,0 +1,16 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "bluekamm/**",
+      "**/*.bat",
+      "**/*.sh",
+      "**/*.zip",
+      "**/*.py"
+    ],
+    "cleanUrls": true
+  }
+}

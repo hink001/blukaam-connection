@@ -228,31 +228,62 @@ router.post('/google', async (req, res) => {
             return res.status(400).json({ error: 'Google credential token is required.' });
         }
 
-        // Verify Google token via Google's official free tokeninfo endpoint with 10s timeout
-        let verifyRes;
+        let email, email_verified, name, picture;
+        let verified = false;
+
+        // 1. Try Firebase Auth verification (Identity Toolkit REST API)
+        const firebaseApiKey = process.env.FIREBASE_API_KEY || 'AIzaSyDTjZeRQ6xKNkMAiJq0q_4ZKkyy1TSSqu8';
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-            verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`, {
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            const fbRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${firebaseApiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idToken: credential }),
                 signal: controller.signal
             });
             clearTimeout(timeoutId);
-        } catch (fetchErr) {
-            console.error('Google token verification connection failed:', fetchErr.message);
-            return res.status(504).json({ error: 'Google verification timed out or connection failed. Please try again.' });
+
+            if (fbRes.ok) {
+                const fbData = await fbRes.json();
+                if (fbData?.users && fbData.users.length > 0) {
+                    const u = fbData.users[0];
+                    email = u.email;
+                    email_verified = u.emailVerified === true || u.emailVerified === 'true';
+                    name = u.displayName || (email ? email.split('@')[0] : '');
+                    picture = u.photoUrl || '';
+                    verified = true;
+                }
+            }
+        } catch (fbErr) {
+            console.warn('Firebase token verification lookup note:', fbErr.message);
         }
 
-        if (!verifyRes.ok) {
-            const details = await verifyRes.text().catch(() => '');
-            console.warn('Google token verification rejected by Google:', details);
+        // 2. Fallback: Verify via standard Google OAuth tokeninfo endpoint
+        if (!verified) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`, {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                if (verifyRes.ok) {
+                    const payload = await verifyRes.json();
+                    email = payload.email;
+                    email_verified = payload.email_verified === 'true' || payload.email_verified === true;
+                    name = payload.name;
+                    picture = payload.picture;
+                    verified = true;
+                }
+            } catch (fetchErr) {
+                console.warn('Google tokeninfo verification failed:', fetchErr.message);
+            }
+        }
+
+        if (!verified || !email) {
             return res.status(401).json({ error: 'Invalid Google authentication token. Please sign in again.' });
-        }
-
-        const payload = await verifyRes.json();
-        const { email, email_verified, name, picture } = payload;
-
-        if (!email) {
-            return res.status(400).json({ error: 'Could not obtain email address from Google account.' });
         }
 
         const normalizedEmail = email.trim().toLowerCase();

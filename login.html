@@ -19,10 +19,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
+  <!-- Firebase SDK (Free Auth & Google Sign-In) -->
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
   <!-- Supabase SDK (background sync only) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Google Sign-In SDK -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <link rel="stylesheet" href="style.css">
 
@@ -788,19 +789,20 @@
         </div>
       </div>
 
-      <!-- ========== GOOGLE SIGN-IN ========== -->
-      <div id="googleAuthSection">
+      <!-- ========== GOOGLE SIGN-IN (FIREBASE 1-CLICK POPUP) ========== -->
+      <div id="googleAuthSection" style="margin-top: 6px;">
         <div class="auth-divider"><span>Or continue with</span></div>
-        <div id="googleSignInBtn" style="display:flex; justify-content:center; width:100%; min-height:44px;"></div>
-        <button id="googleBtnFallback" type="button" onclick="triggerGoogleSignIn()"
-          style="display:none; width:100%; padding:11px 16px; border-radius:10px; border:1.5px solid #CBD5E1; background:white; color:#475569; font-size:14.5px; font-weight:600; cursor:pointer; align-items:center; justify-content:center; gap:10px; transition:all 0.2s; font-family:'Outfit',sans-serif;">
-          <svg width="18" height="18" viewBox="0 0 24 24">
+        <button id="firebaseGoogleSignInBtn" type="button" onclick="triggerGoogleSignIn()"
+          style="display:flex; width:100%; padding:12px 18px; border-radius:12px; border:1.5px solid #CBD5E1; background:#FFFFFF; color:#1E293B; font-size:15px; font-weight:600; cursor:pointer; align-items:center; justify-content:center; gap:12px; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow:0 1px 3px rgba(0,0,0,0.06); font-family:'Outfit',sans-serif;"
+          onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';"
+          onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#CBD5E1'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)';">
+          <svg width="20" height="20" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.04h3.88c2.27-2.09 3.66-5.17 3.66-9.14z"/>
             <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.04c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.13C3.27 21.43 7.35 24 12 24z"/>
             <path fill="#FBBC05" d="M5.28 14.28c-.24-.72-.38-1.49-.38-2.28s.14-1.56.38-2.28V6.59H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.41l4.03-3.13z"/>
             <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.27 2.57 1.25 6.59l4.03 3.13c.95-2.83 3.6-4.97 6.72-4.97z"/>
           </svg>
-          <span>Continue with Google</span>
+          <span id="googleBtnText">Continue with Google</span>
         </button>
       </div>
 
@@ -1421,93 +1423,52 @@
   function fpOtpPaste(e){e.preventDefault();const t=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');fillFpOtpBoxes(t);}
 
   // =====================================================
-  // GOOGLE SIGN-IN
+  // GOOGLE SIGN-IN (FIREBASE 1-CLICK POPUP)
   // =====================================================
-  let configuredGoogleClientId = '';
-  let authInitAttempts = 0;
+  function initGoogleAuth() {
+    if (typeof BluKaamAuth !== 'undefined' && BluKaamAuth.getFirebase) {
+      BluKaamAuth.getFirebase();
+    }
+  }
 
-  function renderGoogleComponents() {
-    if (!configuredGoogleClientId || !window.google?.accounts?.id) return false;
-    const container = document.getElementById('googleSignInBtn');
-    const fallback = document.getElementById('googleBtnFallback');
+  async function triggerGoogleSignIn() {
+    clearAlert();
+    const btn = document.getElementById('firebaseGoogleSignInBtn');
+    const btnText = document.getElementById('googleBtnText');
+    const originalText = btnText ? btnText.innerText : 'Continue with Google';
+
     try {
-      google.accounts.id.initialize({
-        client_id: configuredGoogleClientId,
-        callback: handleGoogleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-        use_fedcm_for_prompt: true
-      });
-      if (container) {
-        container.style.display = 'flex';
-        const w = Math.min(380, Math.max(240, (container.parentElement?.clientWidth || 360) - 20));
-        google.accounts.id.renderButton(container, {
-          theme: 'outline', size: 'large', type: 'standard',
-          shape: 'rectangular', text: 'continue_with',
-          logo_alignment: 'left', width: w
-        });
-      }
-      if (fallback) fallback.style.display = 'none';
-      return true;
-    } catch (e) {
-      if (fallback) fallback.style.display = 'flex';
-      return false;
-    }
-  }
+      if (btn) btn.disabled = true;
+      if (btnText) btnText.innerText = 'Connecting to Google...';
+      showAlert('Opening Google Sign-In...', false);
 
-  async function initGoogleAuth() {
-    if (window.google?.accounts?.id) {
-      // Fetch client ID from backend config (never hardcode in frontend)
-      try {
-        const config = await BluKaamAuth.getAuthConfig();
-        if (config?.googleClientId?.trim()) {
-          configuredGoogleClientId = config.googleClientId.trim();
-          renderGoogleComponents();
-        }
-      } catch(e) { /* backend waking up */ }
-    } else if (authInitAttempts < 20) {
-      authInitAttempts++;
-      setTimeout(initGoogleAuth, 150);
-    } else {
-      const fallback = document.getElementById('googleBtnFallback');
-      if (fallback) fallback.style.display = 'flex';
-    }
-    // Also try to fetch config independently in case SDK loads late
-    if (!configuredGoogleClientId) {
-      try {
-        const config = await BluKaamAuth.getAuthConfig();
-        if (config?.googleClientId?.trim()) {
-          configuredGoogleClientId = config.googleClientId.trim();
-          renderGoogleComponents();
-        }
-      } catch(e) {}
-    }
-  }
+      const result = await BluKaamAuth.firebaseGoogleSignIn();
+      const fbUser = result?.user;
+      if (!fbUser) throw new Error('No user returned from Google sign-in.');
 
-  function triggerGoogleSignIn() {
-    if (!configuredGoogleClientId) {
-      showAlert('Google Sign-In is not configured yet. Please use email login.');
-      return;
-    }
-    if (window.google?.accounts?.id) {
-      google.accounts.id.prompt(n => {
-        if (n.isNotDisplayed()) showAlert('Please allow third-party cookies or use email login instead.');
-      });
-    } else {
-      showAlert('Google Sign-In is still loading. Please try again in a moment.');
-    }
-  }
+      if (btnText) btnText.innerText = 'Verifying account...';
+      showAlert('Verifying account with BluKaam...', false);
 
-  async function handleGoogleCredentialResponse(response) {
-    if (!response?.credential) return;
-    const role = document.getElementById('regRole')?.value || 'Worker';
-    try {
-      showAlert('⏳ Signing in with Google...', false);
-      const res = await BluKaamAuth.googleLogin(response.credential, role);
+      const idToken = await fbUser.getIdToken();
+      const role = document.getElementById('regRole')?.value || 'Worker';
+
+      const res = await BluKaamAuth.googleLogin(idToken, role);
       BluKaamAuth.showToast(res.message || 'Signed in with Google!', 'success');
-      setTimeout(() => { window.location.href = 'dashboard.html'; }, 350);
+      const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
+      sessionStorage.removeItem('redirect_after_login');
+      setTimeout(() => { window.location.href = nextUrl; }, 350);
     } catch (err) {
-      showAlert(err.message || 'Google authentication failed. Please try again.');
+      console.error('Google sign-in error:', err);
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+        clearAlert();
+      } else if (err.code === 'auth/unauthorized-domain') {
+        showAlert('Domain not authorized in Firebase! Please add your current domain to Firebase Console > Authentication > Settings > Authorized domains.');
+      } else {
+        showAlert(err.message || 'Google authentication failed. Please try again.');
+      }
+    } finally {
+      if (btn) btn.disabled = false;
+      if (btnText) btnText.innerText = originalText;
     }
   }
   </script>
