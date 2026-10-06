@@ -1008,20 +1008,30 @@
   // AUTH PAGE CONTROLLER
   // =====================================================
 
-  if (BluKaamAuth.isAuthenticated()) {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('logout') === 'true') {
+    localStorage.removeItem(BluKaamAuth.TOKEN_KEY);
+    localStorage.removeItem(BluKaamAuth.USER_KEY);
+    localStorage.removeItem(BluKaamAuth.PROFILE_KEY);
+  } else if (!urlParams.get('action') && BluKaamAuth.isAuthenticated()) {
     window.location.href = 'dashboard.html';
   }
 
   let pendingRegistrationData = null;
   let pendingLoginEmail = null;
   let pendingForgotEmail = null;
-  let currentOtpMode = 'register'; // 'register' | 'login'
+  let currentOtpMode = 'register'; // 'register' | 'login' | 'phone'
   let resendTimerInterval = null;
 
   // ---- Page initialization ----
   window.addEventListener('DOMContentLoaded', () => {
     populateStates();
     initGoogleAuth();
+    if (urlParams.get('action') === 'register') {
+      switchAuthTab('register');
+    } else if (urlParams.get('mode') === 'phone') {
+      showPhoneLoginStep();
+    }
     fetch((typeof API_BASE !== 'undefined' ? API_BASE : '/api') + '/status').catch(() => {});
   });
 
@@ -1053,11 +1063,13 @@
   // ---- Alert ----
   function showAlert(msg, isError = true) {
     const el = document.getElementById('authAlert');
+    if (!el) return;
     el.style.display = 'block';
     el.innerText = msg;
     el.style.background = isError ? '#FEE2E2' : '#DCFCE7';
     el.style.color = isError ? '#B91C1C' : '#15803D';
     el.style.border = isError ? '1.5px solid #FCA5A5' : '1.5px solid #86EFAC';
+    try { el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch(e) {}
   }
 
   function clearAlert() {

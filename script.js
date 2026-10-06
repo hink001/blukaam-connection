@@ -13,9 +13,15 @@ function filterProfiles(btn) {
 // Smooth scroll for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
-    const target = document.querySelector(a.getAttribute('href'));
-    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-    document.getElementById('mobileMenu').classList.remove('open');
+    const href = a.getAttribute('href');
+    if (href && href !== '#' && href.length > 1) {
+      try {
+        const target = document.querySelector(href);
+        if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      } catch (err) {}
+    }
+    const mm = document.getElementById('mobileMenu');
+    if (mm) mm.classList.remove('open');
   });
 });
 
