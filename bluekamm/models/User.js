@@ -20,6 +20,12 @@ const UserSchema = new mongoose.Schema({
         enum: ['Worker', 'Contractor', 'Admin', 'Recruiter'],
         default: 'Worker'
     },
+    phone: {
+        type: String,
+        trim: true,
+        sparse: true,
+        index: true
+    },
     isActive: {
         type: Boolean,
         default: true

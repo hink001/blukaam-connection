@@ -418,6 +418,17 @@ const BluKaamAuth = {
         return res;
     },
 
+    async phoneLogin(idToken, role = 'Worker', fullName = '') {
+        const res = await this.request('/auth/phone', {
+            method: 'POST',
+            body: JSON.stringify({ idToken, role, fullName })
+        });
+        if (res.token) {
+            this.setSession(res.token, res.user, res.profile);
+        }
+        return res;
+    },
+
     async getCurrentUser() {
         const res = await this.request('/auth/me');
         if (res.user) localStorage.setItem(this.USER_KEY, JSON.stringify(res.user));

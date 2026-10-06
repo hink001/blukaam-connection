@@ -506,13 +506,70 @@
           <span class="btn-text">Sign In to Dashboard</span>
         </button>
 
-        <div style="text-align:center; margin-top:14px;">
+        <div style="text-align:center; margin-top:14px; display:flex; flex-direction:column; gap:9px;">
+          <a href="javascript:void(0)" onclick="showPhoneLoginStep()"
+             style="font-size:13.5px; color:#0284C7; text-decoration:none; font-weight:700; font-family:'Outfit',sans-serif; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+            📱 Sign In with Mobile Number OTP
+          </a>
           <a href="javascript:void(0)" onclick="showLoginOtpStep()"
-             style="font-size:13px; color:#0284C7; text-decoration:none; font-weight:600; font-family:'Outfit',sans-serif;">
+             style="font-size:12.5px; color:#64748B; text-decoration:none; font-weight:500; font-family:'Outfit',sans-serif;">
             ✉️ Sign In with Email OTP instead
           </a>
         </div>
       </form>
+
+      <!-- ========== PHONE NUMBER SIGN IN STEP ========== -->
+      <div id="phoneLoginStep" style="display:none;">
+        <div style="text-align:center; margin-bottom:20px;">
+          <div style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#EFF6FF,#DBEAFE); display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 14px; box-shadow:0 4px 16px rgba(2,132,199,0.15);">📱</div>
+          <h2 style="font-size:21px; font-weight:800; color:#071E4A; margin-bottom:6px; font-family:'Baloo 2',sans-serif;">
+            Mobile Number Sign In
+          </h2>
+          <p style="font-size:13.5px; color:#64748B; line-height:1.6; font-family:'Outfit',sans-serif;">
+            Enter your 10-digit Indian mobile number to get a free SMS code via Firebase.
+          </p>
+        </div>
+
+        <div class="auth-form-group">
+          <label class="auth-label" for="phoneLoginInput">Mobile Number *</label>
+          <div style="display:flex; gap:8px;">
+            <span style="padding:12px 10px; background:#F1F5F9; border:1.5px solid #CBD5E1; border-radius:10px; font-size:14px; font-weight:700; color:#475569; white-space:nowrap; font-family:'Outfit',sans-serif;">🇮🇳 +91</span>
+            <input type="tel" id="phoneLoginInput" class="auth-input" placeholder="10-digit mobile number"
+                   maxlength="10" pattern="[6-9][0-9]{9}" inputmode="numeric" autocomplete="tel"
+                   style="flex:1;" oninput="this.value=this.value.replace(/\D/g,'')">
+          </div>
+          <div class="auth-hint">Must start with 6, 7, 8 or 9</div>
+        </div>
+
+        <!-- Role selection for phone sign-in if new account -->
+        <div class="auth-form-group">
+          <label class="auth-label">I am signing in as *</label>
+          <div style="display:flex; gap:10px;">
+            <button type="button" id="phoneRoleWorker" class="role-card active" onclick="selectPhoneRole('Worker')" style="flex:1; padding:10px; text-align:center; cursor:pointer;">
+              <div style="font-weight:700; font-size:13.5px;">👷 Worker</div>
+            </button>
+            <button type="button" id="phoneRoleContractor" class="role-card" onclick="selectPhoneRole('Contractor')" style="flex:1; padding:10px; text-align:center; cursor:pointer;">
+              <div style="font-weight:700; font-size:13.5px;">🏗️ Contractor</div>
+            </button>
+          </div>
+          <input type="hidden" id="phoneSelectedRole" value="Worker">
+        </div>
+
+        <!-- Hidden Firebase reCAPTCHA container -->
+        <div id="recaptcha-container"></div>
+
+        <button type="button" id="sendPhoneOtpBtn" class="auth-btn-primary" onclick="sendFirebasePhoneOtp()" style="margin-top:6px;">
+          <div class="spinner"></div>
+          <span class="btn-text">Send SMS Verification Code</span>
+        </button>
+
+        <div style="text-align:center; margin-top:16px;">
+          <a href="javascript:void(0)" onclick="switchAuthTab('login')"
+             style="font-size:13px; color:#64748B; text-decoration:none; font-weight:600; font-family:'Outfit',sans-serif;">
+            ← Back to Email Sign In
+          </a>
+        </div>
+      </div>
 
       <!-- ========== REGISTRATION: Multi-Step ========== -->
       <div id="registerFlow" style="display:none;">
@@ -987,7 +1044,7 @@
   }
 
   function hideAllForms() {
-    ['loginForm','registerFlow','otpStep','forgotPwStep'].forEach(id => {
+    ['loginForm','registerFlow','otpStep','forgotPwStep','phoneLoginStep'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
@@ -1165,20 +1222,103 @@
     }
   }
 
+  // ---- Phone SMS OTP (Firebase) ----
+  let phoneConfirmationResult = null;
+  let pendingPhoneNumber = '';
+
+  function showPhoneLoginStep() {
+    hideAllForms();
+    clearAlert();
+    document.getElementById('phoneLoginStep').style.display = 'block';
+    document.getElementById('googleAuthSection').style.display = 'none';
+    const input = document.getElementById('phoneLoginInput');
+    if (input) setTimeout(() => input.focus(), 150);
+  }
+
+  function selectPhoneRole(role) {
+    document.getElementById('phoneSelectedRole').value = role;
+    document.getElementById('phoneRoleWorker').classList.toggle('active', role === 'Worker');
+    document.getElementById('phoneRoleContractor').classList.toggle('active', role === 'Contractor');
+  }
+
+  async function sendFirebasePhoneOtp() {
+    clearAlert();
+    const phoneInput = document.getElementById('phoneLoginInput');
+    const phoneVal = phoneInput ? phoneInput.value.trim() : '';
+
+    if (!phoneVal || !/^[6-9]\d{9}$/.test(phoneVal)) {
+      showAlert('Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).');
+      if (phoneInput) phoneInput.focus();
+      return;
+    }
+
+    const fullPhoneNumber = `+91${phoneVal}`;
+    pendingPhoneNumber = fullPhoneNumber;
+    currentOtpMode = 'phone';
+
+    try {
+      setButtonLoading('sendPhoneOtpBtn', true);
+      showAlert('Requesting SMS verification code from Firebase...', false);
+
+      if (typeof firebase === 'undefined' || !firebase.auth) {
+        throw new Error('Firebase Auth SDK is still loading. Please wait 2 seconds and try again.');
+      }
+      if (BluKaamAuth.getFirebase) BluKaamAuth.getFirebase();
+
+      // Setup invisible RecaptchaVerifier
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+          size: 'invisible',
+          callback: () => {},
+          'expired-callback': () => {
+            showAlert('Verification expired. Please try sending the SMS code again.');
+          }
+        });
+      }
+
+      const confirmationResult = await firebase.auth().signInWithPhoneNumber(fullPhoneNumber, window.recaptchaVerifier);
+      window.phoneConfirmationResult = confirmationResult;
+      phoneConfirmationResult = confirmationResult;
+
+      showOtpStep('Verify Your Mobile', 'We sent a 6-digit SMS code to', fullPhoneNumber);
+      showAlert(`SMS code sent to ${fullPhoneNumber}! Check your messages.`, false);
+      startResendCountdown();
+    } catch (err) {
+      console.error('Phone SMS OTP error:', err);
+      if (window.recaptchaVerifier && typeof window.recaptchaVerifier.clear === 'function') {
+        try { window.recaptchaVerifier.clear(); } catch(e) {}
+        window.recaptchaVerifier = null;
+      }
+      if (err.code === 'auth/invalid-phone-number') {
+        showAlert('Invalid phone number format. Please check the 10-digit number.');
+      } else if (err.code === 'auth/quota-exceeded') {
+        showAlert('SMS quota temporarily exceeded. Please try again later or sign in with Google.');
+      } else if (err.code === 'auth/operation-not-allowed') {
+        showAlert('Phone sign-in is disabled in Firebase! Please enable Phone in Firebase Console > Authentication > Sign-in method.');
+      } else {
+        showAlert(err.message || 'Failed to send SMS code. Please try again.');
+      }
+    } finally {
+      setButtonLoading('sendPhoneOtpBtn', false);
+    }
+  }
+
   // ---- OTP Step ----
-  function showOtpStep(title, subtitle, email) {
+  function showOtpStep(title, subtitle, targetText) {
     hideAllForms();
     document.getElementById('otpStep').style.display = 'block';
     document.getElementById('googleAuthSection').style.display = 'none';
     document.getElementById('otpStepTitle').innerText = title;
-    document.getElementById('otpStepSubtitle').innerHTML = `${subtitle}<br><strong style="color:#0284C7;">${email}</strong>`;
-    document.getElementById('otpEmailTarget').innerText = email;
+    document.getElementById('otpStepSubtitle').innerHTML = `${subtitle}<br><strong style="color:#0284C7;">${targetText}</strong>`;
+    document.getElementById('otpEmailTarget').innerText = targetText;
     clearOtpBoxes();
     setTimeout(() => document.getElementById('otp0').focus(), 200);
   }
 
   function backFromOtpStep() {
-    if (currentOtpMode === 'login') {
+    if (currentOtpMode === 'phone') {
+      showPhoneLoginStep();
+    } else if (currentOtpMode === 'login') {
       switchAuthTab('login');
     } else {
       hideAllForms();
@@ -1285,7 +1425,21 @@
       setButtonLoading('verifyOtpBtn', true);
       clearAlert();
 
-      if (currentOtpMode === 'login') {
+      if (currentOtpMode === 'phone') {
+        const confirmation = window.phoneConfirmationResult || phoneConfirmationResult;
+        if (!confirmation) {
+          throw new Error('SMS session expired. Please request a new code.');
+        }
+        showAlert('Verifying SMS code with Firebase...', false);
+        const result = await confirmation.confirm(otp);
+        const fbUser = result?.user;
+        if (!fbUser) throw new Error('No user returned from phone verification.');
+
+        const idToken = await fbUser.getIdToken();
+        const role = document.getElementById('phoneSelectedRole')?.value || 'Worker';
+        const res = await BluKaamAuth.phoneLogin(idToken, role);
+        BluKaamAuth.showToast(res.message || 'Logged in with mobile number!', 'success');
+      } else if (currentOtpMode === 'login') {
         await BluKaamAuth.verifyLoginOtp(pendingLoginEmail, otp);
         BluKaamAuth.showToast('Logged in successfully!', 'success');
       } else {
@@ -1297,6 +1451,7 @@
       sessionStorage.removeItem('redirect_after_login');
       setTimeout(() => { window.location.href = nextUrl; }, 400);
     } catch (err) {
+      console.error('OTP Submit error:', err);
       showAlert(err.message || 'Invalid or expired code. Please try again.');
       setButtonLoading('verifyOtpBtn', false);
     }
@@ -1324,6 +1479,10 @@
   }
 
   async function resendOtp() {
+    if (currentOtpMode === 'phone') {
+      await sendFirebasePhoneOtp();
+      return;
+    }
     const email = currentOtpMode === 'login' ? pendingLoginEmail : (pendingRegistrationData && pendingRegistrationData.email);
     const name = currentOtpMode === 'login' ? '' : (pendingRegistrationData && pendingRegistrationData.fullName);
     if (!email) return;
@@ -1344,7 +1503,6 @@
       showAlert(err.message || 'Failed to resend code.');
       const btn = document.getElementById('resendOtpBtn');
       btn.disabled = false; btn.innerText = 'Resend Code';
-    }
   }
 
   // ---- Forgot Password ----

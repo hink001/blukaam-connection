@@ -430,6 +430,179 @@ router.post('/google', async (req, res) => {
 });
 
 // --------------------------------------------------------
+// POST /api/auth/phone
+// Verify Firebase Phone Auth ID Token & log in or register
+// --------------------------------------------------------
+router.post('/phone', async (req, res) => {
+    try {
+        const { idToken, role = 'Worker', fullName } = req.body;
+        if (!idToken) {
+            return res.status(400).json({ error: 'Firebase Phone ID token is required.' });
+        }
+
+        // Verify Firebase Phone Token via Google's official Identity Toolkit endpoint
+        const firebaseApiKey = process.env.FIREBASE_API_KEY || 'AIzaSyDTjZeRQ6xKNkMAiJq0q_4ZKkyy1TSSqu8';
+        let verifyRes;
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            verifyRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${firebaseApiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idToken }),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+        } catch (fetchErr) {
+            console.error('Firebase Phone token verification failed:', fetchErr.message);
+            return res.status(504).json({ error: 'Phone verification connection timed out. Please try again.' });
+        }
+
+        if (!verifyRes.ok) {
+            return res.status(401).json({ error: 'Invalid or expired phone verification token. Please try again.' });
+        }
+
+        const fbData = await verifyRes.json();
+        const fbUser = fbData?.users?.[0];
+        if (!fbUser || !fbUser.phoneNumber) {
+            return res.status(400).json({ error: 'No verified phone number found in authentication token.' });
+        }
+
+        const rawPhone = fbUser.phoneNumber; // e.g. +919876543210
+        const cleanPhone10 = rawPhone.replace(/\D/g, '').slice(-10); // 10-digit number
+        const placeholderEmail = `phone_${cleanPhone10}@blukaam.in`;
+
+        if (mongoose.connection.readyState === 1) {
+            // Find existing user by phone or placeholder email
+            let user = await User.findOne({
+                $or: [
+                    { phone: cleanPhone10 },
+                    { email: placeholderEmail }
+                ]
+            });
+            let isNewUser = false;
+
+            if (!user) {
+                isNewUser = true;
+                const randomPassword = 'p_' + Math.random().toString(36).slice(-10) + Date.now();
+                user = new User({
+                    email: placeholderEmail,
+                    password: randomPassword,
+                    phone: cleanPhone10,
+                    role: role === 'Contractor' ? 'Contractor' : 'Worker',
+                    isEmailVerified: true,
+                    lastLogin: new Date()
+                });
+                await user.save();
+            } else {
+                user.lastLogin = new Date();
+                if (!user.phone) user.phone = cleanPhone10;
+                await user.save();
+            }
+
+            // Find or create profile
+            let profile = await Profile.findOne({
+                $or: [
+                    { userId: user._id },
+                    { phone: cleanPhone10 },
+                    { 'contactInfo.phone': cleanPhone10 }
+                ]
+            });
+
+            const displayName = fullName || (profile && profile.fullName) || `Worker ${cleanPhone10.slice(-4)}`;
+
+            if (!profile) {
+                profile = new Profile({
+                    userId: user._id,
+                    fullName: displayName,
+                    name: displayName,
+                    role: user.role,
+                    phone: cleanPhone10,
+                    contactInfo: { phone: cleanPhone10, email: placeholderEmail },
+                    avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=0D2F6E&textColor=ffffff`,
+                    isVerified: true
+                });
+                await profile.save();
+            } else {
+                let updated = false;
+                if (!profile.userId) { profile.userId = user._id; updated = true; }
+                if (!profile.phone) { profile.phone = cleanPhone10; updated = true; }
+                if (updated) await profile.save();
+            }
+
+            const token = jwt.sign(
+                { userId: user._id, email: user.email, phone: cleanPhone10, role: user.role },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            return res.json({
+                message: isNewUser ? 'Welcome to BluKaam!' : 'Logged in successfully!',
+                token,
+                user: { id: user._id, email: user.email, phone: cleanPhone10, role: user.role, isEmailVerified: true },
+                profile
+            });
+        } else {
+            // Offline fallback
+            const db = getOfflineDb();
+            let user = db.users.find(u => u.phone === cleanPhone10 || u.email === placeholderEmail);
+            let isNewUser = false;
+
+            if (!user) {
+                isNewUser = true;
+                const userId = 'usr_' + Date.now();
+                user = {
+                    _id: userId,
+                    id: userId,
+                    email: placeholderEmail,
+                    phone: cleanPhone10,
+                    role: role === 'Contractor' ? 'Contractor' : 'Worker',
+                    isActive: true,
+                    isEmailVerified: true,
+                    createdAt: new Date().toISOString()
+                };
+                db.users.push(user);
+            }
+            user.lastLogin = new Date().toISOString();
+
+            let profile = db.profiles.find(p => p.userId === user._id || p.phone === cleanPhone10);
+            if (!profile) {
+                const displayName = fullName || `Worker ${cleanPhone10.slice(-4)}`;
+                profile = {
+                    _id: 'prf_' + Date.now(),
+                    userId: user._id,
+                    fullName: displayName,
+                    name: displayName,
+                    role: user.role,
+                    phone: cleanPhone10,
+                    avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=0D2F6E&textColor=ffffff`,
+                    isVerified: true,
+                    createdAt: new Date().toISOString()
+                };
+                db.profiles.push(profile);
+            }
+            saveOfflineDb(db);
+
+            const token = jwt.sign(
+                { userId: user._id, email: user.email, phone: cleanPhone10, role: user.role },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            return res.json({
+                message: isNewUser ? 'Welcome to BluKaam!' : 'Logged in successfully!',
+                token,
+                user: { id: user._id, email: user.email, phone: cleanPhone10, role: user.role, isEmailVerified: true },
+                profile
+            });
+        }
+    } catch (err) {
+        console.error('Phone Sign-In error:', err);
+        return res.status(500).json({ error: 'Server error during phone authentication: ' + err.message });
+    }
+});
+
+// --------------------------------------------------------
 // POST /api/auth/send-email-otp
 // Generates a 6-digit OTP, saves it, and dispatches via email
 // --------------------------------------------------------
