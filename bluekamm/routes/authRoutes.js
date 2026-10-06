@@ -1028,18 +1028,26 @@ router.post('/register', async (req, res) => {
         }
 
         const normalizedEmail = email.trim().toLowerCase();
+        const cleanPhone = phone ? phone.trim().replace(/\D/g, '').slice(-10) : undefined;
 
         if (mongoose.connection.readyState === 1) {
             // MongoDB Mode
-            const existingUser = await User.findOne({ email: normalizedEmail });
+            const queryConditions = [{ email: normalizedEmail }];
+            if (cleanPhone) queryConditions.push({ phone: cleanPhone });
+            const existingUser = await User.findOne({ $or: queryConditions });
             if (existingUser) {
-                return res.status(409).json({ error: 'An account with this email already exists.' });
+                if (existingUser.email === normalizedEmail) {
+                    return res.status(409).json({ error: 'An account with this email already exists.' });
+                }
+                return res.status(409).json({ error: 'An account with this mobile number already exists.' });
             }
 
             const newUser = new User({
                 email: normalizedEmail,
                 password, // pre-save hook will hash this
-                role: role === 'Contractor' ? 'Contractor' : 'Worker'
+                phone: cleanPhone,
+                role: role === 'Contractor' ? 'Contractor' : 'Worker',
+                isEmailVerified: true
             });
             const savedUser = await newUser.save();
 
@@ -1086,9 +1094,12 @@ router.post('/register', async (req, res) => {
         } else {
             // Offline Local Mode
             const db = getOfflineDb();
-            const existing = db.users.find(u => u.email === normalizedEmail);
+            const existing = db.users.find(u => 
+                u.email === normalizedEmail || 
+                (cleanPhone && u.phone && u.phone.replace(/\D/g, '').slice(-10) === cleanPhone)
+            );
             if (existing) {
-                return res.status(409).json({ error: 'An account with this email already exists.' });
+                return res.status(409).json({ error: 'An account with this email or mobile number already exists.' });
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
@@ -1099,6 +1110,7 @@ router.post('/register', async (req, res) => {
                 _id: userId,
                 id: userId,
                 email: normalizedEmail,
+                phone: cleanPhone || '',
                 password: hashedPassword,
                 role: role === 'Contractor' ? 'Contractor' : 'Worker',
                 isActive: true,
@@ -1162,28 +1174,33 @@ router.post('/register', async (req, res) => {
 
 // --------------------------------------------------------
 // POST /api/auth/login
-// Authenticate user by email & password
+// Authenticate user by email or mobile number & password
 // --------------------------------------------------------
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required.' });
+            return res.status(400).json({ error: 'Email / Mobile number and password are required.' });
         }
 
-        const normalizedEmail = email.trim().toLowerCase();
+        const loginIdentifier = email.trim().toLowerCase();
+        const rawDigits = loginIdentifier.replace(/\D/g, '');
+        const cleanPhone = rawDigits.length >= 10 ? rawDigits.slice(-10) : null;
 
         if (mongoose.connection.readyState === 1) {
-            // MongoDB Mode
-            const user = await User.findOne({ email: normalizedEmail });
+            // MongoDB Mode: match either email or 10-digit phone
+            const userQuery = cleanPhone
+                ? { $or: [{ email: loginIdentifier }, { phone: cleanPhone }] }
+                : { email: loginIdentifier };
+            const user = await User.findOne(userQuery);
             if (!user) {
-                return res.status(401).json({ error: 'Invalid email or password.' });
+                return res.status(401).json({ error: 'Invalid email, mobile number, or password.' });
             }
 
             const isMatch = await user.comparePassword(password);
             if (!isMatch) {
-                return res.status(401).json({ error: 'Invalid email or password.' });
+                return res.status(401).json({ error: 'Invalid email, mobile number, or password.' });
             }
 
             // Update lastLogin
@@ -1227,14 +1244,17 @@ router.post('/login', async (req, res) => {
         } else {
             // Offline Local Mode
             const db = getOfflineDb();
-            const user = db.users.find(u => u.email === normalizedEmail);
+            const user = db.users.find(u => 
+                u.email === loginIdentifier || 
+                (cleanPhone && u.phone && u.phone.replace(/\D/g, '').slice(-10) === cleanPhone)
+            );
             if (!user) {
-                return res.status(401).json({ error: 'Invalid email or password.' });
+                return res.status(401).json({ error: 'Invalid email, mobile number, or password.' });
             }
 
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {
-                return res.status(401).json({ error: 'Invalid email or password.' });
+                return res.status(401).json({ error: 'Invalid email, mobile number, or password.' });
             }
 
             user.lastLogin = new Date().toISOString();

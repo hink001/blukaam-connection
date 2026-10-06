@@ -482,8 +482,8 @@
       <!-- ========== SIGN IN FORM ========== -->
       <form id="loginForm" onsubmit="handleLoginSubmit(event)">
         <div class="auth-form-group">
-          <label class="auth-label" for="loginEmail">Email Address *</label>
-          <input type="email" id="loginEmail" class="auth-input" placeholder="name@example.com" required autocomplete="email">
+          <label class="auth-label" for="loginEmail">Email Address or Mobile Number *</label>
+          <input type="text" id="loginEmail" class="auth-input" placeholder="e.g. name@example.com or 10-digit mobile" required autocomplete="username">
         </div>
 
         <div class="auth-form-group">
@@ -507,13 +507,13 @@
         </button>
 
         <div style="text-align:center; margin-top:14px; display:flex; flex-direction:column; gap:9px;">
-          <a href="javascript:void(0)" onclick="showPhoneLoginStep()"
-             style="font-size:13.5px; color:#0284C7; text-decoration:none; font-weight:700; font-family:'Outfit',sans-serif; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
-            📱 Sign In with Mobile Number OTP
+          <a href="javascript:void(0)" onclick="switchAuthTab('register')"
+             style="font-size:13.5px; color:#0284C7; text-decoration:none; font-weight:700; font-family:'Outfit',sans-serif;">
+            Don't have an account? Create Free Account →
           </a>
-          <a href="javascript:void(0)" onclick="showLoginOtpStep()"
+          <a href="javascript:void(0)" onclick="showPhoneLoginStep()"
              style="font-size:12.5px; color:#64748B; text-decoration:none; font-weight:500; font-family:'Outfit',sans-serif;">
-            ✉️ Sign In with Email OTP instead
+            📱 Sign In with Mobile SMS OTP (Firebase)
           </a>
         </div>
       </form>
@@ -525,9 +525,12 @@
           <h2 style="font-size:21px; font-weight:800; color:#071E4A; margin-bottom:6px; font-family:'Baloo 2',sans-serif;">
             Mobile Number Sign In
           </h2>
-          <p style="font-size:13.5px; color:#64748B; line-height:1.6; font-family:'Outfit',sans-serif;">
-            Enter your 10-digit Indian mobile number to get a free SMS code via Firebase.
+          <p style="font-size:13.5px; color:#64748B; line-height:1.6; font-family:'Outfit',sans-serif; margin-bottom:12px;">
+            Enter your 10-digit Indian mobile number to get an SMS code via Firebase.
           </p>
+          <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:10px; padding:10px 14px; font-size:12.5px; color:#1E40AF; text-align:left; line-height:1.5;">
+            💡 <strong>Quick Sign In:</strong> You can also sign in directly using your <strong>Mobile Number + Password</strong> on the main Sign In tab with no SMS required!
+          </div>
         </div>
 
         <div class="auth-form-group">
@@ -729,7 +732,7 @@
             </button>
             <button type="button" id="regBtn" class="auth-btn-primary" onclick="handleRegisterSubmit()" style="flex:1;">
               <div class="spinner"></div>
-              <span class="btn-text">Send Verification Code</span>
+              <span class="btn-text">Create Account &amp; Sign In →</span>
             </button>
           </div>
         </div>
@@ -1307,6 +1310,8 @@
         showAlert('SMS quota temporarily exceeded. Please try again later or sign in with Google.');
       } else if (err.code === 'auth/operation-not-allowed') {
         showAlert('Phone sign-in is disabled in Firebase! Please enable Phone in Firebase Console > Authentication > Sign-in method.');
+      } else if (err.code === 'auth/billing-not-enabled') {
+        showAlert('Google Firebase requires a billing account for real SMS. Tip: You can sign in immediately using your Mobile Number + Password on the Sign In tab without SMS!');
       } else {
         showAlert(err.message || 'Failed to send SMS code. Please try again.');
       }
@@ -1403,27 +1408,28 @@
     const repeatPassword = document.getElementById('regRepeatPassword').value;
     const role = document.getElementById('regRole').value;
 
+    if (!fullName) { showAlert('Please enter your full name.'); goToRegStep(2); return; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAlert('Please enter a valid email address.'); goToRegStep(2); return; }
+    if (!phone || !/^[6-9][0-9]{9}$/.test(phone)) { showAlert('Please enter a valid 10-digit Indian mobile number.'); goToRegStep(2); return; }
+    if (!workType) { showAlert('Please enter your trade or industry.'); goToRegStep(2); return; }
+    if (!state || !city) { showAlert('Please select your state and city.'); goToRegStep(3); return; }
     if (password !== repeatPassword) { showAlert('Passwords do not match. Please verify both passwords.'); return; }
     if (password.length < 6) { showAlert('Password must be at least 6 characters long.'); return; }
 
     pendingRegistrationData = { fullName, email, phone, state, city, pincode, locality, workType, password, role };
-    currentOtpMode = 'register';
 
     try {
       setButtonLoading('regBtn', true);
       clearAlert();
-      const res = await BluKaamAuth.sendEmailOtp(email, fullName);
-      showOtpStep('Verify Your Email', 'We sent a 6-digit verification code to', email);
-      document.getElementById('verifyOtpBtn').querySelector('.btn-text').innerText = 'Verify & Create Account';
-      if (res.simulated && res.devOtp) {
-        showAlert(`(Dev Mode) Verification code: ${res.devOtp}`, false);
-        fillOtpBoxes(res.devOtp);
-      } else {
-        showAlert(`Verification code sent to ${email}! Check your inbox.`, false);
-      }
-      startResendCountdown();
+      showAlert('Creating your account...', false);
+      await BluKaamAuth.register(pendingRegistrationData);
+      BluKaamAuth.showToast('Account created successfully! Welcome to BluKaam.', 'success');
+      const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
+      sessionStorage.removeItem('redirect_after_login');
+      setTimeout(() => { window.location.href = nextUrl; }, 400);
     } catch (err) {
-      showAlert(err.message || 'Failed to send verification code.');
+      console.error('Registration error:', err);
+      showAlert(err.message || 'Failed to create account. Please try again.');
       setButtonLoading('regBtn', false);
     }
   }
