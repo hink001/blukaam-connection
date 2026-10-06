@@ -17,12 +17,12 @@ for (const p of envPaths) {
 
 // Check if email credentials are configured in environment
 const isEmailConfigured = () => {
-    return !!(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+    return !!(process.env.BREVO_API_KEY || process.env.RESEND_API_KEY || (process.env.EMAIL_USER && process.env.EMAIL_PASS));
 };
 
 // Create transporter lazily so env changes take effect
 const getTransporter = () => {
-    if (!isEmailConfigured()) return null;
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return null;
 
     const user = (process.env.EMAIL_USER || '').trim();
     // Strip spaces from Google App Password (e.g. "dbdb ygfb qemg tlqj" -> "dbdbygfbqemgtlqj")
@@ -73,47 +73,108 @@ const sendOtpEmail = async (toEmail, otp, userName = 'Professional') => {
         };
     }
 
+    const htmlContent = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 540px; margin: 0 auto; background: #ffffff; border: 1.5px solid #E2E8F0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(7,30,74,0.06);">
+        <div style="background: linear-gradient(135deg, #071E4A 0%, #0284C7 100%); padding: 32px 24px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">BluKaam Connection</h1>
+            <p style="margin: 6px 0 0; font-size: 13px; color: #E0F2FE; letter-spacing: 1px; text-transform: uppercase;">Identity & Profile Verification</p>
+        </div>
+        
+        <div style="padding: 32px 28px; text-align: center; color: #1E293B;">
+            <h2 style="margin-top: 0; font-size: 20px; font-weight: 700; color: #071E4A;">Verify Your Email Address</h2>
+            <p style="font-size: 15px; color: #475569; line-height: 1.5; margin-bottom: 24px;">
+                Hello <strong>${userName}</strong>, thank you for joining BluKaam Connection! Use the 6-digit verification code below to complete your verification.
+            </p>
+            
+            <div style="background: #F0F9FF; border: 2px dashed #0284C7; border-radius: 12px; padding: 18px 24px; display: inline-block; margin-bottom: 24px;">
+                <span style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #0284C7; font-family: monospace;">${otp}</span>
+            </div>
+
+            <p style="font-size: 13px; color: #94A3B8; margin: 0 0 16px;">
+                ⏱️ This verification code is valid for <strong>5 minutes</strong>.
+            </p>
+            <p style="font-size: 12px; color: #94A3B8; margin: 0;">
+                If you did not request this verification, please ignore this email or contact support.
+            </p>
+        </div>
+
+        <div style="background: #F8FAFC; border-top: 1px solid #E2E8F0; padding: 18px 24px; text-align: center; font-size: 12px; color: #64748B;">
+            &copy; ${new Date().getFullYear()} BluKaam Connection &bull; India's Blue-Collar Digital Workforce Network
+        </div>
+    </div>
+    `;
+
+    // Strategy 1: Brevo HTTP API (Port 443 HTTPS - NEVER blocked by Render cloud)
+    if (process.env.BREVO_API_KEY) {
+        try {
+            const senderEmail = (process.env.EMAIL_USER || 'support@blukaamconnection.com').trim();
+            const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+                method: 'POST',
+                headers: {
+                    'accept': 'application/json',
+                    'api-key': process.env.BREVO_API_KEY.trim(),
+                    'content-type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sender: { name: 'BluKaam Connection', email: senderEmail },
+                    to: [{ email: toEmail, name: userName }],
+                    subject: `🔐 Your BluKaam Verification Code: ${otp}`,
+                    htmlContent
+                })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+                console.log(`[Email Service] OTP email delivered via Brevo HTTP API to ${toEmail}`);
+                return { success: true, simulated: false, messageId: data.messageId };
+            }
+            console.error('[Email Service] Brevo API rejected:', data);
+        } catch (err) {
+            console.error('[Email Service] Brevo HTTP failed:', err.message);
+        }
+    }
+
+    // Strategy 2: Resend HTTP API (Port 443 HTTPS)
+    if (process.env.RESEND_API_KEY) {
+        try {
+            const res = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    from: 'BluKaam Connection <onboarding@resend.dev>',
+                    to: [toEmail],
+                    subject: `🔐 Your BluKaam Verification Code: ${otp}`,
+                    html: htmlContent
+                })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+                console.log(`[Email Service] OTP email delivered via Resend HTTP API to ${toEmail}`);
+                return { success: true, simulated: false, messageId: data.id };
+            }
+            console.error('[Email Service] Resend API rejected:', data);
+        } catch (err) {
+            console.error('[Email Service] Resend HTTP failed:', err.message);
+        }
+    }
+
+    // Strategy 3: Direct Gmail SMTP
     try {
         const transporter = getTransporter();
+        if (!transporter) throw new Error('No SMTP transporter configured');
+
         const mailOptions = {
             from: `"BluKaam Connection" <${process.env.EMAIL_USER}>`,
             to: toEmail,
             subject: `🔐 Your BluKaam Verification Code: ${otp}`,
-            html: `
-            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 540px; margin: 0 auto; background: #ffffff; border: 1.5px solid #E2E8F0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(7,30,74,0.06);">
-                <div style="background: linear-gradient(135deg, #071E4A 0%, #0284C7 100%); padding: 32px 24px; text-align: center; color: white;">
-                    <h1 style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">BluKaam Connection</h1>
-                    <p style="margin: 6px 0 0; font-size: 13px; color: #E0F2FE; letter-spacing: 1px; text-transform: uppercase;">Identity & Profile Verification</p>
-                </div>
-                
-                <div style="padding: 32px 28px; text-align: center; color: #1E293B;">
-                    <h2 style="margin-top: 0; font-size: 20px; font-weight: 700; color: #071E4A;">Verify Your Email Address</h2>
-                    <p style="font-size: 15px; color: #475569; line-height: 1.5; margin-bottom: 24px;">
-                        Hello <strong>${userName}</strong>, thank you for joining BluKaam Connection! Use the 6-digit verification code below to complete your profile registration.
-                    </p>
-                    
-                    <div style="background: #F0F9FF; border: 2px dashed #0284C7; border-radius: 12px; padding: 18px 24px; display: inline-block; margin-bottom: 24px;">
-                        <span style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #0284C7; font-family: monospace;">${otp}</span>
-                    </div>
-
-                    <p style="font-size: 13px; color: #94A3B8; margin: 0 0 16px;">
-                        ⏱️ This verification code is valid for <strong>5 minutes</strong>.
-                    </p>
-                    <p style="font-size: 12px; color: #94A3B8; margin: 0;">
-                        If you did not request this verification, please ignore this email or contact support.
-                    </p>
-                </div>
-
-                <div style="background: #F8FAFC; border-top: 1px solid #E2E8F0; padding: 18px 24px; text-align: center; font-size: 12px; color: #64748B;">
-                    &copy; ${new Date().getFullYear()} BluKaam Connection &bull; India's Blue-Collar Digital Workforce Network
-                </div>
-            </div>
-            `
+            html: htmlContent
         };
 
         const sendPromise = transporter.sendMail(mailOptions);
         const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('SMTP connection timed out after 8s')), 8000)
+            setTimeout(() => reject(new Error('SMTP connection timed out after 8s (Render free tier blocks SMTP ports 25, 465, 587)')), 8000)
         );
         const info = await Promise.race([sendPromise, timeoutPromise]);
         console.log(`[Email Service] OTP email sent successfully to ${toEmail} (Message ID: ${info.messageId})`);
