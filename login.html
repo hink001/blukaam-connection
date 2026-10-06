@@ -558,9 +558,6 @@
           <input type="hidden" id="phoneSelectedRole" value="Worker">
         </div>
 
-        <!-- Hidden Firebase reCAPTCHA container -->
-        <div id="recaptcha-container"></div>
-
         <button type="button" id="sendPhoneOtpBtn" class="auth-btn-primary" onclick="sendFirebasePhoneOtp()" style="margin-top:6px;">
           <div class="spinner"></div>
           <span class="btn-text">Send SMS Verification Code</span>
@@ -732,8 +729,14 @@
             </button>
             <button type="button" id="regBtn" class="auth-btn-primary" onclick="handleRegisterSubmit()" style="flex:1;">
               <div class="spinner"></div>
-              <span class="btn-text">Create Account &amp; Sign In →</span>
+              <span class="btn-text">Verify Mobile OTP &amp; Create Account →</span>
             </button>
+          </div>
+          <div style="text-align:center; margin-top:12px;">
+            <a href="javascript:void(0)" onclick="createAccountWithoutOtp()"
+               style="font-size:12.5px; color:#64748B; text-decoration:none; font-weight:500; font-family:'Outfit',sans-serif;">
+              Or create account directly without SMS code →
+            </a>
           </div>
         </div>
       </div>
@@ -865,6 +868,8 @@
           <span id="googleBtnText">Continue with Google</span>
         </button>
       </div>
+      <!-- Global Firebase invisible reCAPTCHA container -->
+      <div id="recaptcha-container"></div>
 
       <!-- Legal -->
       <p class="auth-legal">
@@ -1256,6 +1261,24 @@
     document.getElementById('phoneRoleContractor').classList.toggle('active', role === 'Contractor');
   }
 
+  function getOrCreateRecaptchaVerifier() {
+    if (typeof firebase === 'undefined' || !firebase.auth) {
+      throw new Error('Firebase Auth SDK is still loading. Please wait 2 seconds and try again.');
+    }
+    if (BluKaamAuth.getFirebase) BluKaamAuth.getFirebase();
+
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        size: 'invisible',
+        callback: () => {},
+        'expired-callback': () => {
+          showAlert('reCAPTCHA expired. Please request the code again.');
+        }
+      });
+    }
+    return window.recaptchaVerifier;
+  }
+
   async function sendFirebasePhoneOtp() {
     clearAlert();
     const phoneInput = document.getElementById('phoneLoginInput');
@@ -1275,27 +1298,14 @@
       setButtonLoading('sendPhoneOtpBtn', true);
       showAlert('Requesting SMS verification code from Firebase...', false);
 
-      if (typeof firebase === 'undefined' || !firebase.auth) {
-        throw new Error('Firebase Auth SDK is still loading. Please wait 2 seconds and try again.');
-      }
-      if (BluKaamAuth.getFirebase) BluKaamAuth.getFirebase();
-
-      // Setup invisible RecaptchaVerifier
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-          size: 'invisible',
-          callback: () => {},
-          'expired-callback': () => {
-            showAlert('Verification expired. Please try sending the SMS code again.');
-          }
-        });
-      }
-
-      const confirmationResult = await firebase.auth().signInWithPhoneNumber(fullPhoneNumber, window.recaptchaVerifier);
+      const verifier = getOrCreateRecaptchaVerifier();
+      const confirmationResult = await firebase.auth().signInWithPhoneNumber(fullPhoneNumber, verifier);
       window.phoneConfirmationResult = confirmationResult;
       phoneConfirmationResult = confirmationResult;
 
       showOtpStep('Verify Your Mobile', 'We sent a 6-digit SMS code to', fullPhoneNumber);
+      const verifyBtn = document.getElementById('verifyOtpBtn');
+      if (verifyBtn) verifyBtn.querySelector('.btn-text').innerText = 'Verify & Sign In';
       showAlert(`SMS code sent to ${fullPhoneNumber}! Check your messages.`, false);
       startResendCountdown();
     } catch (err) {
@@ -1394,7 +1404,47 @@
     return code;
   }
 
-  // ---- Register ----
+  // ---- Direct Register (Skip OTP fallback) ----
+  async function createAccountWithoutOtp() {
+    const fullName = document.getElementById('regFullName')?.value?.trim();
+    const email = document.getElementById('regEmail')?.value?.trim();
+    const phone = document.getElementById('regPhone')?.value?.trim();
+    const workType = document.getElementById('regWorkType')?.value?.trim();
+    const state = document.getElementById('regState')?.value;
+    const city = document.getElementById('regCity')?.value;
+    const pincode = document.getElementById('regPincode')?.value?.trim() || '';
+    const locality = document.getElementById('regLocality')?.value?.trim() || '';
+    const password = document.getElementById('regPassword')?.value;
+    const repeatPassword = document.getElementById('regRepeatPassword')?.value;
+    const role = document.getElementById('regRole')?.value || 'Worker';
+
+    if (!fullName) { showAlert('Please enter your full name.'); goToRegStep(2); return; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAlert('Please enter a valid email address.'); goToRegStep(2); return; }
+    if (!phone || !/^[6-9][0-9]{9}$/.test(phone)) { showAlert('Please enter a valid 10-digit Indian mobile number.'); goToRegStep(2); return; }
+    if (!workType) { showAlert('Please enter your trade or industry.'); goToRegStep(2); return; }
+    if (!state || !city) { showAlert('Please select your state and city.'); goToRegStep(3); return; }
+    if (password !== repeatPassword) { showAlert('Passwords do not match. Please verify both passwords.'); return; }
+    if (!password || password.length < 6) { showAlert('Password must be at least 6 characters long.'); return; }
+
+    pendingRegistrationData = { fullName, email, phone, state, city, pincode, locality, workType, password, role };
+
+    try {
+      setButtonLoading('regBtn', true);
+      clearAlert();
+      showAlert('Creating your account...', false);
+      await BluKaamAuth.register(pendingRegistrationData);
+      BluKaamAuth.showToast('Account created successfully! Welcome to BluKaam.', 'success');
+      const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
+      sessionStorage.removeItem('redirect_after_login');
+      setTimeout(() => { window.location.href = nextUrl; }, 400);
+    } catch (err) {
+      console.error('Registration error:', err);
+      showAlert(err.message || 'Failed to create account. Please try again.');
+      setButtonLoading('regBtn', false);
+    }
+  }
+
+  // ---- Register with Firebase Phone OTP ----
   async function handleRegisterSubmit() {
     const fullName = document.getElementById('regFullName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
@@ -1417,19 +1467,43 @@
     if (password.length < 6) { showAlert('Password must be at least 6 characters long.'); return; }
 
     pendingRegistrationData = { fullName, email, phone, state, city, pincode, locality, workType, password, role };
+    const fullPhoneNumber = `+91${phone}`;
+    pendingPhoneNumber = fullPhoneNumber;
+    currentOtpMode = 'register_firebase_phone';
 
     try {
       setButtonLoading('regBtn', true);
       clearAlert();
-      showAlert('Creating your account...', false);
-      await BluKaamAuth.register(pendingRegistrationData);
-      BluKaamAuth.showToast('Account created successfully! Welcome to BluKaam.', 'success');
-      const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
-      sessionStorage.removeItem('redirect_after_login');
-      setTimeout(() => { window.location.href = nextUrl; }, 400);
+      showAlert('Requesting SMS verification code from Firebase...', false);
+
+      const verifier = getOrCreateRecaptchaVerifier();
+      const confirmationResult = await firebase.auth().signInWithPhoneNumber(fullPhoneNumber, verifier);
+      window.phoneConfirmationResult = confirmationResult;
+      phoneConfirmationResult = confirmationResult;
+
+      showOtpStep('Verify Mobile with Firebase OTP', 'We sent a 6-digit SMS verification code to', fullPhoneNumber);
+      const verifyBtn = document.getElementById('verifyOtpBtn');
+      if (verifyBtn) verifyBtn.querySelector('.btn-text').innerText = 'Verify OTP & Create Account';
+      showAlert(`Firebase SMS code sent to ${fullPhoneNumber}! Check your messages.`, false);
+      startResendCountdown();
     } catch (err) {
-      console.error('Registration error:', err);
-      showAlert(err.message || 'Failed to create account. Please try again.');
+      console.error('Firebase Registration Phone OTP error:', err);
+      if (window.recaptchaVerifier && typeof window.recaptchaVerifier.clear === 'function') {
+        try { window.recaptchaVerifier.clear(); } catch(e) {}
+        window.recaptchaVerifier = null;
+      }
+      if (err.code === 'auth/billing-not-enabled') {
+        showAlert('Firebase requires a billing account to send real SMS. Tip: Add your number under "Phone numbers for testing" in Firebase Console, or click "Or create account directly without SMS code" below.');
+      } else if (err.code === 'auth/invalid-phone-number') {
+        showAlert('Invalid mobile number format. Please check your 10-digit number.');
+      } else if (err.code === 'auth/quota-exceeded') {
+        showAlert('SMS quota temporarily exceeded in Firebase. Please try again later.');
+      } else if (err.code === 'auth/operation-not-allowed') {
+        showAlert('Phone sign-in is disabled in Firebase Console! Please enable Phone under Authentication > Sign-in method.');
+      } else {
+        showAlert(err.message || 'Failed to send Firebase SMS code. Please try again.');
+      }
+    } finally {
       setButtonLoading('regBtn', false);
     }
   }
@@ -1443,31 +1517,52 @@
       setButtonLoading('verifyOtpBtn', true);
       clearAlert();
 
-      if (currentOtpMode === 'phone') {
+      if (currentOtpMode === 'register_firebase_phone' || currentOtpMode === 'phone') {
         const confirmation = window.phoneConfirmationResult || phoneConfirmationResult;
         if (!confirmation) {
-          throw new Error('SMS session expired. Please request a new code.');
+          throw new Error('SMS verification session expired. Please request a new code.');
         }
         showAlert('Verifying SMS code with Firebase...', false);
         const result = await confirmation.confirm(otp);
         const fbUser = result?.user;
-        if (!fbUser) throw new Error('No user returned from phone verification.');
+        if (!fbUser) throw new Error('No user returned from Firebase verification.');
 
+        if (currentOtpMode === 'register_firebase_phone') {
+          // Phone verified by Firebase! Now create MongoDB account with verified status
+          showAlert('Mobile verified! Creating your account...', false);
+          await BluKaamAuth.register({
+            ...pendingRegistrationData,
+            firebaseUid: fbUser.uid,
+            isPhoneVerified: true
+          });
+          BluKaamAuth.showToast('Phone verified & Account created! Welcome to BluKaam.', 'success');
+          const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
+          sessionStorage.removeItem('redirect_after_login');
+          setTimeout(() => { window.location.href = nextUrl; }, 400);
+          return;
+        }
+
+        // Existing user phone login
         const idToken = await fbUser.getIdToken();
         const role = document.getElementById('phoneSelectedRole')?.value || 'Worker';
         const res = await BluKaamAuth.phoneLogin(idToken, role);
         BluKaamAuth.showToast(res.message || 'Logged in with mobile number!', 'success');
+        const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
+        sessionStorage.removeItem('redirect_after_login');
+        setTimeout(() => { window.location.href = nextUrl; }, 400);
       } else if (currentOtpMode === 'login') {
         await BluKaamAuth.verifyLoginOtp(pendingLoginEmail, otp);
         BluKaamAuth.showToast('Logged in successfully!', 'success');
+        const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
+        sessionStorage.removeItem('redirect_after_login');
+        setTimeout(() => { window.location.href = nextUrl; }, 400);
       } else {
         await BluKaamAuth.verifyEmailAndRegister({ ...pendingRegistrationData, otp });
         BluKaamAuth.showToast('Welcome to BluKaam! Your account is ready.', 'success');
+        const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
+        sessionStorage.removeItem('redirect_after_login');
+        setTimeout(() => { window.location.href = nextUrl; }, 400);
       }
-
-      const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
-      sessionStorage.removeItem('redirect_after_login');
-      setTimeout(() => { window.location.href = nextUrl; }, 400);
     } catch (err) {
       console.error('OTP Submit error:', err);
       showAlert(err.message || 'Invalid or expired code. Please try again.');
@@ -1499,6 +1594,10 @@
   async function resendOtp() {
     if (currentOtpMode === 'phone') {
       await sendFirebasePhoneOtp();
+      return;
+    }
+    if (currentOtpMode === 'register_firebase_phone') {
+      await handleRegisterSubmit();
       return;
     }
     const email = currentOtpMode === 'login' ? pendingLoginEmail : (pendingRegistrationData && pendingRegistrationData.email);
