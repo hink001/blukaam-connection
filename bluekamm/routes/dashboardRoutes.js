@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 
 const User = require('../models/User');
 const Profile = require('../models/Profile');
@@ -48,18 +49,34 @@ router.get('/context', authDb, async (req, res) => {
     }
 });
 
-// POST /api/dashboard/confirm-role { role } — one-time, only for accounts that never confirmed
+// POST /api/dashboard/confirm-role { role }
 router.post('/confirm-role', authDb, async (req, res) => {
     const role = req.body.role;
     if (!['Worker', 'Contractor'].includes(role)) return res.status(400).json({ error: 'Role must be Worker or Contractor.' });
-    const result = await User.updateOne(
-        { _id: req.user.userId, roleConfirmed: { $ne: true }, role: { $in: ['Worker', 'Contractor'] } },
-        { $set: { role, roleConfirmed: true } }
-    );
-    if (!result.modifiedCount) return res.status(409).json({ error: 'Your role is already confirmed and cannot be changed here.' });
-    await Profile.updateOne({ userId: req.user.userId }, { $set: { role } });
+    if (mongoose.connection.readyState === 1) {
+        await User.updateOne(
+            { _id: req.user.userId },
+            { $set: { role, roleConfirmed: true } }
+        );
+        await Profile.updateOne({ userId: req.user.userId }, { $set: { role } });
+    }
     const token = jwt.sign({ userId: req.user.userId, email: req.user.email, role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ message: 'Role confirmed.', role, token });
+});
+
+// POST /api/dashboard/switch-role { role }
+router.post('/switch-role', authDb, async (req, res) => {
+    const role = req.body.role;
+    if (!['Worker', 'Contractor'].includes(role)) return res.status(400).json({ error: 'Role must be Worker or Contractor.' });
+    if (mongoose.connection.readyState === 1) {
+        await User.updateOne(
+            { _id: req.user.userId },
+            { $set: { role, roleConfirmed: true } }
+        );
+        await Profile.updateOne({ userId: req.user.userId }, { $set: { role } });
+    }
+    const token = jwt.sign({ userId: req.user.userId, email: req.user.email, role }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ message: `Switched to ${role} dashboard.`, role, token });
 });
 
 // GET /api/dashboard/summary

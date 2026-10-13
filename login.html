@@ -1024,6 +1024,11 @@
   window.addEventListener('DOMContentLoaded', () => {
     populateStates();
     initGoogleAuth();
+    const roleParam = urlParams.get('role');
+    if (roleParam) {
+      const normalizedRole = roleParam.toLowerCase() === 'contractor' ? 'Contractor' : 'Worker';
+      selectRole(normalizedRole);
+    }
     if (urlParams.get('action') === 'register') {
       switchAuthTab('register');
     } else if (urlParams.get('mode') === 'otp' || urlParams.get('mode') === 'email-otp') {
@@ -1596,7 +1601,8 @@
 
       const res = await BluKaamAuth.googleLogin(idToken, role);
       BluKaamAuth.showToast(res.message || 'Signed in with Google!', 'success');
-      const nextUrl = getRoleDashboardUrl(role);
+      const finalRole = (res.user && res.user.role) || role;
+      const nextUrl = getRoleDashboardUrl(finalRole);
       setTimeout(() => { window.location.href = nextUrl; }, 350);
     } catch (err) {
       console.error('Google sign-in error:', err);
