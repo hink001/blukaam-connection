@@ -35,6 +35,11 @@ const followRoutes = require('./routes/followRoutes');
 const blockRoutes = require('./routes/blockRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const userRoutes = require('./routes/userRoutes');
+const jobRoutes = require('./routes/jobRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
+const offerRoutes = require('./routes/offerRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const { expireOffers, sendOfferReminders } = require('./services/offerService');
 const { isCloudinaryConfigured } = require('./services/cloudinary');
 const { apiLimiter, authLimiter, otpLimiter, socialWriteLimiter } = require('./middleware/security'); // Phase 4: Security hardening
 
@@ -52,7 +57,13 @@ app.use(helmet({
 }));
 
 // Middleware
-app.use(cors());
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
+    'https://blukaam-connection-afa4a.web.app,https://blukaam-connection-afa4a.firebaseapp.com,https://blukaam-connection.onrender.com,https://blukaamconnection.com,https://www.blukaamconnection.com,http://localhost:3000,http://127.0.0.1:3000'
+).split(',').map(o => o.trim()).filter(Boolean);
+app.use(cors({
+    origin: (origin, cb) => (!origin || ALLOWED_ORIGINS.includes(origin)) ? cb(null, true) : cb(new Error('Origin not allowed by CORS')),
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -213,6 +224,12 @@ app.use('/api/follows', followRoutes);
 app.use('/api/blocks', blockRoutes);
 app.use('/api/reports', reportRoutes);
 
+// --- Marketplace: jobs, applications, offers, role dashboards --- //
+app.use('/api/jobs', jobRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/offers', offerRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+
 // --- Legacy OTP Routes (Retained for compatibility) --- //
 const Otp = require('./models/Otp');
 const jwt = require('jsonwebtoken');
@@ -331,6 +348,17 @@ app.post('/api/general', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
+// Offer expiry & reminders run on the backend so they do not depend on any browser being open.
+if (process.env.NODE_ENV !== 'test') {
+    setInterval(async () => {
+        if (mongoose.connection.readyState !== 1) return;
+        try { await expireOffers(); await sendOfferReminders(); } catch (e) { console.error('offer scheduler:', e.message); }
+    }, 60 * 1000).unref();
+}
+
+// Root server.js requires this file, so don't rely on require.main; tests opt out explicitly.
+if (process.env.BLUKAAM_NO_LISTEN !== '1') app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+module.exports = app;

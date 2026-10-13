@@ -95,6 +95,18 @@ const ProfileSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    // --- Marketplace fields (workers) ---
+    expectedWage: { type: Number, default: 0, min: 0 },
+    wageType: { type: String, enum: ['', 'daily', 'monthly', 'negotiable'], default: '' },
+    serviceArea: { type: String, trim: true, default: '' },
+    languages: { type: [String], default: [] },
+    workSamples: { type: [String], default: [] },
+    // --- Marketplace fields (contractors) ---
+    workTypes: { type: [String], default: [] },
+    workerCategories: { type: [String], default: [] },
+    yearsInBusiness: { type: Number, default: 0, min: 0 },
+    website: { type: String, trim: true, default: '' },
+
     isVerified: {
         type: Boolean,
         default: false

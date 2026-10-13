@@ -410,6 +410,17 @@
   <script src="auth-profile.js"></script>
   <script src="social-sdk.js"></script>
   <script>
+    /* Role routing: each account type has its own dashboard (blue = Worker, green = Contractor).
+       This page remains available as the classic profile/social view via dashboard.html?view=profile */
+    (function () {
+      if (new URLSearchParams(location.search).get('view') === 'profile') return;
+      if (!window.BluKaamAuth || !BluKaamAuth.isAuthenticated()) return;
+      BluKaamAuth.request('/dashboard/context').then(function (c) {
+        location.replace(c.role === 'Contractor' ? 'contractor-dashboard.html' : 'worker-dashboard.html');
+      }).catch(function () { /* backend unreachable: stay on the classic dashboard */ });
+    })();
+  </script>
+  <script>
     // Enforce Authentication
     BluKaamAuth.requireAuth('login.html');
 

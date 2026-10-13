@@ -12,7 +12,18 @@ const NotificationSchema = new mongoose.Schema({
             'post_comment',
             'post_share',
             'new_message',
-            'message'
+            'message',
+            'application_submitted',
+            'application_shortlisted',
+            'application_rejected',
+            'offer_received',
+            'offer_accepted',
+            'offer_declined',
+            'offer_expired',
+            'offer_reminder',
+            'job_changed',
+            'job_filled',
+            'new_matching_job'
         ],
         required: true
     },

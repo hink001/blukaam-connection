@@ -1,0 +1,55 @@
+/* BluKaam marketplace dashboards. Worker = blue, Contractor = green. Loaded after style.css. */
+body.theme-worker { --mk-primary:#2563EB; --mk-primary-dark:#1D4ED8; --mk-light:#EFF6FF; --mk-border:#BFDBFE; --mk-ink:#1E3A8A; }
+body.theme-contractor { --mk-primary:#16A34A; --mk-primary-dark:#15803D; --mk-light:#F0FDF4; --mk-border:#BBF7D0; --mk-ink:#14532D; }
+body.mk { background: var(--mk-light); margin:0; font-family: var(--font-sans, system-ui, sans-serif); color:#1E293B; }
+.mk-top { background:#fff; border-bottom:3px solid var(--mk-primary); display:flex; align-items:center; gap:12px; padding:10px 18px; position:sticky; top:0; z-index:20; }
+.mk-top img { height:34px; }
+.mk-brand { font-family: var(--font-heading, inherit); font-weight:800; color:var(--mk-ink); }
+.mk-role-pill { background:var(--mk-primary); color:#fff; border-radius:999px; padding:3px 12px; font-size:12px; font-weight:700; }
+.mk-spacer { flex:1; }
+.mk-layout { display:grid; grid-template-columns:230px 1fr; gap:20px; max-width:1200px; margin:20px auto 60px; padding:0 16px; align-items:start; }
+.mk-nav { background:#fff; border:1px solid var(--mk-border); border-radius:14px; padding:8px; position:sticky; top:72px; }
+.mk-nav button { display:flex; width:100%; align-items:center; justify-content:space-between; gap:8px; background:none; border:0; text-align:left; padding:11px 12px; border-radius:10px; font-weight:600; font-size:14px; color:#475569; cursor:pointer; }
+.mk-nav button:hover { background:var(--mk-light); }
+.mk-nav button.active { background:var(--mk-primary); color:#fff; }
+.mk-badge { background:#dc2626; color:#fff; border-radius:999px; font-size:11px; padding:1px 7px; font-weight:800; }
+.mk-card { background:#fff; border:1px solid var(--mk-border); border-radius:14px; padding:18px; margin-bottom:16px; }
+.mk-card h2, .mk-card h3 { margin:0 0 10px; color:var(--mk-ink); font-family: var(--font-heading, inherit); }
+.mk-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+.mk-stat { background:var(--mk-light); border:1px solid var(--mk-border); border-radius:12px; padding:14px; }
+.mk-stat b { display:block; font-size:26px; color:var(--mk-primary-dark); }
+.mk-stat span { font-size:12.5px; color:#475569; }
+.mk-btn { background:var(--mk-primary); color:#fff; border:0; border-radius:10px; padding:9px 16px; font-weight:700; cursor:pointer; font-size:14px; }
+.mk-btn:hover { background:var(--mk-primary-dark); }
+.mk-btn:disabled { opacity:.55; cursor:not-allowed; }
+.mk-btn.ghost { background:#fff; color:var(--mk-primary-dark); border:1.5px solid var(--mk-primary); }
+.mk-btn.danger { background:#dc2626; }
+.mk-btn.sm { padding:6px 12px; font-size:13px; }
+.mk-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.mk-form { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+.mk-form label { font-size:13px; font-weight:600; color:#334155; display:flex; flex-direction:column; gap:4px; }
+.mk-form .full { grid-column:1/-1; }
+.mk-form input, .mk-form select, .mk-form textarea, .mk-filters input, .mk-filters select { border:1px solid #CBD5E1; border-radius:9px; padding:9px 11px; font:inherit; background:#fff; }
+.mk-form input:focus, .mk-form select:focus, .mk-form textarea:focus, .mk-filters input:focus { outline:2px solid var(--mk-border); border-color:var(--mk-primary); }
+.mk-filters { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+.mk-item { border:1px solid #E2E8F0; border-radius:12px; padding:14px; margin-bottom:10px; background:#fff; }
+.mk-item h4 { margin:0 0 4px; color:var(--mk-ink); }
+.mk-muted { color:#64748B; font-size:13px; }
+.mk-tags span { display:inline-block; background:var(--mk-light); border:1px solid var(--mk-border); color:var(--mk-ink); border-radius:999px; padding:2px 10px; font-size:12px; margin:2px 4px 2px 0; }
+.mk-status { border-radius:999px; padding:2px 10px; font-size:12px; font-weight:700; background:#E2E8F0; color:#334155; }
+.mk-status.pending, .mk-status.paused { background:#FEF3C7; color:#92400E; }
+.mk-status.shortlisted, .mk-status.offer_sent, .mk-status.active { background:var(--mk-light); color:var(--mk-ink); border:1px solid var(--mk-border); }
+.mk-status.accepted, .mk-status.filled { background:#DCFCE7; color:#166534; }
+.mk-status.rejected, .mk-status.declined, .mk-status.cancelled, .mk-status.expired, .mk-status.closed, .mk-status.withdrawn { background:#FEE2E2; color:#991B1B; }
+.mk-empty { text-align:center; color:#64748B; padding:28px 10px; }
+.mk-modal-bg { position:fixed; inset:0; background:rgba(15,23,42,.55); display:flex; align-items:center; justify-content:center; z-index:50; padding:16px; }
+.mk-modal { background:#fff; border-radius:16px; padding:22px; max-width:560px; width:100%; max-height:90vh; overflow:auto; border-top:5px solid var(--mk-primary); }
+.mk-err { color:#b91c1c; font-size:13px; margin-top:6px; }
+.mk-notif.unread { background:var(--mk-light); border-left:4px solid var(--mk-primary); }
+.mk-menu-btn { display:none; }
+@media (max-width: 800px) {
+  .mk-layout { grid-template-columns:1fr; }
+  .mk-nav { position:static; display:flex; overflow-x:auto; gap:4px; }
+  .mk-nav button { white-space:nowrap; width:auto; }
+}
+:focus-visible { outline:3px solid var(--mk-primary); outline-offset:2px; }
