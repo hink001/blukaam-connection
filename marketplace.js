@@ -77,14 +77,33 @@ const MK = (() => {
 
     // ----- shell -----
     function shell(ctx, sections, roleLabel) {
+        const otherRole = ctx.role === 'Contractor' ? 'Worker' : 'Contractor';
+        const otherIcon = ctx.role === 'Contractor' ? '👷' : '🏢';
         document.body.innerHTML = `
           <header class="mk-top"><a href="index.html"><img src="logo-emblem.png" alt="BluKaam" onerror="this.style.display='none'"></a>
             <span class="mk-brand">BluKaam Connection</span><span class="mk-role-pill">${esc(roleLabel)}</span><span class="mk-spacer"></span>
             <span class="mk-muted">${esc(ctx.profile?.fullName || '')}</span>
+            <button class="mk-btn sm" id="mkSwitchRole" style="background:#0284C7; color:#fff; border:none; margin-right:8px; font-size:12px; padding:6px 12px; cursor:pointer;" title="Switch dashboard role">${otherIcon} Switch to ${otherRole}</button>
             <button class="mk-btn ghost sm" id="mkLogout">Log out</button></header>
           <div class="mk-layout"><nav class="mk-nav" aria-label="Dashboard">${sections.map(s => `<button data-s="${s.id}">${esc(s.label)}<span class="mk-badge" id="badge-${s.id}" style="display:none"></span></button>`).join('')}</nav>
             <main id="mkMain" aria-live="polite"></main></div>`;
         document.getElementById('mkLogout').onclick = () => BluKaamAuth.logout();
+        const sw = document.getElementById('mkSwitchRole');
+        if (sw) {
+            sw.onclick = async () => {
+                const ok = await confirmBox(`Do you want to switch your active dashboard to ${otherRole}?`);
+                if (!ok) return;
+                try {
+                    const r = await post('/dashboard/switch-role', { role: otherRole });
+                    localStorage.setItem(BluKaamAuth.TOKEN_KEY, r.token);
+                    const u = BluKaamAuth.getUser() || {};
+                    u.role = otherRole;
+                    localStorage.setItem(BluKaamAuth.USER_KEY, JSON.stringify(u));
+                    toast(`Switched to ${otherRole} view!`, 'success');
+                    setTimeout(() => location.replace(otherRole === 'Contractor' ? 'contractor-dashboard.html' : 'worker-dashboard.html'), 300);
+                } catch(e) { toast(e.message || 'Failed to switch role', 'error'); }
+            };
+        }
         const go = (id) => {
             const sec = sections.find(s => s.id === id) || sections[0];
             document.querySelectorAll('.mk-nav button').forEach(b => b.classList.toggle('active', b.dataset.s === sec.id));
