@@ -1016,13 +1016,25 @@
   // AUTH PAGE CONTROLLER
   // =====================================================
 
+  function getRoleDashboardUrl(fallbackRole) {
+    const saved = sessionStorage.getItem('redirect_after_login');
+    if (saved && !saved.endsWith('dashboard.html') && !saved.includes('dashboard.html?')) {
+      sessionStorage.removeItem('redirect_after_login');
+      return saved;
+    }
+    sessionStorage.removeItem('redirect_after_login');
+    const u = BluKaamAuth.getUser();
+    const role = (u && u.role) || fallbackRole || 'Worker';
+    return role === 'Contractor' ? 'contractor-dashboard.html' : 'worker-dashboard.html';
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('logout') === 'true') {
     localStorage.removeItem(BluKaamAuth.TOKEN_KEY);
     localStorage.removeItem(BluKaamAuth.USER_KEY);
     localStorage.removeItem(BluKaamAuth.PROFILE_KEY);
   } else if (!urlParams.get('action') && BluKaamAuth.isAuthenticated()) {
-    window.location.href = 'dashboard.html';
+    window.location.href = getRoleDashboardUrl();
   }
 
   let pendingRegistrationData = null;
@@ -1203,8 +1215,7 @@
       clearAlert();
       await BluKaamAuth.login(email, password);
       BluKaamAuth.showToast('Logged in successfully!', 'success');
-      const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
-      sessionStorage.removeItem('redirect_after_login');
+      const nextUrl = getRoleDashboardUrl();
       setTimeout(() => { window.location.href = nextUrl; }, 300);
     } catch (err) {
       showAlert(err.message || 'Login failed. Please check your email and password.');
@@ -1434,8 +1445,7 @@
       showAlert('Creating your account...', false);
       await BluKaamAuth.register(pendingRegistrationData);
       BluKaamAuth.showToast('Account created successfully! Welcome to BluKaam.', 'success');
-      const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
-      sessionStorage.removeItem('redirect_after_login');
+      const nextUrl = getRoleDashboardUrl(pendingRegistrationData?.role);
       setTimeout(() => { window.location.href = nextUrl; }, 400);
     } catch (err) {
       console.error('Registration error:', err);
@@ -1536,8 +1546,7 @@
             isPhoneVerified: true
           });
           BluKaamAuth.showToast('Phone verified & Account created! Welcome to BluKaam.', 'success');
-          const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
-          sessionStorage.removeItem('redirect_after_login');
+          const nextUrl = getRoleDashboardUrl(pendingRegistrationData?.role);
           setTimeout(() => { window.location.href = nextUrl; }, 400);
           return;
         }
@@ -1547,20 +1556,17 @@
         const role = document.getElementById('phoneSelectedRole')?.value || 'Worker';
         const res = await BluKaamAuth.phoneLogin(idToken, role);
         BluKaamAuth.showToast(res.message || 'Logged in with mobile number!', 'success');
-        const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
-        sessionStorage.removeItem('redirect_after_login');
+        const nextUrl = getRoleDashboardUrl(role);
         setTimeout(() => { window.location.href = nextUrl; }, 400);
       } else if (currentOtpMode === 'login') {
         await BluKaamAuth.verifyLoginOtp(pendingLoginEmail, otp);
         BluKaamAuth.showToast('Logged in successfully!', 'success');
-        const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
-        sessionStorage.removeItem('redirect_after_login');
+        const nextUrl = getRoleDashboardUrl();
         setTimeout(() => { window.location.href = nextUrl; }, 400);
       } else {
         await BluKaamAuth.verifyEmailAndRegister({ ...pendingRegistrationData, otp });
         BluKaamAuth.showToast('Welcome to BluKaam! Your account is ready.', 'success');
-        const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
-        sessionStorage.removeItem('redirect_after_login');
+        const nextUrl = getRoleDashboardUrl(pendingRegistrationData?.role);
         setTimeout(() => { window.location.href = nextUrl; }, 400);
       }
     } catch (err) {
@@ -1730,8 +1736,7 @@
 
       const res = await BluKaamAuth.googleLogin(idToken, role);
       BluKaamAuth.showToast(res.message || 'Signed in with Google!', 'success');
-      const nextUrl = sessionStorage.getItem('redirect_after_login') || 'dashboard.html';
-      sessionStorage.removeItem('redirect_after_login');
+      const nextUrl = getRoleDashboardUrl(role);
       setTimeout(() => { window.location.href = nextUrl; }, 350);
     } catch (err) {
       console.error('Google sign-in error:', err);

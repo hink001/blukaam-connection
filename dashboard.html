@@ -20,6 +20,23 @@
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="social.css">
+  <script>
+    /* Instant Role Routing: redirect before body renders unless ?view=profile is explicitly requested */
+    (function () {
+      if (new URLSearchParams(location.search).get('view') === 'profile') return;
+      try {
+        var u = JSON.parse(localStorage.getItem('blukaam_user') || '{}');
+        if (u && u.role === 'Contractor') {
+          location.replace('contractor-dashboard.html');
+          return;
+        }
+        if (u && (u.role === 'Worker' || localStorage.getItem('blukaam_token'))) {
+          location.replace('worker-dashboard.html');
+          return;
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 
 <body style="background: var(--off-white);">
