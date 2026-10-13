@@ -844,7 +844,9 @@ router.post('/verify-email-register', async (req, res) => {
             industry = '',
             workType = '',
             city = '',
-            state = ''
+            state = '',
+            pincode = '',
+            locality = ''
         } = req.body;
 
         if (!email || !otp || !password || !fullName) {
@@ -857,6 +859,7 @@ router.post('/verify-email-register', async (req, res) => {
 
         const normalizedEmail = email.trim().toLowerCase();
         const trimmedOtp = otp.toString().trim();
+        const tradeOrIndustry = (industry || workType || '').trim();
 
         // 1. Verify OTP
         let isValidOtp = false;
@@ -897,15 +900,17 @@ router.post('/verify-email-register', async (req, res) => {
                 userId: savedUser._id,
                 fullName: fullName.trim(),
                 name: fullName.trim(),
-                headline: `${role === 'Contractor' ? 'Contractor & Builder' : 'Skilled Worker'} in ${city || 'India'}`,
+                headline: `${role === 'Contractor' ? 'Contractor & Builder' : 'Skilled Worker'} in ${(city || 'India').trim()}`,
                 role: savedUser.role,
-                industry: industry.trim(),
-                workType: workType.trim(),
-                location: { city: city.trim(), state: state.trim(), country: 'India' },
-                city: city.trim(),
-                state: state.trim(),
-                contactInfo: { email: normalizedEmail, phone: phone.trim() },
-                phone: phone.trim(),
+                industry: tradeOrIndustry,
+                workType: (workType || tradeOrIndustry).trim(),
+                location: { city: (city || '').trim(), state: (state || '').trim(), locality: (locality || '').trim(), pincode: (pincode || '').trim(), country: 'India' },
+                city: (city || '').trim(),
+                state: (state || '').trim(),
+                pincode: (pincode || '').trim(),
+                locality: (locality || '').trim(),
+                contactInfo: { email: normalizedEmail, phone: (phone || '').trim() },
+                phone: (phone || '').trim(),
                 email: normalizedEmail,
                 isVerified: true,
                 avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName.trim())}&backgroundColor=0D2F6E&textColor=ffffff`
@@ -961,18 +966,19 @@ router.post('/verify-email-register', async (req, res) => {
                 userId: userId,
                 fullName: fullName.trim(),
                 name: fullName.trim(),
-                headline: `${role === 'Contractor' ? 'Contractor & Builder' : 'Skilled Worker'} in ${city || 'India'}`,
+                headline: `${role === 'Contractor' ? 'Contractor & Builder' : 'Skilled Worker'} in ${(city || 'India').trim()}`,
                 bio: '',
                 role: offlineUser.role,
-                industry: industry.trim(),
-                workType: workType.trim(),
+                industry: tradeOrIndustry,
+                workType: (workType || tradeOrIndustry).trim(),
                 skills: [],
-                location: { city: city.trim(), state: state.trim(), country: 'India', pincode: '' },
-                city: city.trim(),
-                state: state.trim(),
-                pincode: '',
-                contactInfo: { email: normalizedEmail, phone: phone.trim() },
-                phone: phone.trim(),
+                location: { city: (city || '').trim(), state: (state || '').trim(), locality: (locality || '').trim(), pincode: (pincode || '').trim(), country: 'India' },
+                city: (city || '').trim(),
+                state: (state || '').trim(),
+                pincode: (pincode || '').trim(),
+                locality: (locality || '').trim(),
+                contactInfo: { email: normalizedEmail, phone: (phone || '').trim() },
+                phone: (phone || '').trim(),
                 email: normalizedEmail,
                 isVerified: true,
                 avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName.trim())}&backgroundColor=0D2F6E&textColor=ffffff`,
