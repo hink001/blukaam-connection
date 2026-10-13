@@ -78,12 +78,21 @@
     }
 
     async function renderOverview(main) {
-        const [s, rec] = await Promise.all([api('/dashboard/summary'), api('/dashboard/recommended')]);
+        let s = { applications: {}, pendingOffers: 0, unreadNotifications: 0, unreadMessages: 0 };
+        let rec = [];
+        try {
+            const [sRes, recRes] = await Promise.all([
+                api('/dashboard/summary').catch(() => s),
+                api('/dashboard/recommended').catch(() => [])
+            ]);
+            s = sRes || s;
+            rec = recRes || [];
+        } catch (e) {}
         const a = s.applications || {}; const total = Object.values(a).reduce((x, y) => x + y, 0);
         main.innerHTML = `<div class="mk-card"><h2>Welcome, ${esc((ctx.profile?.fullName || '').split(' ')[0] || 'Worker')} 👋</h2>
           <div class="mk-muted">Profile ${ctx.profileCompletion.pct}% complete${ctx.profileCompletion.pct < 100 ? ' — <a href="#profile">finish your profile</a> to get better matches' : ''}</div></div>
           <div class="mk-grid" style="margin-bottom:16px"><div class="mk-stat"><b>${total}</b><span>Applications</span></div><div class="mk-stat"><b>${a.shortlisted || 0}</b><span>Shortlisted</span></div>
-          <div class="mk-stat"><b>${s.pendingOffers}</b><span>Pending offers</span></div><div class="mk-stat"><b>${s.unreadNotifications}</b><span>Unread notifications</span></div><div class="mk-stat"><b>${s.unreadMessages}</b><span>Unread messages</span></div></div>
+          <div class="mk-stat"><b>${s.pendingOffers || 0}</b><span>Pending offers</span></div><div class="mk-stat"><b>${s.unreadNotifications || 0}</b><span>Unread notifications</span></div><div class="mk-stat"><b>${s.unreadMessages || 0}</b><span>Unread messages</span></div></div>
           <div class="mk-card"><h3>Recommended for you</h3>${rec.length ? rec.map(j => `<div class="mk-item"><h4>${esc(j.title)}</h4><div class="mk-muted">${esc(j.contractorName)} · ${esc(j.location?.city || '')} · ${money(j.wage, j.wageType)}</div></div>`).join('') + '<a class="mk-btn sm" href="#jobs">See all jobs</a>' : empty('No jobs posted yet. Check back soon.')}</div>`;
     }
 

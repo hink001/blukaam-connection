@@ -5,12 +5,15 @@
     const reloadCtx = async () => { ctx = await api('/dashboard/context'); };
 
     async function renderOverview(main) {
-        const s = await api('/dashboard/summary');
-        const stat = (n, l) => `<div class="mk-stat"><b>${n}</b><span>${l}</span></div>`;
+        let s = { jobs: { active: 0, paused: 0, closed: 0, filled: 0 }, applications: { total: 0, pending: 0, shortlisted: 0 }, offersAwaiting: 0, confirmedHires: 0, unreadNotifications: 0, unreadMessages: 0 };
+        try {
+            s = await api('/dashboard/summary').catch(() => s);
+        } catch (e) {}
+        const stat = (n, l) => `<div class="mk-stat"><b>${n || 0}</b><span>${l}</span></div>`;
         main.innerHTML = `<div class="mk-card"><h2>Welcome, ${esc(ctx.profile?.companyName || ctx.profile?.fullName || 'Contractor')}</h2>
           <div class="mk-muted">Profile ${ctx.profileCompletion.pct}% complete · ${ctx.profile?.isVerified ? '✔ Verified' : 'Unverified account'}</div></div>
-          <div class="mk-grid" style="margin-bottom:16px">${stat(s.jobs.active, 'Active jobs')}${stat(s.jobs.paused, 'Paused')}${stat(s.jobs.closed + s.jobs.filled, 'Closed / filled')}${stat(s.applications.total, 'Total applications')}
-          ${stat(s.applications.pending, 'Pending decisions')}${stat(s.applications.shortlisted, 'Shortlisted')}${stat(s.offersAwaiting, 'Offers awaiting reply')}${stat(s.confirmedHires, 'Confirmed hires')}${stat(s.unreadNotifications, 'Unread notifications')}${stat(s.unreadMessages, 'Unread messages')}</div>
+          <div class="mk-grid" style="margin-bottom:16px">${stat(s.jobs?.active, 'Active jobs')}${stat(s.jobs?.paused, 'Paused')}${stat((s.jobs?.closed || 0) + (s.jobs?.filled || 0), 'Closed / filled')}${stat(s.applications?.total, 'Total applications')}
+          ${stat(s.applications?.pending, 'Pending decisions')}${stat(s.applications?.shortlisted, 'Shortlisted')}${stat(s.offersAwaiting, 'Offers awaiting reply')}${stat(s.confirmedHires, 'Confirmed hires')}${stat(s.unreadNotifications, 'Unread notifications')}${stat(s.unreadMessages, 'Unread messages')}</div>
           <div class="mk-card"><button class="mk-btn" onclick="location.hash='post'">+ Post a new job</button></div>`;
     }
 

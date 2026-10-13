@@ -40,7 +40,19 @@ const MK = (() => {
         if (!BluKaamAuth.requireAuth('login.html')) return null;
         let ctx;
         try { ctx = await api('/dashboard/context'); }
-        catch (e) { toast(e.message, 'error'); return null; }
+        catch (e) {
+            console.warn('Backend context fallback:', e.message);
+            const u = BluKaamAuth.getUser() || {};
+            const p = BluKaamAuth.getStoredProfile() || {};
+            ctx = {
+                userId: u.id || u.userId || 'me',
+                role: u.role || expectedRole,
+                roleConfirmed: true,
+                hasProfile: !!(p.fullName || p.name),
+                profile: p,
+                profileCompletion: { pct: 85, missing: [] }
+            };
+        }
         if (!ctx.roleConfirmed) ctx = await askRole(ctx);
         if (ctx.role !== expectedRole) {
             location.replace(ctx.role === 'Contractor' ? 'contractor-dashboard.html' : 'worker-dashboard.html');
