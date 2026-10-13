@@ -72,6 +72,20 @@ async function areConnected(userA, userB) {
     }
 }
 
+
+// A worker and contractor may message once an application exists between them (not withdrawn/cancelled).
+async function hasJobRelationship(userA, userB) {
+    if (!isMongo()) return false;
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(userA) || !mongoose.Types.ObjectId.isValid(userB)) return false;
+    const Application = require('../models/Application');
+    const found = await Application.exists({
+        status: { $nin: ['withdrawn', 'cancelled'] },
+        $or: [{ workerId: userA, contractorId: userB }, { workerId: userB, contractorId: userA }]
+    });
+    return !!found;
+}
+
 // --------------------------------------------------------
 // POST /api/messages/send/:userId
 // Contractors and workers must be connected before they can message each other,
@@ -92,51 +106,12 @@ router.post('/send/:userId', authMiddleware, async (req, res) => {
             return res.status(403).json({ error: 'Cannot send message due to block restrictions.' });
         }
 
-        // Check and establish connection so users can message each other seamlessly
+        // Authorization: users may message only when they are connected OR share a job
+        // relationship (an application/offer between this worker and contractor).
+        // (Previously a connection was silently auto-created for any pair of users.)
         const connected = await areConnected(senderId, recipientId);
-        if (!connected) {
-            if (isMongo()) {
-                const existing = await Connection.findOne({
-                    $or: [
-                        { requesterId: senderId, recipientId },
-                        { requesterId: recipientId, recipientId: senderId }
-                    ]
-                });
-                if (existing) {
-                    existing.status = 'accepted';
-                    existing.respondedAt = new Date();
-                    await existing.save();
-                } else {
-                    await Connection.create({
-                        requesterId: senderId,
-                        recipientId,
-                        status: 'accepted',
-                        respondedAt: new Date()
-                    });
-                }
-            } else {
-                const db = getOfflineDb();
-                if (!db.connections) db.connections = [];
-                const existing = db.connections.find(c =>
-                    (c.requesterId === senderId && c.recipientId === recipientId) ||
-                    (c.requesterId === recipientId && c.recipientId === senderId)
-                );
-                if (existing) {
-                    existing.status = 'accepted';
-                    existing.respondedAt = new Date().toISOString();
-                } else {
-                    db.connections.push({
-                        _id: 'conn_' + Date.now(),
-                        requesterId: senderId,
-                        recipientId,
-                        status: 'accepted',
-                        respondedAt: new Date().toISOString(),
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                    });
-                }
-                saveOfflineDb(db);
-            }
+        if (!connected && !(await hasJobRelationship(senderId, recipientId))) {
+            return res.status(403).json({ error: 'You can message this person after a job application or connection exists between you.' });
         }
 
         const messageData = {

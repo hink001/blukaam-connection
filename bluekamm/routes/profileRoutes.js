@@ -76,7 +76,7 @@ router.get('/me', authMiddleware, async (req, res) => {
 router.put('/me', authMiddleware, async (req, res) => {
     try {
         const { userId } = req.user;
-        const updates = req.body;
+        const updates = require('../utils/sanitize').cleanObjectStrings(req.body || {});
 
         const allowedUpdates = [
             'fullName',
@@ -90,7 +90,16 @@ router.put('/me', authMiddleware, async (req, res) => {
             'companyName',
             'experienceYears',
             'availability',
-            'bannerUrl'
+            'bannerUrl',
+            'expectedWage',
+            'wageType',
+            'serviceArea',
+            'languages',
+            'workSamples',
+            'workTypes',
+            'workerCategories',
+            'yearsInBusiness',
+            'website'
         ];
 
         const changedKeys = [];

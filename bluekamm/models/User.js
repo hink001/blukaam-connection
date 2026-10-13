@@ -26,6 +26,10 @@ const UserSchema = new mongoose.Schema({
         sparse: true,
         index: true
     },
+    roleConfirmed: {
+        type: Boolean,
+        default: true   // legacy accounts lack this field and are asked to confirm their role once
+    },
     isActive: {
         type: Boolean,
         default: true
